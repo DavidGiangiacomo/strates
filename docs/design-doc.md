@@ -2,7 +2,7 @@
 
 *Concept n°7 du document « Douze concepts de jeux incrémentaux ».*
 *Format visé : **jeu long, 18 à 25 h**, multi-sessions, **prestige structurel** (la descente), hors-ligne oui. Références de cadrage : Kittens Game et Antimatter Dimensions (la durée, les couches de systèmes), Universal Paperclips (le changement de grammaire en cours de route), Outer Wilds (le plaisir d'archéologue).*
-*Révisions : D-002, modèle des artefacts ; D-003, valeur convertible de chaque strate (24 septembre 2026). Le détail des décisions est dans `docs/decisions.md`.*
+*Révisions : D-002, modèle des artefacts ; D-003, valeur convertible de chaque strate ; D-005, sauvegarde et horloge (24 septembre 2026). Le détail des décisions est dans `docs/decisions.md`.*
 
 ---
 
@@ -201,6 +201,8 @@ C'est l'écho direct de la thèse de *La langue morte* — **le vrai upgrade est
 
 80 %, plafond 12 h, sauf strate 7 (100 %, sans plafond — la sédimentation est du temps réel, c'est sa nature) et strate 6 (**les échéances tombent hors ligne** : revenir après deux jours peut signifier revenir en défaut ; annoncé explicitement à l'entrée de la strate).
 
+L'horloge du joueur fait foi, avec deux garde-fous : un recul de l'horloge compte pour zéro, et reculer puis avancer ne fait rien gagner. Un recul constaté laisse une trace dans la coupe, « stratigraphie perturbée », sans autre conséquence (décision D-005).
+
 ---
 
 ## 10. Arc narratif — huit couches
@@ -232,7 +234,7 @@ Au fond, deux options :
 
 Pas de score. La seule statistique affichée en fin de partie est la Profondeur : **8**.
 
-**Épilogue (après *Remonter*)** — « La coupe » : une vue verticale unique des huit strates, avec pour chacune la durée qu'on y a passée, le seuil franchi, les artefacts abandonnés. Une image, une page. C'est aussi le meilleur visuel de communication du jeu et il ne coûte presque rien.
+**Épilogue (après *Remonter*)** — « La coupe » : une vue verticale unique des huit strates, avec pour chacune la durée qu'on y a passée, le seuil franchi, les artefacts abandonnés, et la mention « stratigraphie perturbée » si l'horloge y a été reculée. Une image, une page. C'est aussi le meilleur visuel de communication du jeu et il ne coûte presque rien.
 
 ---
 
@@ -280,7 +282,7 @@ Un mois, pas un week-end — c'est la contrainte de ce concept :
 
 - **Architecture en modules.** Chaque strate est un module autonome : son état, son tick, son rendu, ses règles. Le noyau ne connaît que `{ profondeur, artefacts[], κ, meta }`. Ne jamais factoriser les boucles entre strates « pour économiser » : c'est ainsi que sept jeux redeviennent un seul.
 - La conversion en artefacts se fait dans le noyau, pas dans les modules : une seule fonction transforme la valeur convertible exposée par le module en points de fouille, et l'écran de choix est lui aussi générique. Le catalogue est une donnée du noyau (la table des artefacts).
-- Sauvegarde : un objet par strate, conservé même après la descente (nécessaire pour la remontée finale et pour la coupe).
+- Sauvegarde : un objet par strate, conservé même après la descente (nécessaire pour la remontée finale et pour la coupe). Chaque module versionne son propre état ; format, stockage, migrations et règles d'horloge sont décrits dans la décision D-005.
 - L'opacité d'interface est une couche de rendu générique (labels remplacés par des glyphes, valeurs masquées) paramétrée par κ — écrite une fois, réutilisée huit fois. C'est la seule vraie mutualisation possible.
 - Strate 7 : la sédimentation doit être calculée à partir de l'horodatage, pas du temps de session, y compris sur des semaines.
 

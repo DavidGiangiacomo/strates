@@ -161,12 +161,101 @@ sim/            simulateur d'équilibrage (Node)
 
 ---
 
+## D-005 — Stratégie de sauvegarde
+
+- **Date** : 2026-09-24
+- **Statut** : active
+- **Origine** : issue [#9](https://github.com/DavidGiangiacomo/strates/issues/9)
+
+**Contexte.** Une partie dure de 18 à 25 h, étalées sur des semaines. Elle sort par tranches (R2) : les sauvegardes doivent survivre aux mises à jour. Chaque strate garde son état après la descente, pour la remontée finale et pour la coupe (§15). Le hors-ligne dépend de l'horloge (§9), et deux strates y sont sensibles : dans la dette, les échéances tombent hors ligne ; dans le lit, le hors-ligne n'a pas de plafond.
+
+**Options étudiées pour l'horloge.**
+1. *Garde-fous légers* : un recul compte pour zéro, et la référence reste le plus grand horodatage connu.
+2. *Garde-fous, et trace dans la coupe* : les mêmes garde-fous ; en plus, un recul constaté est noté dans le journal de partie et montré dans la coupe.
+3. *Horloge de confiance* : l'heure vient d'un serveur. Écartée, car elle demande un service en ligne dès le MVP.
+
+**Décision.** Option 2 pour l'horloge. Le reste de la stratégie est décrit ci-dessous.
+
+### Format
+
+Un document JSON unique, versionné :
+
+```ts
+interface Sauvegarde {
+  format: number;         // version du format global
+  versionJeu: string;     // version du jeu qui a écrit la sauvegarde
+  partieCreeeLe: number;  // horodatage de création de la partie (ms)
+  reference: number;      // plus grand horodatage connu (ms), voir « Temps et horloge »
+  noyau: {
+    profondeur: number;
+    artefacts: string[];  // identifiants emportés (D-002)
+    kappa: number;
+    meta: Meta;           // journal de partie : durées, seuils, issues, fouilles, perturbations
+  };
+  strates: Record<string, { version: number; etat: unknown }>; // un objet par strate, gardé après la descente
+}
+```
+
+Chaque module sérialise et relit lui-même son `etat`, et versionne son propre format : les strates évoluent séparément pendant l'accès anticipé.
+
+### Stockage
+
+- Une interface `Stockage` avec trois implémentations : le navigateur (`localStorage`) pour le web, un fichier pour le desktop ([#129](https://github.com/DavidGiangiacomo/strates/issues/129)) et le cloud plus tard ([#49](https://github.com/DavidGiangiacomo/strates/issues/49)).
+- Deux emplacements, la sauvegarde **courante** et la **précédente**, qui tournent à chaque écriture.
+- La taille attendue est de quelques dizaines de Ko ; le `localStorage` suffit largement.
+- Après la première descente, le jeu demande au navigateur un stockage persistant (`navigator.storage.persist()`).
+
+### Quand sauvegarder
+
+- Toutes les 30 s.
+- Quand l'onglet passe en arrière-plan (`visibilitychange`, `pagehide`).
+- Juste après chaque descente et chaque choix d'artefacts.
+- Avant un import ou une réinitialisation : la sauvegarde remplacée reste disponible comme « précédente ».
+
+### Robustesse
+
+- Au chargement : la sauvegarde courante, sinon la précédente, sinon on propose l'import. Le jeu n'écrase jamais une sauvegarde illisible : il la garde de côté.
+- Le jeu n'écrase jamais une sauvegarde écrite par une version plus récente que lui.
+
+### Versions et migrations
+
+- Des migrations pures et chaînées (v1 → v2 → v3…), pour le format global comme pour chaque module.
+- Une sauvegarde réelle de chaque version publiée est gardée dans les tests, et toutes doivent se charger avec la version courante.
+
+### Export et import
+
+- Export en fichier `.json`, et en texte copiable.
+- L'import vérifie la version, applique les migrations, et garde la sauvegarde remplacée comme « précédente ».
+
+### Temps et horloge
+
+- **Référence** : le plus grand horodatage connu. Elle ne recule jamais.
+- Pendant une session, les ticks avancent selon l'horloge monotone du navigateur (`performance.now()`). L'horloge système n'est lue qu'au chargement, au retour au premier plan et à chaque sauvegarde.
+- À chaque lecture, écart = maintenant − référence :
+  - **écart positif** : c'est une absence, traitée par la politique hors-ligne de la strate (80 %, plafond 12 h ; strates 6 et 7 à part) ;
+  - **écart négatif** : il compte pour zéro, et la référence ne bouge pas ; reculer puis avancer l'horloge ne fait rien gagner. Au-delà de 5 minutes de recul, une **perturbation** est notée dans le journal de partie, avec la strate et l'ampleur.
+- **Limite assumée** : une avance de l'horloge ne se distingue pas d'une vraie absence ou d'une mise en veille. Elle est traitée comme une absence, dans la limite des plafonds. La triche type (avancer l'horloge puis la remettre à l'heure) est constatée au moment où le joueur la remet à l'heure.
+- **Dans la coupe**, une strate où une perturbation a été constatée porte la mention « stratigraphie perturbée ». Sans jugement, sans blocage, sans autre conséquence : le jeu constate, à la façon d'un archéologue.
+
+### Risque connu
+
+Safari peut effacer les données d'un site qu'on n'a pas visité depuis 7 jours. C'est un vrai risque pour un jeu joué sur des semaines. Pour le limiter :
+- le jeu demande un stockage persistant ;
+- tant que ce stockage n'est pas accordé et qu'il n'y a pas de sauvegarde cloud, un rappel discret propose d'exporter la sauvegarde ;
+- la sauvegarde cloud ([#49](https://github.com/DavidGiangiacomo/strates/issues/49)) reste non bloquante pour l'accès anticipé, mais elle est à réévaluer avant la 1.0.
+
+**Conséquences.**
+- Le contrat de module ([#13](https://github.com/DavidGiangiacomo/strates/issues/13)) est débloqué : chaque module fournit sa sérialisation, sa désérialisation, sa version et ses migrations.
+- Les issues suivantes appliquent cette stratégie : sauvegarde locale ([#20](https://github.com/DavidGiangiacomo/strates/issues/20)), hors-ligne et règles d'horloge ([#27](https://github.com/DavidGiangiacomo/strates/issues/27)), outils de développement ([#28](https://github.com/DavidGiangiacomo/strates/issues/28)), coupe ([#47](https://github.com/DavidGiangiacomo/strates/issues/47), [#131](https://github.com/DavidGiangiacomo/strates/issues/131)), sauvegarde cloud ([#49](https://github.com/DavidGiangiacomo/strates/issues/49)).
+- Le design doc est complété aux §9 (hors-ligne), §11 (la coupe) et §15 (sauvegarde).
+
+---
+
 ## Décisions en attente
 
 | Issue | Question | Phase |
 |---|---|---|
 | [#2](https://github.com/DavidGiangiacomo/strates/issues/2) | Strates est-il le projet à lancer maintenant ? | 0 |
-| [#9](https://github.com/DavidGiangiacomo/strates/issues/9) | Stratégie de sauvegarde | 0 |
 | [#44](https://github.com/DavidGiangiacomo/strates/issues/44) | Palier κ = 100 (dans le design de la Compréhension) | 2 |
 | [#38](https://github.com/DavidGiangiacomo/strates/issues/38) | Go / no-go après le MVP | 1 |
 | [#133](https://github.com/DavidGiangiacomo/strates/issues/133) | Garder 8 strates ou en retirer une (R5) | 5 |
