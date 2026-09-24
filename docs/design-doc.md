@@ -280,7 +280,7 @@ Un mois, pas un week-end — c'est la contrainte de ce concept :
 
 ## 15. Notes d'implémentation
 
-- **Architecture en modules.** Chaque strate est un module autonome : son état, son tick, son rendu, ses règles. Le noyau ne connaît que `{ profondeur, artefacts[], κ, meta }`. Ne jamais factoriser les boucles entre strates « pour économiser » : c'est ainsi que sept jeux redeviennent un seul.
+- **Architecture en modules.** Chaque strate est un module autonome : son état, son tick, son rendu, ses règles. Le noyau ne connaît que `{ profondeur, artefacts[], κ, meta }`. Ne jamais factoriser les boucles entre strates « pour économiser » : c'est ainsi que sept jeux redeviennent un seul. Le contrat entre le noyau et les strates est décrit dans `docs/architecture.md`.
 - La conversion en artefacts se fait dans le noyau, pas dans les modules : une seule fonction transforme la valeur convertible exposée par le module en points de fouille, et l'écran de choix est lui aussi générique. Le catalogue est une donnée du noyau (la table des artefacts).
 - Sauvegarde : un objet par strate, conservé même après la descente (nécessaire pour la remontée finale et pour la coupe). Chaque module versionne son propre état ; format, stockage, migrations et règles d'horloge sont décrits dans la décision D-005.
 - L'opacité d'interface est une couche de rendu générique (labels remplacés par des glyphes, valeurs masquées) paramétrée par κ — écrite une fois, réutilisée huit fois. C'est la seule vraie mutualisation possible.
