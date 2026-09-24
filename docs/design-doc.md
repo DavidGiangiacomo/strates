@@ -2,6 +2,7 @@
 
 *Concept n°7 du document « Douze concepts de jeux incrémentaux ».*
 *Format visé : **jeu long, 18 à 25 h**, multi-sessions, **prestige structurel** (la descente), hors-ligne oui. Références de cadrage : Kittens Game et Antimatter Dimensions (la durée, les couches de systèmes), Universal Paperclips (le changement de grammaire en cours de route), Outer Wilds (le plaisir d'archéologue).*
+*Révisions : D-002, modèle des artefacts (24 septembre 2026). Le détail des décisions est dans `docs/decisions.md`.*
 
 ---
 
@@ -31,7 +32,7 @@ Trois idées structurantes :
 
 - **Chaque strate est un incrémental complet et différent** — ressource, verbe, boucle, esthétique, interface. Pas un reskin : la strate 3 se joue à la souris sur une grille, la strate 5 se joue en réglant des ratios, la strate 6 n'a pas de bouton de production du tout.
 - **Le prestige est une descente.** On ne recommence pas au sommet avec un bonus : on descend d'un étage et on trouve une civilisation antérieure qui jouait elle-même à un incrémental. Le mouvement du jeu est toujours vers le bas et jamais vers l'arrière.
-- **Ce qu'on emporte se dévalue.** Les ressources de la strate du dessus deviennent, en dessous, des **artefacts** : des objets rares, puissants, incompréhensibles pour ceux d'en bas — et périssables. Un million d'unités d'en haut vaut trois artefacts en bas.
+- **Ce qu'on emporte se dévalue.** Les ressources de la strate du dessus deviennent, en dessous, des **artefacts** : des objets rares, puissants, incompréhensibles pour ceux d'en bas — et périssables. Un million d'unités d'en haut ne permet d'emporter que deux ou trois objets.
 
 Ce qui monte réellement, d'un bout à l'autre : la **Profondeur**. Elle vaut de 1 à 8. C'est la seule progression qui traverse le jeu, et elle a huit valeurs en vingt heures.
 
@@ -64,7 +65,9 @@ Comprendre le verbe de la couche
       ↓ 1-2 h
 Monter, optimiser, atteindre le seuil de fouille
       ↓
-Convertir ses ressources en artefacts (taux brutal)
+Convertir ses ressources en points de fouille (taux brutal)
+      ↓
+Choisir les objets qu'on emporte ; le reste est abandonné
       ↓
 Descendre : nouvelles règles, artefacts en poche
 ```
@@ -80,12 +83,14 @@ Trois choses seulement traversent les couches :
 | Ressource | Rôle | Portée | Notation |
 |---|---|---|---|
 | **Profondeur** | l'étage courant | 1 → 8 | **entier, toujours** |
-| **Artefacts** (A) | objets convertis depuis la strate du dessus | se dégradent d'un étage à l'autre | unité, jamais plus de 3 chiffres |
+| **Artefacts** (A) | objets emportés depuis les strates du dessus, choisis dans le catalogue de la strate quittée | s'usent d'un niveau à chaque descente | unité, jamais plus de 3 chiffres |
 | **Compréhension** (κ) | méta-savoir du joueur sur la structure des incrémentaux | 0 → 100 | % |
 
-**Règle structurante n°1 — la conversion est brutale.** `artefacts = ⌊log₁₀(ressource_totale) × 1,4⌋`. Une strate terminée avec 10¹⁵ unités donne 21 artefacts. Une strate terminée avec 10¹⁸ en donne 25. **L'écart entre jouer correctement et jouer parfaitement est de quatre artefacts.** Cela retire volontairement tout intérêt au farm : on descend quand on est prêt, pas quand on est optimal.
+Les **points de fouille** ne traversent pas : ils naissent à la descente et s'y dépensent aussitôt. Ce qui n'est pas dépensé est perdu.
 
-**Règle structurante n°2 — les artefacts périssent.** Ils perdent un niveau de puissance à chaque descente. Un artefact de la strate 2 est puissant en strate 3, utile en 4, décoratif en 5, inerte en 6. Rien ne s'accumule sur huit couches ; on ne devient jamais un dieu.
+**Règle structurante n°1 — la conversion est brutale.** À la descente, la ressource de la strate devient des points de fouille : `points = ⌊log₁₀(valeur_convertible) × 1,4⌋`. Une strate terminée avec 10¹⁵ unités donne 21 points ; une strate terminée avec 10¹⁸ en donne 25. Les points servent aussitôt à choisir, dans le catalogue de la strate quittée, les objets qu'on emporte. Chaque objet a un coût, et ce qui n'est pas emporté est abandonné. **L'écart entre jouer correctement et jouer parfaitement est de quatre points : un objet de plus, ou un meilleur objet à la place d'un moins cher.** Cela retire volontairement tout intérêt au farm : on descend quand on est prêt, pas quand on est optimal.
+
+**Règle structurante n°2 — les artefacts périssent.** Ils perdent un niveau de puissance à chaque descente. Un artefact de la strate 2 est puissant en strate 3, utile en 4, décoratif en 5, inerte en 6. Puissant : effet entier. Utile : effet réduit de moitié. Décoratif : visible, sans effet. Inerte : un caillou. Rien ne s'accumule sur huit couches ; on ne devient jamais un dieu.
 
 **Règle structurante n°3 — la Compréhension, elle, ne se perd pas.** Elle ne donne aucun bonus numérique. Elle **débloque des affichages** : le graphe de dépendances, les formules réelles derrière les boutons, la vitesse d'apprentissage des interfaces opaques. C'est le seul progrès permanent du jeu et il porte sur la lecture, pas sur la puissance.
 
@@ -139,9 +144,11 @@ La strate 7 est le seul moment du jeu où le joueur ne décide pas, et il ne s'e
 
 Un artefact est un objet de la couche du dessus, désigné par le nom que lui donnent **ceux d'en bas**. Une turbine devient « la roue chaude ». Un contrat devient « le papier qui oblige ».
 
-- **Nombre total : 34 artefacts**, dont 8 à 12 disponibles par strate selon le parcours.
+- **Nombre total : 34 artefacts**, répartis dans les catalogues des strates 1 à 7, de 3 à 6 objets par strate. À chaque descente, le joueur choisit ceux qu'il emporte avec ses points de fouille (règle n°1). Selon le parcours, 5 à 9 artefacts sont actifs (puissants ou utiles) dans une strate donnée.
+- Le choix se fait sous les noms d'en haut, avec le coût et la famille d'effet, mais sans l'effet exact : on emporte « la turbine » et on découvre en bas « la roue chaude ».
 - Effets : multiplicateurs modestes (×1,2 à ×2), déblocages d'affichage, raccourcis d'apprentissage, et 6 artefacts **à effet unique et étrange** (par exemple : *rend visible une ligne de texte de la strate inférieure, avant d'y descendre*).
-- **Plafond dur : le cumul des multiplicateurs d'artefacts ne dépasse jamais ×4 dans une strate donnée** (invariant I2). Aucune couche ne se traverse en pilote automatique grâce à l'équipement.
+- **Plafond dur : le cumul des multiplicateurs d'artefacts ne dépasse jamais ×4 dans une strate donnée** (invariant I2). Au-delà, le noyau réduit tous les multiplicateurs dans la même proportion. Aucune couche ne se traverse en pilote automatique grâce à l'équipement.
+- Le modèle complet est décrit dans `docs/artefacts.md` (décision D-002).
 
 La dévaluation est affichée franchement : chaque artefact porte un niveau d'usure visible, et le joueur voit ses trésors devenir des cailloux au fil de la descente. C'est le mécanisme émotionnel central du jeu, répété sept fois.
 
@@ -165,18 +172,20 @@ C'est l'écho direct de la thèse de *La langue morte* — **le vrai upgrade est
 
 ### Rythme cible
 
-| Strate | Temps cumulé | Ordre de grandeur local | Artefacts en poche | κ |
-|---|---|---|---|---|
-| 1 | 0–1 h 15 | 10⁹ | 0 | 0 → 8 |
-| 2 | 1 h 15–3 h 15 | 10⁶ (grain, échelle basse **exprès**) | 13 | 8 → 22 |
-| 3 | 3 h 15–5 h 45 | 10¹² | 19 | 22 → 38 |
-| 4 | 5 h 45–8 h 15 | 10¹⁵ | 24 | 38 → 55 |
-| 5 | 8 h 15–10 h 15 | sans nombres | 27 | 55 → 70 |
-| 6 | 10 h 15–13 h 15 | 10²⁰ (dettes) | 30 | 70 → 85 |
-| 7 | 13 h 15–15 h 15 | 10³ (sédiments) | 32 | 85 → 96 |
-| 8 | 15 h 15–15 h 35 | — | 34 | 100 |
+| Strate | Temps cumulé | Ordre de grandeur local | Artefacts actifs à l'arrivée | Points de fouille au départ | κ |
+|---|---|---|---|---|---|
+| 1 | 0–1 h 15 | 10⁹ | 0 | 12 | 0 → 8 |
+| 2 | 1 h 15–3 h 15 | 10⁶ (grain, échelle basse **exprès**) | 5 | 8 | 8 → 22 |
+| 3 | 3 h 15–5 h 45 | 10¹² | 9 | 16 | 22 → 38 |
+| 4 | 5 h 45–8 h 15 | 10¹⁵ | 8 | 21 | 38 → 55 |
+| 5 | 8 h 15–10 h 15 | sans nombres | 8 | à définir (#8) | 55 → 70 |
+| 6 | 10 h 15–13 h 15 | 10²⁰ (dettes) | 8 | 28 | 70 → 85 |
+| 7 | 13 h 15–15 h 15 | 10³ (sédiments) | 8 | 4 | 85 → 96 |
+| 8 | 15 h 15–15 h 35 | — | 6 (sans effet mécanique) | — | 100 |
 
 *(15–16 h de trajet principal, 18–25 h pour une partie réelle avec temps morts et exploration.)*
+
+*Artefacts actifs : puissants ou utiles, pour un jeu correct et avec la répartition indicative du catalogue (voir `docs/artefacts.md`). Points de fouille : `⌊log₁₀(valeur) × 1,4⌋` pour l'ordre de grandeur de la strate ; un jeu parfait en donne environ 4 de plus.*
 
 ### Invariants d'équilibrage
 
@@ -259,7 +268,7 @@ Un mois, pas un week-end — c'est la contrainte de ce concept :
 
 - Strates 1 et 2 complètes, avec la descente et la conversion en artefacts.
 - Pas de Compréhension, pas d'autres strates, pas de fin.
-- **Obligatoire : le passage de 1 à 2.** L'écran qui change entièrement, les crédits convertis en 13 artefacts, la ressource qui devient du grain, et **la découverte que la courbe n'est plus exponentielle mais saisonnière**.
+- **Obligatoire : le passage de 1 à 2.** L'écran qui change entièrement, les crédits convertis en 12 points de fouille et le choix des objets de la surface qu'on emporte, la ressource qui devient du grain, et **la découverte que la courbe n'est plus exponentielle mais saisonnière**.
 
 **Le test** : au bout de dix minutes dans la strate 2, le joueur essaie-t-il de jouer comme en strate 1 — et est-ce que le moment où il comprend que ça ne marche pas est agréable ou frustrant ? Si c'est frustrant, le concept ne tient pas, et les six strates suivantes ne le sauveront pas.
 
@@ -268,7 +277,7 @@ Un mois, pas un week-end — c'est la contrainte de ce concept :
 ## 15. Notes d'implémentation
 
 - **Architecture en modules.** Chaque strate est un module autonome : son état, son tick, son rendu, ses règles. Le noyau ne connaît que `{ profondeur, artefacts[], κ, meta }`. Ne jamais factoriser les boucles entre strates « pour économiser » : c'est ainsi que sept jeux redeviennent un seul.
-- La conversion en artefacts se fait dans le noyau, pas dans les modules, via une seule fonction sur le log de la ressource locale.
+- La conversion en artefacts se fait dans le noyau, pas dans les modules : une seule fonction transforme la valeur convertible exposée par le module en points de fouille, et l'écran de choix est lui aussi générique. Le catalogue est une donnée du noyau (la table des artefacts).
 - Sauvegarde : un objet par strate, conservé même après la descente (nécessaire pour la remontée finale et pour la coupe).
 - L'opacité d'interface est une couche de rendu générique (labels remplacés par des glyphes, valeurs masquées) paramétrée par κ — écrite une fois, réutilisée huit fois. C'est la seule vraie mutualisation possible.
 - Strate 7 : la sédimentation doit être calculée à partir de l'horodatage, pas du temps de session, y compris sur des semaines.
