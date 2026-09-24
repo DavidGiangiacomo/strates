@@ -1,0 +1,6 @@
+node_modules/
+dist/
+coverage/
+package-lock.json
+# Documents rédigés à la main : Prettier ne les reformate pas.
+*.md
