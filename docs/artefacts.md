@@ -9,7 +9,7 @@ Référence du système d'artefacts. Le modèle vient de la décision [D-002](de
 3. Ce qui n'est pas emporté est **abandonné** et apparaît dans la coupe. Les points non dépensés sont perdus : ils ne traversent pas les strates.
 4. En bas, l'objet prend le nom que lui donnent ceux d'en bas, et agit selon son **usure**. Celle-ci augmente d'un niveau à chaque descente.
 
-La `valeur_convertible` est fournie par le module de la strate. Pour les strates 5 à 8, où elle n'est pas évidente, elle est définie par la décision [#8](https://github.com/DavidGiangiacomo/strates/issues/8). Une valeur inférieure à 1 donne 0 point.
+La `valeur_convertible` est fournie par le module de la strate. C'est toujours un **cumul** sur la strate, jamais le stock au moment de descendre ; elle est définie strate par strate par la décision [D-003](decisions.md#d-003--valeur-convertible-de-chaque-strate). Une valeur inférieure à 1 donne 0 point.
 
 ## 2. Modèle de données
 
@@ -91,22 +91,25 @@ Règles de calibrage pour les catalogues :
 - Les 4 points d'écart entre un jeu correct et un jeu parfait paient un objet de plus, ou un meilleur objet à la place d'un moins cher.
 - Les coûts suivent l'échelle de points de chaque strate, qui n'est pas monotone (I3).
 
-Répartition indicative des 34 artefacts, vérifiée par simulation (présélection « les moins chers d'abord », valeur de la strate 5 supposée à 10¹⁰ en attendant [#8](https://github.com/DavidGiangiacomo/strates/issues/8)) :
+Répartition indicative des 34 artefacts, vérifiée par simulation (présélection « les moins chers d'abord », points d'un jeu correct selon D-003) :
 
-| Strate d'origine | Objets au catalogue | Points, jeu correct | Emportés | Abandonnés |
-|---|---|---|---|---|
-| 1 — La surface | 6 | 12 | 5 | 1 |
-| 2 — Les caves | 5 | 8 | 4 | 1 |
-| 3 — L'atelier | 5 | 16 | 4 | 1 |
-| 4 — Le réseau | 5 | 21 | 4 | 1 |
-| 5 — Le chœur | 5 | *#8* | 4 | 1 |
-| 6 — La dette | 5 | 28 | 4 | 1 |
-| 7 — Le lit | 3 | 4 | 2 | 1 |
-| **Total** | **34** | | **27** | **7** |
+| Strate d'origine | Objets au catalogue | Coût total | Points, jeu correct | Emportés | Abandonnés |
+|---|---|---|---|---|---|
+| 1 — La surface | 6 | 17 | 12 | 5 | 1 |
+| 2 — Les caves | 5 | 13 | 8 | 4 | 1 |
+| 3 — L'atelier | 5 | 21 | 16 | 4 | 1 |
+| 4 — Le réseau | 5 | 26 | 21 | 4 | 1 |
+| 5 — Le chœur | 5 | 17 | 14 | 4 | 1 |
+| 6 — La dette | 5 | 32 | 28 si soldée | 4 | 1 |
+| 7 — Le lit | 3 | 4 | 4 | 3 | 0 |
+| **Total** | **34** | | | **28** | **6** |
 
 À l'arrivée dans une strate, le joueur a ainsi **5 à 9 artefacts actifs** (puissants ou utiles), plus 4 ou 5 décoratifs à partir de la strate 4.
 
-**À noter pour le catalogue ([#57](https://github.com/DavidGiangiacomo/strates/issues/57))** : les artefacts de la strate 7 ne sont puissants qu'au fond, où rien n'est produit. Ce sont donc naturellement des effets uniques ou des clés de lecture pour la salle de lecture ([#65](https://github.com/DavidGiangiacomo/strates/issues/65)). De même, les artefacts de la strate 6 n'ont pas d'effet mécanique au fond, où ils sont « utiles ».
+**Cas particuliers** :
+- **Strate 6** : en défaut, on convertit ce qui a été honoré avant le défaut. Un défaut en fin de strate donne environ 25 points, soit un objet de moins.
+- **Strate 7** : la descente est automatique et la quantité de sédiments presque fixe, donc le budget aussi (4 points). Le catalogue coûte au plus 4 au total : **tout est toujours emporté**, et le fond reçoit les mêmes clés pour tous les joueurs.
+- **Pour le catalogue ([#57](https://github.com/DavidGiangiacomo/strates/issues/57))** : les artefacts de la strate 7 ne sont puissants qu'au fond, où rien n'est produit. Ce sont donc des effets uniques ou des clés de lecture pour la salle de lecture ([#65](https://github.com/DavidGiangiacomo/strates/issues/65)). De même, les artefacts de la strate 6 n'ont pas d'effet mécanique au fond, où ils sont « utiles ».
 
 ## 8. Catalogue
 

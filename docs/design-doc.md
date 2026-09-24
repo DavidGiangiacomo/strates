@@ -2,7 +2,7 @@
 
 *Concept n°7 du document « Douze concepts de jeux incrémentaux ».*
 *Format visé : **jeu long, 18 à 25 h**, multi-sessions, **prestige structurel** (la descente), hors-ligne oui. Références de cadrage : Kittens Game et Antimatter Dimensions (la durée, les couches de systèmes), Universal Paperclips (le changement de grammaire en cours de route), Outer Wilds (le plaisir d'archéologue).*
-*Révisions : D-002, modèle des artefacts (24 septembre 2026). Le détail des décisions est dans `docs/decisions.md`.*
+*Révisions : D-002, modèle des artefacts ; D-003, valeur convertible de chaque strate (24 septembre 2026). Le détail des décisions est dans `docs/decisions.md`.*
 
 ---
 
@@ -89,6 +89,8 @@ Trois choses seulement traversent les couches :
 Les **points de fouille** ne traversent pas : ils naissent à la descente et s'y dépensent aussitôt. Ce qui n'est pas dépensé est perdu.
 
 **Règle structurante n°1 — la conversion est brutale.** À la descente, la ressource de la strate devient des points de fouille : `points = ⌊log₁₀(valeur_convertible) × 1,4⌋`. Une strate terminée avec 10¹⁵ unités donne 21 points ; une strate terminée avec 10¹⁸ en donne 25. Les points servent aussitôt à choisir, dans le catalogue de la strate quittée, les objets qu'on emporte. Chaque objet a un coût, et ce qui n'est pas emporté est abandonné. **L'écart entre jouer correctement et jouer parfaitement est de quatre points : un objet de plus, ou un meilleur objet à la place d'un moins cher.** Cela retire volontairement tout intérêt au farm : on descend quand on est prêt, pas quand on est optimal.
+
+La **valeur convertible** est toujours un cumul sur la strate, jamais le stock au moment de descendre : dépenser ne coûte rien. Pour le chœur, c'est la quantité cachée de Voix que représentent les barres. Pour la dette, c'est ce qui a été honoré ; en défaut, ce qui l'avait été avant le défaut, si bien que le défaut coûte quelques points et jamais tout. Pour le lit, ce sont les sédiments déposés : le budget y est presque fixe, et il suffit à tout emporter. Le détail par strate est dans la décision D-003.
 
 **Règle structurante n°2 — les artefacts périssent.** Ils perdent un niveau de puissance à chaque descente. Un artefact de la strate 2 est puissant en strate 3, utile en 4, décoratif en 5, inerte en 6. Puissant : effet entier. Utile : effet réduit de moitié. Décoratif : visible, sans effet. Inerte : un caillou. Rien ne s'accumule sur huit couches ; on ne devient jamais un dieu.
 
@@ -178,10 +180,10 @@ C'est l'écho direct de la thèse de *La langue morte* — **le vrai upgrade est
 | 2 | 1 h 15–3 h 15 | 10⁶ (grain, échelle basse **exprès**) | 5 | 8 | 8 → 22 |
 | 3 | 3 h 15–5 h 45 | 10¹² | 9 | 16 | 22 → 38 |
 | 4 | 5 h 45–8 h 15 | 10¹⁵ | 8 | 21 | 38 → 55 |
-| 5 | 8 h 15–10 h 15 | sans nombres | 8 | à définir (#8) | 55 → 70 |
+| 5 | 8 h 15–10 h 15 | sans nombres (≈ 10¹⁰ en interne) | 8 | 14 | 55 → 70 |
 | 6 | 10 h 15–13 h 15 | 10²⁰ (dettes) | 8 | 28 | 70 → 85 |
 | 7 | 13 h 15–15 h 15 | 10³ (sédiments) | 8 | 4 | 85 → 96 |
-| 8 | 15 h 15–15 h 35 | — | 6 (sans effet mécanique) | — | 100 |
+| 8 | 15 h 15–15 h 35 | — | 7 (sans effet mécanique) | — | 100 |
 
 *(15–16 h de trajet principal, 18–25 h pour une partie réelle avec temps morts et exploration.)*
 

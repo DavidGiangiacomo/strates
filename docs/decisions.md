@@ -56,13 +56,54 @@ Le modèle complet (données, usure, plafond, écran, calibrage) est décrit dan
 
 ---
 
+## D-003 — Valeur convertible de chaque strate
+
+- **Date** : 2026-09-24
+- **Statut** : active
+- **Origine** : issue [#8](https://github.com/DavidGiangiacomo/strates/issues/8)
+
+**Contexte.** Le noyau transforme la valeur convertible d'une strate en points de fouille, `⌊log₁₀(valeur) × 1,4⌋` (D-002). Pour les strates 1 à 4, le choix de la grandeur est évident, mais il restait à fixer entre le stock et le cumul. Pour les strates 5 à 8, il ne l'était pas : pas de nombres visibles (5), rien n'est produit et deux issues possibles (6), une descente automatique (7), pas de descente du tout (8).
+
+**Options étudiées pour la strate 6.**
+1. *Ce qui a été honoré* : on convertit le total remboursé ; en défaut, ce qui a été honoré avant le défaut.
+2. *Ce qui a été promis* : on convertit le total emprunté, mêmes points dans les deux issues, et le défaut change le catalogue.
+3. *Honoré, défaut à zéro* : une descente en défaut ne rapporte aucun point. Écartée, car contraire au « sans jugement » du §10.
+
+**Options étudiées pour la strate 7.**
+1. *Tout emporter* : le catalogue est calibré pour que le budget fixe suffise à tout emporter.
+2. *Les placements décident* : les placements de la strate déterminent quels objets se forment.
+3. *Budget fixe, un abandon* : la même trace manquerait au fond pour tous, sans que personne l'ait choisi. Écartée.
+
+**Décision.**
+
+| Strate | Valeur convertible | Points (jeu correct) |
+|---|---|---|
+| 1 — La surface | total cumulé des Crédits gagnés dans la strate | ≈ 12 |
+| 2 — Les caves | total cumulé du Grain récolté | ≈ 8 |
+| 3 — L'atelier | total cumulé des Pièces produites | ≈ 16 |
+| 4 — Le réseau | total cumulé du Flux acheminé | ≈ 21 |
+| 5 — Le chœur | total cumulé des Voix, grandeur cachée que représentent les barres ; échelle interne calibrée vers 10¹⁰ | ≈ 14 |
+| 6 — La dette | total des Engagements **honorés** (remboursés). En défaut : ce qui a été honoré avant le défaut | 28 soldé ; 21 à 25 pour un défaut au milieu ou en fin de strate |
+| 7 — Le lit | Sédiments déposés à la descente automatique, quantité presque fixe (≈ 10³) | 4, et le catalogue coûte 4 au total : **tout est emporté** |
+| 8 — Le fond | aucune : pas de descente après le fond | — |
+
+- Règle générale : on convertit toujours un **cumul** sur la strate, jamais le stock au moment de descendre. Dépenser ne coûte rien, et thésauriser avant de creuser ne rapporte rien.
+- Le défaut de la strate 6 coûte en proportion de ce qui restait à honorer, jamais tout. Grâce au log, un défaut en fin de strate ne coûte que 3 points, soit environ un objet. Ce n'est ni une sanction, ni une stratégie gagnante.
+
+**Conséquences.**
+- Le contrat de module ([#13](https://github.com/DavidGiangiacomo/strates/issues/13)) expose une valeur convertible cumulée, et l'issue de la strate quand il y en a plusieurs (strate 6).
+- La fiche de la strate 5 ([#7](https://github.com/DavidGiangiacomo/strates/issues/7)) définit comment les Voix croissent, et donc ce que la conversion récompense. L'écran de fouille à la sortie du chœur affiche des points chiffrés : la fiche dira si ce retour des nombres est assumé ou s'il faut une variante sans chiffres.
+- Les fiches des strates 6 et 7 ([#64](https://github.com/DavidGiangiacomo/strates/issues/64), [#75](https://github.com/DavidGiangiacomo/strates/issues/75)), le seuil de la dette ([#88](https://github.com/DavidGiangiacomo/strates/issues/88)) et le catalogue ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) en tiennent compte. Le catalogue de la strate 7 coûte au plus 4 points au total.
+- Le calibrage de [`artefacts.md`](artefacts.md) (§ 7) et le tableau de rythme du design doc (§9) sont mis à jour.
+
+---
+
 ## Décisions en attente
 
 | Issue | Question | Phase |
 |---|---|---|
 | [#2](https://github.com/DavidGiangiacomo/strates/issues/2) | Strates est-il le projet à lancer maintenant ? | 0 |
 | [#4](https://github.com/DavidGiangiacomo/strates/issues/4) | Stack technique | 0 |
-| [#8](https://github.com/DavidGiangiacomo/strates/issues/8) | Valeur convertible des strates sans quantité simple | 0 |
 | [#9](https://github.com/DavidGiangiacomo/strates/issues/9) | Stratégie de sauvegarde | 0 |
 | [#44](https://github.com/DavidGiangiacomo/strates/issues/44) | Palier κ = 100 (dans le design de la Compréhension) | 2 |
 | [#38](https://github.com/DavidGiangiacomo/strates/issues/38) | Go / no-go après le MVP | 1 |
