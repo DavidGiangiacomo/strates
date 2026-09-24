@@ -4,5 +4,6 @@
     "lib": ["ES2022"],
     "types": []
   },
-  "include": ["src/**/logique/**/*.ts"]
+  "include": ["src/**/logique/**/*.ts"],
+  "exclude": ["src/**/*.test.ts"]
 }

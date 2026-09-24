@@ -190,6 +190,7 @@ interface Sauvegarde {
     profondeur: number;
     artefacts: string[];  // identifiants emportés (D-002)
     kappa: number;
+    graine: number;       // graine de la partie ; celle de chaque strate en est dérivée (ajout de #18)
     meta: Meta;           // journal de partie : durées, seuils, issues, fouilles, perturbations
   };
   strates: Record<string, { version: number; etat: unknown }>; // un objet par strate, gardé après la descente
