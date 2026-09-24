@@ -98,12 +98,74 @@ Le modèle complet (données, usure, plafond, écran, calibrage) est décrit dan
 
 ---
 
+## D-004 — Stack technique : TypeScript, Svelte, Vite
+
+- **Date** : 2026-09-24
+- **Statut** : active
+- **Origine** : issue [#4](https://github.com/DavidGiangiacomo/strates/issues/4)
+
+**Contexte.** Le jeu vise le web d'abord, puis le desktop (§0). Il a huit interfaces très différentes : tableaux, grille à la souris, graphe de nœuds, rendu coloré et sonore, écran presque vide (§5, §12). Chaque strate est un module indépendant (§15). La logique doit pouvoir tourner sans affichage, pour le calcul hors ligne et pour la simulation d'équilibrage.
+
+**Options étudiées.**
+1. *TypeScript + Svelte* : une logique en TypeScript pur, des interfaces en Svelte, avec Canvas ou SVG là où il le faut.
+2. *TypeScript sans framework* : aucune dépendance d'interface, mais beaucoup de code pour synchroniser l'état et l'écran.
+3. *TypeScript + React* : pertinent pour qui connaît bien React ; plus lourd pour des compteurs mis à jour à chaque tick.
+4. *Godot* : export desktop simple, mais export web lourd et interfaces moins souples ; s'éloigne du « web d'abord ».
+
+**Décision.** Option 1.
+
+| Rôle | Choix |
+|---|---|
+| Langage | TypeScript, en mode strict |
+| Build et serveur de développement | Vite |
+| Interfaces | Svelte 5 pour tout ce qui est DOM : bandeau, écran de fouille, inventaire, coupe, menus, strates à tableaux |
+| Rendus spécifiques | SVG ou Canvas 2D, au choix de chaque strate (par exemple SVG pour le réseau, Canvas pour le chœur et le lit) |
+| Son | Web Audio, derrière le moteur audio partagé du noyau |
+| Tests | Vitest ; le simulateur d'équilibrage tourne sous Node |
+| Qualité | ESLint, Prettier, `svelte-check` |
+| Runtime de développement | Node 22 LTS, npm |
+| Grands nombres | aucune bibliothèque : le jeu plafonne vers 10²⁰, et un `number` suffit |
+| Desktop | Tauri par défaut, à confirmer au moment du build desktop ([#129](https://github.com/DavidGiangiacomo/strates/issues/129)) |
+
+Les versions sont les versions stables courantes au moment de l'initialisation du projet ([#15](https://github.com/DavidGiangiacomo/strates/issues/15)).
+
+**Règles d'architecture.**
+- Chaque strate et le noyau séparent leur **logique** (TypeScript pur) de leur **vue** (Svelte, SVG, Canvas).
+- La logique n'importe jamais la vue, ni Svelte, ni le DOM. Une règle ESLint l'impose.
+- La logique est **déterministe** : pas de `Math.random()` ni de `Date.now()` directs. L'aléatoire passe par un générateur à graine, et le temps est fourni par le noyau. Le même `tick` sert au jeu, au hors-ligne et au simulateur.
+- Chaque strate a sa propre notation des nombres (I1) : aucun formateur de nombres n'est partagé entre les strates.
+
+Arborescence cible :
+
+```
+src/
+  noyau/
+    logique/    état global, tick, conversion, sauvegarde (TS pur)
+    ui/         bandeau, fouille, inventaire, coupe, menu (Svelte)
+  strates/
+    s1-surface/
+      logique/  (TS pur)
+      vue/      (Svelte, DOM)
+    s4-reseau/
+      vue/      (Svelte + SVG)
+    s5-choeur/
+      vue/      (Canvas + Web Audio)
+    …
+sim/            simulateur d'équilibrage (Node)
+```
+
+**Conséquences.**
+- L'initialisation du projet ([#15](https://github.com/DavidGiangiacomo/strates/issues/15)) et la stratégie de sauvegarde ([#9](https://github.com/DavidGiangiacomo/strates/issues/9)) sont débloquées.
+- Le contrat de module ([#13](https://github.com/DavidGiangiacomo/strates/issues/13)) sépare logique et vue : la vue s'abonne à l'état de la logique, et ne le modifie que par des actions.
+- Le simulateur ([#23](https://github.com/DavidGiangiacomo/strates/issues/23)) n'importe que la logique.
+
+---
+
 ## Décisions en attente
 
 | Issue | Question | Phase |
 |---|---|---|
 | [#2](https://github.com/DavidGiangiacomo/strates/issues/2) | Strates est-il le projet à lancer maintenant ? | 0 |
-| [#4](https://github.com/DavidGiangiacomo/strates/issues/4) | Stack technique | 0 |
 | [#9](https://github.com/DavidGiangiacomo/strates/issues/9) | Stratégie de sauvegarde | 0 |
 | [#44](https://github.com/DavidGiangiacomo/strates/issues/44) | Palier κ = 100 (dans le design de la Compréhension) | 2 |
 | [#38](https://github.com/DavidGiangiacomo/strates/issues/38) | Go / no-go après le MVP | 1 |
