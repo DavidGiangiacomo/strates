@@ -28,6 +28,19 @@ src/strates/s2-caves/
 
 Le noyau charge chaque strate à la demande (`import()` dynamique) : le code de la strate 5 n'est téléchargé qu'à l'arrivée dans la strate 5.
 
+Le noyau suit la même séparation, avec un troisième dossier :
+
+```
+src/noyau/
+  logique/      état global, tick, conversion, journal (TS pur)
+  plateforme/   ce qui dépend du navigateur : stockage, horloge, audio
+  ui/           bandeau, fouille, inventaire, coupe, menu (Svelte)
+```
+
+**Ces règles sont imposées par l'outillage**, pas seulement par convention :
+- ESLint interdit à tout dossier `logique/` d'importer Svelte, un composant, une `vue/`, une `ui/` ou une `plateforme/`, et d'utiliser le navigateur, `Math.random`, `Date.now` ou `new Date()`. Le simulateur (`sim/`) n'importe pas de vue non plus. Un test (`tests/architecture.test.ts`) vérifie que ces règles sont actives.
+- Les dossiers `logique/` sont aussi compilés sans les types du DOM (`tsconfig.logique.json`) : toute référence au navigateur y est une erreur de type.
+
 ## 3. Le contrat de la logique
 
 ```ts

@@ -13,6 +13,22 @@ Jeu incrémental long (18–25 h) en huit strates. Chaque strate est un incréme
 | [`docs/architecture.md`](docs/architecture.md) | Contrat entre le noyau et les strates (types, boucle, descente, journal) |
 | [`docs/artefacts.md`](docs/artefacts.md) | Modèle des artefacts (points de fouille, usure, plafond, écran de choix) et catalogue |
 
+## Développement
+
+Prérequis : Node 22 (voir `.nvmrc`). La stack est décrite dans la décision D-004.
+
+```sh
+npm install          # dépendances
+npm run dev          # serveur de développement
+npm run build        # build de production dans dist/
+npm test             # tests (Vitest)
+npm run lint         # ESLint, dont les règles d'architecture
+npm run check        # types : application, puis logique sans DOM
+npm run format       # Prettier
+```
+
+La CI (GitHub Actions) lance le lint, le formatage, les types, les tests et le build à chaque push et à chaque pull request.
+
 ## Organisation des tâches
 
 Les tâches sont des **issues GitHub**. Chaque phase est une issue « épopée » ; les strates 3 à 8 ont aussi leur propre épopée. Les tâches sont rattachées à leur épopée comme sous-issues.
