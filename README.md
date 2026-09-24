@@ -9,6 +9,7 @@ Jeu incrémental long (18–25 h) en huit strates. Chaque strate est un incréme
 | [`docs/design-doc.md`](docs/design-doc.md) | Le design doc, référence du projet |
 | [`docs/roadmap.md`](docs/roadmap.md) | Phases, points de décision et graphe des dépendances |
 | [`docs/decisions.md`](docs/decisions.md) | Journal des décisions prises |
+| [`docs/strates/modele-fiche.md`](docs/strates/modele-fiche.md) | Modèle de fiche de design, à suivre pour chaque strate |
 
 ## Organisation des tâches
 
