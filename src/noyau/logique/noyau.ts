@@ -1,6 +1,7 @@
 import { deriverGraine } from "./alea";
 import { EFFETS_NEUTRES } from "./effets";
 import { estNumeroStrate, type EtatNoyau, type EtatStrateRange } from "./etat";
+import { migrerEtatStrate } from "./migrations";
 import type { Registre, StrateQuelconque } from "./registre";
 import type {
   ActionBase,
@@ -46,8 +47,9 @@ export class Noyau {
   }
 
   /**
-   * Charge la strate de la profondeur courante et prépare son état s'il n'existe pas encore.
-   * `maintenant` est l'horodatage d'arrivée (ms), noté dans le journal.
+   * Charge la strate de la profondeur courante et prépare son état : le crée s'il n'existe pas
+   * encore, ou le migre s'il vient d'une version antérieure de la strate (D-005). Refuse un état
+   * plus récent que la strate. `maintenant` est l'horodatage d'arrivée (ms), noté dans le journal.
    */
   async demarrer(maintenant: number): Promise<void> {
     const numero = this.etat.profondeur;
@@ -64,10 +66,7 @@ export class Noyau {
         }),
       };
     } else if (range.version !== logique.versionEtat) {
-      throw new Error(
-        `L'état de la strate ${numero} est en version ${range.version}, ` +
-          `la strate attend la version ${logique.versionEtat}.`,
-      );
+      this.etat.strates[numero] = migrerEtatStrate(range, logique);
     }
 
     const journal = this.etat.meta.journal.strates;

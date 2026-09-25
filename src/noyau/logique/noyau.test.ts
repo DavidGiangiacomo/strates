@@ -22,7 +22,7 @@ function registreAvec(logique: LogiqueFactice = creerLogiqueFactice(1)): Registr
 }
 
 async function noyauDemarre(graine = 1, logique?: LogiqueFactice): Promise<Noyau> {
-  const noyau = new Noyau(registreAvec(logique), creerEtatNoyau(graine));
+  const noyau = new Noyau(registreAvec(logique), creerEtatNoyau(graine, 0));
   await noyau.demarrer(1_000);
   return noyau;
 }
@@ -31,7 +31,7 @@ const etatDe = (noyau: Noyau) => noyau.etatStrate as EtatFactice;
 
 describe("l'état global", () => {
   it("commence à la surface, sans artefact ni compréhension", () => {
-    const etat = creerEtatNoyau(7);
+    const etat = creerEtatNoyau(7, 0);
     expect(etat).toMatchObject({ profondeur: 1, artefacts: [], kappa: 0, graine: 7, strates: {} });
     expect(etat.meta.journal.strates).toEqual([]);
   });
@@ -39,7 +39,7 @@ describe("l'état global", () => {
   it("n'accepte comme profondeur qu'un entier de 1 à 8", () => {
     expect([1, 4, 8].every(estNumeroStrate)).toBe(true);
     expect([0, 9, 1.5, NaN, "1", null].some(estNumeroStrate)).toBe(false);
-    const etat = { ...creerEtatNoyau(1), profondeur: 2.5 } as never;
+    const etat = { ...creerEtatNoyau(1, 0), profondeur: 2.5 } as never;
     expect(() => new Noyau(new Registre(), etat)).toThrow(/Profondeur invalide/);
   });
 });
@@ -76,14 +76,47 @@ describe("le démarrage", () => {
     expect(etatDe(repris).unites).toBe(1);
   });
 
-  it("refuse un état de strate dans une autre version", async () => {
-    const etat = creerEtatNoyau(1);
-    etat.strates[1] = { version: 0, etat: {} };
-    await expect(new Noyau(registreAvec(), etat).demarrer(0)).rejects.toThrow(/version 0/);
+  it("migre l'état d'une strate venu d'une version antérieure", async () => {
+    // Version 3 de la strate factice : la v1 appelait « stock » ce que la v2 appelle « unites »,
+    // et la v3 a ajouté le cumul.
+    const logique: LogiqueFactice = {
+      ...creerLogiqueFactice(1),
+      versionEtat: 3,
+      migrations: {
+        1: (e) => {
+          const { stock, ...reste } = e as { stock: number };
+          return { ...reste, unites: stock };
+        },
+        2: (e) => ({ ...(e as EtatFactice), cumul: (e as EtatFactice).unites }),
+      },
+    };
+    const etat = creerEtatNoyau(1, 0);
+    etat.strates[1] = { version: 1, etat: { stock: 42, generateurs: 2, alea: { s: 7 } } };
+    const noyau = new Noyau(registreAvec(logique), etat);
+    await noyau.demarrer(0);
+    expect(noyau.etat.strates[1]).toEqual({
+      version: 3,
+      etat: { unites: 42, cumul: 42, generateurs: 2, alea: { s: 7 } },
+    });
+  });
+
+  it("refuse un état de strate plus récent que la strate", async () => {
+    const etat = creerEtatNoyau(1, 0);
+    etat.strates[1] = { version: 2, etat: {} };
+    await expect(new Noyau(registreAvec(), etat).demarrer(0)).rejects.toThrow(/plus récente/);
+  });
+
+  it("signale une migration manquante", async () => {
+    const logique: LogiqueFactice = { ...creerLogiqueFactice(1), versionEtat: 2, migrations: {} };
+    const etat = creerEtatNoyau(1, 0);
+    etat.strates[1] = { version: 1, etat: {} };
+    await expect(new Noyau(registreAvec(logique), etat).demarrer(0)).rejects.toThrow(
+      /migration manquante de la version 1 à 2/,
+    );
   });
 
   it("refuse d'avancer avant d'être démarré", () => {
-    const noyau = new Noyau(registreAvec(), creerEtatNoyau(1));
+    const noyau = new Noyau(registreAvec(), creerEtatNoyau(1, 0));
     expect(() => noyau.tick(PAS)).toThrow(/pas démarré/);
   });
 });

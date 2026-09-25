@@ -3,15 +3,16 @@
   import { creerEtatNoyau } from "../logique/etat";
   import { Noyau } from "../logique/noyau";
   import type { ActionBase, CommandesNoyau, ProprietesVue } from "../logique/types";
+  import { demarrerAutosauvegarde } from "../plateforme/autosauvegarde";
   import { demarrerBoucle } from "../plateforme/boucle";
   import { graineAleatoire, maintenant } from "../plateforme/horloge";
+  import { GestionnaireSauvegarde, sauvegarderPartie } from "../plateforme/sauvegarde";
+  import { ouvrirStockage } from "../plateforme/stockage";
+  import { VERSION_JEU } from "../plateforme/version";
   import { creerRegistre } from "../../strates/registre";
   import { rendreStrateReactive } from "./reactivite.svelte";
 
   type VueStrate = Component<ProprietesVue<object, ActionBase>>;
-
-  // Partie neuve à chaque chargement, tant que la sauvegarde (#20) n'existe pas.
-  const noyau = new Noyau(creerRegistre(), creerEtatNoyau(graineAleatoire()));
 
   // Pas encore branchées : la descente arrive avec #30, l'aide et les fins plus tard.
   const commandes: CommandesNoyau = {
@@ -20,21 +21,55 @@
     terminer() {},
   };
 
-  let arreter: (() => void) | undefined;
+  const arrets: (() => void)[] = [];
+  let avis = $state<string | null>(null);
 
-  const demarrage = noyau.demarrer(maintenant()).then(() => {
-    const etat = rendreStrateReactive(noyau);
-    arreter = demarrerBoucle(noyau);
-    return { strate: noyau.strate, etat };
-  });
+  async function demarrer() {
+    const { stockage, persistant } = ouvrirStockage();
+    const gestionnaire = new GestionnaireSauvegarde(stockage, VERSION_JEU, maintenant);
+    const chargement = await gestionnaire.charger();
 
-  onDestroy(() => arreter?.());
+    if (chargement.type === "plus-recente") {
+      throw new Error(
+        `Cette sauvegarde vient d'une version plus récente du jeu (${chargement.versionJeu}). ` +
+          "Elle n'a pas été modifiée.",
+      );
+    }
+    if (!persistant) {
+      avis = "Le navigateur refuse le stockage : cette partie ne sera pas sauvegardée.";
+    } else if (chargement.type === "illisible") {
+      avis =
+        "La sauvegarde était illisible : elle a été mise de côté, et une partie neuve commence.";
+    } else if (chargement.type === "ok" && chargement.depuis === "precedente") {
+      avis = "La dernière sauvegarde était illisible : la précédente a été reprise.";
+    }
+
+    const etat =
+      chargement.type === "ok" ? chargement.etat : creerEtatNoyau(graineAleatoire(), maintenant());
+    const noyau = new Noyau(creerRegistre(), etat);
+    await noyau.demarrer(maintenant());
+    const etatVue = rendreStrateReactive(noyau);
+    arrets.push(demarrerBoucle(noyau));
+
+    const sauvegarder = () => sauvegarderPartie(noyau.etat, gestionnaire, maintenant());
+    await sauvegarder();
+    arrets.push(demarrerAutosauvegarde(sauvegarder));
+
+    return { noyau, strate: noyau.strate, etat: etatVue };
+  }
+
+  const demarrage = demarrer();
+
+  onDestroy(() => arrets.forEach((arreter) => arreter()));
 </script>
 
 <main>
+  {#if avis}
+    <p role="status">{avis}</p>
+  {/if}
   {#await demarrage}
     <p>Chargement…</p>
-  {:then { strate, etat }}
+  {:then { noyau, strate, etat }}
     {@const Vue = strate.vue as VueStrate}
     <Vue
       {etat}
@@ -44,6 +79,6 @@
       mode="jeu"
     />
   {:catch erreur}
-    <p>La strate n'a pas pu être chargée : {String(erreur)}</p>
+    <p role="alert">{erreur instanceof Error ? erreur.message : String(erreur)}</p>
   {/await}
 </main>
