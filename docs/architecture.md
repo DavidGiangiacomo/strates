@@ -200,12 +200,18 @@ interface DefinitionStrate<E, A extends ActionBase> {
 }
 ```
 
-- **Réactivité** : côté interface, le noyau enveloppe l'état dans un état réactif Svelte 5. Le hors-ligne et le simulateur travaillent sur un objet brut, sans cette enveloppe.
+- **Réactivité** : côté interface, le noyau enveloppe l'état dans un état réactif Svelte 5 (`rendreStrateReactive`, dans `noyau/ui`). Le hors-ligne et le simulateur travaillent sur un objet brut, sans cette enveloppe.
+  - **Piège** : les écritures faites à travers l'enveloppe ne remontent pas dans l'objet d'origine. Une fois l'état enveloppé, le noyau doit travailler sur l'enveloppe (`remplacerEtatStrate`), sinon la logique et la vue divergent. Un test le vérifie.
+  - L'état d'une strate doit donc rester un objet ou un tableau simple (pas d'instance de classe) : Svelte n'enveloppe que ceux-là, et c'est aussi ce qu'exige le JSON de la sauvegarde.
 - **Opacité** : tout libellé ou valeur susceptible d'être opaque passe par `o(cle)`. La couche d'opacité ([#66](https://github.com/DavidGiangiacomo/strates/issues/66)) remplacera l'implémentation sans toucher aux strates.
 - **Son** : la vue joue ses sons par le moteur audio du noyau ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)), qui les libère au démontage.
 
 ## 6. La boucle du noyau
 
+Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logique, et `demarrerBoucle` (`src/noyau/plateforme/boucle.ts`) pour le rythme des images du navigateur.
+
+- **État global** (`EtatNoyau`) : `{ profondeur, artefacts, kappa, meta }`, plus la **graine de la partie** et l'état de chaque strate visitée, avec sa version. La graine d'une strate est dérivée de celle de la partie et du numéro de la strate : une même partie redonne toujours les mêmes tirages.
+- **Registre** : associe chaque profondeur à une strate chargée à la demande. Il vérifie que la strate chargée se déclare bien à cette profondeur. Un chargement raté peut être retenté.
 - **En session, onglet visible** : un pas fixe de 0,1 s (10 ticks par seconde), mesuré avec l'horloge monotone du navigateur. Un pas trop grand est découpé en pas de `pasMax` au plus.
 - **Onglet caché ou fermé** : c'est une absence. Au retour, l'écart est calculé selon les règles d'horloge de D-005, puis la politique hors-ligne de la strate s'applique.
 - **Hors-ligne standard** : le noyau simule 80 % de l'absence, plafonnée à 12 h, par ticks de `pasMax` au plus. En politique propre, il appelle `absence()`.
