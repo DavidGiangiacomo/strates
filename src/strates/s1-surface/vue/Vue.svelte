@@ -6,6 +6,7 @@
   import {
     AMELIORATIONS,
     ameliorationDisponible,
+    avanceeFissure,
     coutAchat,
     GENERATEURS,
     generateurVisible,
@@ -15,12 +16,15 @@
     quantiteAbordable,
     type DefAmelioration,
   } from "../logique/regles";
+  import Fissure from "./Fissure.svelte";
   import Graphique from "./Graphique.svelte";
   import { formaterDebit, formaterMontant, formaterNombre } from "./notation";
 
   let { etat, agir, o }: ProprietesVue<EtatSurface, ActionSurface> = $props();
 
   const p = $derived(production(etat));
+  const fissure = $derived(avanceeFissure(etat));
+  let zoneGraphique: HTMLElement | undefined = $state();
   const generateurs = $derived(GENERATEURS.filter((g) => generateurVisible(etat, g)));
   const ameliorations = $derived(
     AMELIORATIONS.filter((a) => ameliorationDisponible(etat, a)).sort((a, b) => a.cout - b.cout),
@@ -68,7 +72,14 @@
     </p>
   </div>
 
-  <Graphique points={etat.historique} taille={TAILLE_HISTORIQUE} titre={o("graphique")} />
+  <div bind:this={zoneGraphique}>
+    <Graphique points={etat.historique} taille={TAILLE_HISTORIQUE} titre={o("graphique")} />
+  </div>
+
+  <!-- Le filet : si le joueur n'a pas creusé après le seuil, une fissure le mène au bandeau. -->
+  {#if fissure > 0}
+    <Fissure depart={zoneGraphique} avancee={fissure} />
+  {/if}
 
   <button class="produire" onclick={() => agir({ type: "produire" })}>{o("produire")}</button>
 

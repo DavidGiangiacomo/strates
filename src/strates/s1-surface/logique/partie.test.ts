@@ -12,6 +12,7 @@ import {
   GENERATEURS,
   generateurVisible,
   production,
+  SEUIL_PRODUCTION,
   valeurClic,
 } from "./regles";
 
@@ -73,7 +74,10 @@ async function jouer(profil: Profil) {
   const etat = () => noyau.etatStrate as EtatSurface;
 
   let prochainPassage = 0;
+  // La fouille doit être refusée à chaque instant où la production est sous le palier.
+  let fouilleAvantPalier = false;
   for (let t = 0; t < 3 * 3600; t++) {
+    if (production(etat()) < SEUIL_PRODUCTION && noyau.demanderFouille()) fouilleAvantPalier = true;
     const clics = profil.clics(t);
     for (let i = 0; i < clics; i++) noyau.agir({ type: "produire" });
     if (t >= prochainPassage) {
@@ -89,7 +93,13 @@ async function jouer(profil: Profil) {
     noyau.avancer(1);
     if (noyau.seuil.atteint) break;
   }
-  return { minutes: etat().temps / 60, cumul: etat().cumul, seuil: noyau.seuil.atteint };
+  return {
+    minutes: etat().temps / 60,
+    cumul: etat().cumul,
+    seuil: noyau.seuil.atteint,
+    fouilleAvantPalier,
+    fouilleAuPalier: noyau.demanderFouille(),
+  };
 }
 
 describe("une partie complète de la surface", () => {
@@ -99,6 +109,12 @@ describe("une partie complète de la surface", () => {
     expect(partie.minutes).toBeGreaterThan(65);
     expect(partie.minutes).toBeLessThan(80);
     expect(points(partie.cumul)).toBe(12);
+  });
+
+  it("rend la descente possible au palier, et seulement au palier", async () => {
+    const partie = await jouer(CORRECT);
+    expect(partie.fouilleAvantPalier).toBe(false);
+    expect(partie.fouilleAuPalier).toBe(true);
   });
 
   it("reste dans la cible pour un joueur distrait", async () => {

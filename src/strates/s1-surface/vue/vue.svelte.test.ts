@@ -102,6 +102,25 @@ describe("la vue de la surface", () => {
     expect(texte("[data-test=objectif]")).toBe("Tous les objectifs sont atteints.");
   });
 
+  it("fait apparaître la fissure 5 minutes après le seuil, sans texte", () => {
+    const { etat } = monter((e) => {
+      e.seuilAtteintA = 1_000;
+      e.temps = 1_000 + 299;
+    });
+    expect(document.querySelector("[data-test=fissure]")).toBeNull();
+    const texteAvant = document.body.textContent;
+
+    etat.temps = 1_000 + 360;
+    flushSync();
+    const trace = document.querySelector("[data-test=fissure] path");
+    expect(trace?.getAttribute("stroke-dashoffset")).toBe("0.5");
+    expect(document.body.textContent).toBe(texteAvant);
+
+    etat.temps = 1_000 + 1_000;
+    flushSync();
+    expect(trace?.getAttribute("stroke-dashoffset")).toBe("0");
+  });
+
   it("trace la courbe de production dès deux points d'historique", () => {
     const { etat } = monter();
     expect(document.querySelector("polyline")).toBeNull();
