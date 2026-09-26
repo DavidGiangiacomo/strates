@@ -224,6 +224,6 @@ Elle dure 1 h 15 et non 2 h : pour elle, le critère se juge sur la qualité plu
 1. **Une nuit d'absence après le seuil** rapporte 2 points sans jouer. À garder si l'équilibrage ([#35](https://github.com/DavidGiangiacomo/strates/issues/35)) le juge acceptable ; sinon, plafonner ce que l'absence ajoute au cumul une fois le seuil atteint.
 2. **Délai du filet** (5 minutes avant la fissure) : à régler d'après le test du MVP ([#37](https://github.com/DavidGiangiacomo/strates/issues/37)).
 3. **Aucune opacité** : à confirmer par le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)).
-4. **Le sol qui résiste** : c'est le comportement commun du bouton de fouille avant le seuil, à inscrire dans la tâche du bandeau ([#22](https://github.com/DavidGiangiacomo/strates/issues/22)).
+4. ~~**Le sol qui résiste**~~ : fait dans le bandeau ([#22](https://github.com/DavidGiangiacomo/strates/issues/22)), comportement commun à toutes les strates. Il manque le son sourd, qui attend le moteur audio ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)).
 5. **Budget du catalogue** ([#10](https://github.com/DavidGiangiacomo/strates/issues/10)) : le calibrer sur 12 à 14 points, plutôt que sur 16.
 6. **Remontée à 100 %, sans plafond** : c'est une proposition, à confirmer avec la fin « Remonter » ([#128](https://github.com/DavidGiangiacomo/strates/issues/128)).

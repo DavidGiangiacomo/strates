@@ -207,6 +207,14 @@ export class Noyau {
     return this.#seuil;
   }
 
+  /**
+   * Le joueur demande la descente : refusée tant que le seuil n'est pas atteint
+   * (docs/architecture.md § 6, « La descente », étape 1). La suite de la descente arrive avec #30.
+   */
+  demanderFouille(): boolean {
+    return this.#seuil.atteint;
+  }
+
   /** Renvoie les événements émis par la strate depuis le dernier appel, et les oublie. */
   viderEvenements(): EvenementStrate[] {
     return this.#evenements.splice(0);

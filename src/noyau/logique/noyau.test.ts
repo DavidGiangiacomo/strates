@@ -179,6 +179,16 @@ describe("la boucle de tick", () => {
     expect(noyau.seuil.atteint).toBe(true);
   });
 
+  it("refuse la fouille tant que le seuil n'est pas atteint", async () => {
+    const noyau = await noyauDemarre();
+    expect(noyau.demanderFouille()).toBe(false);
+    etatDe(noyau).cumul = 999;
+    noyau.agir({ type: "produire" });
+    expect(noyau.demanderFouille()).toBe(false); // l'action n'est appliquée qu'au tick suivant
+    noyau.tick(0);
+    expect(noyau.demanderFouille()).toBe(true);
+  });
+
   it("recueille les événements émis par la strate", async () => {
     const noyau = await noyauDemarre();
     etatDe(noyau).unites = 10;
