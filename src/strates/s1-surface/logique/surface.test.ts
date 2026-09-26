@@ -6,6 +6,9 @@ import { TAILLE_HISTORIQUE } from "./etat";
 import {
   AMELIORATIONS,
   ameliorationDisponible,
+  avanceeFissure,
+  DELAI_FISSURE,
+  DUREE_FISSURE,
   coutAchat,
   generateur,
   GENERATEURS,
@@ -230,6 +233,29 @@ describe("les objectifs et le seuil", () => {
 
     logique.tick(etat, 10, ctx());
     expect(etat.seuilAtteintA).toBe(601);
+  });
+});
+
+describe("la fissure", () => {
+  it("n'apparaît que 5 minutes après le seuil, puis s'allonge en 2 minutes", () => {
+    expect(DELAI_FISSURE).toBe(300);
+    expect(DUREE_FISSURE).toBe(120);
+    expect(avanceeFissure(etatNeuf({ temps: 10_000 }))).toBe(0); // seuil non atteint
+    const au = (apres: number) =>
+      avanceeFissure(etatNeuf({ seuilAtteintA: 600, temps: 600 + apres }));
+    expect(au(0)).toBe(0);
+    expect(au(300)).toBe(0);
+    expect(au(360)).toBeCloseTo(0.5, 10);
+    expect(au(420)).toBe(1);
+    expect(au(86_400)).toBe(1);
+  });
+
+  it("avance avec le temps de strate, absences comprises", () => {
+    const etat = avec({ filiale: 20 });
+    logique.tick(etat, 0.1, ctx());
+    expect(etat.seuilAtteintA).not.toBeNull();
+    logique.tick(etat, DELAI_FISSURE + DUREE_FISSURE, ctx()); // un rattrapage d'absence, en un pas
+    expect(avanceeFissure(etat)).toBe(1);
   });
 });
 
