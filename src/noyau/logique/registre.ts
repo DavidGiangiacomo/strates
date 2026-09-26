@@ -18,6 +18,11 @@ export class Registre {
     this.#chargeurs.set(numero, chargeur);
   }
 
+  /** Les profondeurs qui ont une strate, dans l'ordre. */
+  numeros(): NumeroStrate[] {
+    return [...this.#chargeurs.keys()].sort((a, b) => a - b);
+  }
+
   /** Charge la strate une seule fois, et vérifie qu'elle occupe bien ce numéro. */
   charger(numero: NumeroStrate): Promise<StrateQuelconque> {
     const dejaCharge = this.#charges.get(numero);
