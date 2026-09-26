@@ -25,6 +25,13 @@ describe("le registre des strates", () => {
     expect(a).toBe(b);
   });
 
+  it("liste les profondeurs qui ont une strate, dans l'ordre", () => {
+    const registre = new Registre();
+    registre.enregistrer(3, async () => factice(3));
+    registre.enregistrer(1, async () => factice(1));
+    expect(registre.numeros()).toEqual([1, 3]);
+  });
+
   it("refuse une profondeur sans strate", async () => {
     await expect(new Registre().charger(3)).rejects.toThrow(/profondeur 3/);
   });

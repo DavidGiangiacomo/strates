@@ -58,6 +58,24 @@ describe("la boucle des images", () => {
     expect(avancerJusqua.mock.calls.map(([, dt]) => dt)).toEqual([SEUIL_ABSENCE, 0]);
   });
 
+  it("multiplie le temps de jeu par la vitesse, sans toucher à l'horloge", () => {
+    const { noyau, avancerJusqua } = noyauFactice();
+    let vitesse = 1;
+    demarrerBoucle(
+      noyau,
+      undefined,
+      () => 7_000,
+      () => vitesse,
+    );
+    image(1_016);
+    vitesse = 100;
+    image(1_032);
+    expect(avancerJusqua.mock.calls).toEqual([
+      [7_000, expect.closeTo(0.016, 9)],
+      [7_000, expect.closeTo(1.6, 9)],
+    ]);
+  });
+
   it("transmet les reprises à signaler", () => {
     const absence: Reprise = {
       type: "absence",

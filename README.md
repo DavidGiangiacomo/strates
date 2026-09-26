@@ -36,7 +36,19 @@ npm test             # tests (Vitest)
 npm run lint         # ESLint, dont les règles d'architecture
 npm run check        # types : application, puis logique sans DOM
 npm run format       # Prettier
+npm run sauvegardes  # régénère les sauvegardes nommées (sauvegardes-nommees/)
 ```
+
+### Outils de développement
+
+Avec `npm run dev`, un bouton « dev » en bas à droite ouvre le panneau des outils (#28). Il n'existe pas dans le build de production.
+
+- **Temps** : vitesse ×1, ×10, ×100 ou ×1000 ; avance immédiate de 1 min, 10 min ou 1 h.
+- **Horloge** : absence simulée (1 min à 3 jours) et recul d'horloge (2 min à 2 h), pour tester le hors-ligne et les perturbations du journal.
+- **Parties** : les [sauvegardes nommées](sauvegardes-nommees/README.md), le saut direct à une strate, une nouvelle partie, le téléchargement et l'import d'une sauvegarde.
+- **État** : l'état de la strate courante en JSON, les artefacts et κ, à modifier à la main.
+
+Tout ce qui change la partie passe par une sauvegarde, puis un rechargement : le vrai chemin de chargement, migrations comprises. La partie repart alors de l'heure courante.
 
 La CI (GitHub Actions) lance le lint, le formatage, les types, les tests et le build à chaque push et à chaque pull request. Sur `main`, elle publie ensuite la version de playtest.
 

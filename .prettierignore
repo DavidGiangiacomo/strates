@@ -4,3 +4,5 @@ coverage/
 package-lock.json
 # Documents rédigés à la main : Prettier ne les reformate pas.
 *.md
+# Fichiers générés (npm run sauvegardes) : leur contenu est comparé octet par octet.
+sauvegardes-nommees/*.json

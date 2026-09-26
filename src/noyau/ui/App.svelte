@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy, type Component } from "svelte";
-  import { creerEtatNoyau } from "../logique/etat";
+  import { creerEtatNoyau, type EtatNoyau } from "../logique/etat";
   import { Noyau } from "../logique/noyau";
   import type { ActionBase, CommandesNoyau, ProprietesVue } from "../logique/types";
   import { demarrerAutosauvegarde } from "../plateforme/autosauvegarde";
@@ -20,6 +20,8 @@
   let avis = $state<string | null>(null);
   let resume = $state<string[] | null>(null);
   let bandeau: ReturnType<typeof Bandeau> | undefined = $state();
+  /** Multiplie le temps de jeu : réglée par les outils de développement, toujours 1 sinon. */
+  let vitesse = $state(1);
 
   /** Le bouton « creuser », du bandeau ou d'une strate : avant le seuil, le sol résiste. */
   function creuser(noyau: Noyau): void {
@@ -53,12 +55,20 @@
 
     const etat =
       chargement.type === "ok" ? chargement.etat : creerEtatNoyau(graineAleatoire(), maintenant());
-    const noyau = new Noyau(creerRegistre(), etat);
+    const registre = creerRegistre();
+    const noyau = new Noyau(registre, etat);
     await noyau.demarrer(maintenant());
     // Rattrape le temps passé depuis la dernière sauvegarde, avant de rendre l'état réactif.
     resume = resumerReprise(noyau.rattraper(maintenant()));
     const etatVue = rendreStrateReactive(noyau);
-    arrets.push(demarrerBoucle(noyau, (reprise) => (resume = resumerReprise(reprise) ?? resume)));
+    arrets.push(
+      demarrerBoucle(
+        noyau,
+        (reprise) => (resume = resumerReprise(reprise) ?? resume),
+        maintenant,
+        () => vitesse,
+      ),
+    );
 
     const sauvegarder = () => sauvegarderPartie(noyau.etat, gestionnaire, maintenant());
     await sauvegarder();
@@ -70,7 +80,18 @@
       ouvrirAide() {},
       terminer() {},
     };
-    return { noyau, strate: noyau.strate, etat: etatVue, commandes };
+    /** Outils de développement : écrit `nouvel` état comme sauvegarde courante, puis recharge. */
+    async function remplacerPartie(nouvel: EtatNoyau): Promise<void> {
+      // Plus de boucle ni d'autosauvegarde : la fermeture de la page ne doit pas réécrire l'ancienne partie.
+      for (const arreter of arrets.splice(0)) arreter();
+      if (!(await gestionnaire.ecrire(nouvel))) {
+        throw new Error("La sauvegarde n'a pas pu être écrite (lecture seule ?).");
+      }
+      location.reload();
+    }
+
+    const dev = { gestionnaire, profondeurs: registre.numeros(), remplacerPartie };
+    return { noyau, strate: noyau.strate, etat: etatVue, commandes, dev };
   }
 
   const demarrage = demarrer();
@@ -80,7 +101,7 @@
 
 {#await demarrage}
   <main><p>Chargement…</p></main>
-{:then { noyau, strate, etat, commandes }}
+{:then { noyau, strate, etat, commandes, dev }}
   {@const Vue = strate.vue as VueStrate}
   <!-- La Profondeur et les artefacts ne changent qu'à la descente (#30), qui les rendra réactifs. -->
   <Bandeau
@@ -109,6 +130,12 @@
       mode="jeu"
     />
   </main>
+  <!-- Retiré du build de production : import.meta.env.DEV y vaut false. -->
+  {#if import.meta.env.DEV}
+    {#await import("../../dev/OutilsDev.svelte") then { default: OutilsDev }}
+      <OutilsDev {noyau} bind:vitesse {...dev} />
+    {/await}
+  {/if}
 {:catch erreur}
   <main>
     {#if avis}
