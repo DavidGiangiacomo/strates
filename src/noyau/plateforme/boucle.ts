@@ -1,19 +1,26 @@
+import { SEUIL_ABSENCE, type Reprise } from "../logique/horsligne";
 import type { Noyau } from "../logique/noyau";
+import { maintenant as horloge } from "./horloge";
 
-// Plus grand écart pris en compte entre deux images, en secondes. Un onglet caché ne reçoit
-// pas d'images : au retour, l'écart est tronqué ici. Le temps passé caché est une absence,
-// que le hors-ligne (#27) prendra en charge.
-const ECART_MAX = 0.25;
-
-/** Fait avancer le noyau au rythme des images du navigateur. Renvoie de quoi arrêter la boucle. */
-export function demarrerBoucle(noyau: Noyau): () => void {
+/**
+ * Fait avancer le noyau à chaque image du navigateur, sur l'horloge monotone. À chaque image,
+ * le noyau compare aussi l'horloge système à sa référence : un grand écart est une absence
+ * (onglet caché, veille), qu'il rattrape et signale à `surReprise`. Renvoie de quoi arrêter.
+ */
+export function demarrerBoucle(
+  noyau: Noyau,
+  surReprise: (reprise: Reprise) => void = () => {},
+  maintenant: () => number = horloge,
+): () => void {
   let precedent = performance.now();
   let id = requestAnimationFrame(image);
 
   function image(instant: number): void {
-    const ecart = Math.min(Math.max(0, instant - precedent) / 1000, ECART_MAX);
+    // Une image lente est jouée normalement ; au-delà du seuil, le noyau rattrape l'absence.
+    const dt = Math.min(Math.max(0, instant - precedent) / 1000, SEUIL_ABSENCE);
     precedent = instant;
-    noyau.avancer(ecart);
+    const reprise = noyau.avancerJusqua(maintenant(), dt);
+    if (reprise) surReprise(reprise);
     id = requestAnimationFrame(image);
   }
 

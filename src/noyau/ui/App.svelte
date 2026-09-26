@@ -11,6 +11,7 @@
   import { VERSION_JEU } from "../plateforme/version";
   import { creerRegistre } from "../../strates/registre";
   import { rendreStrateReactive } from "./reactivite.svelte";
+  import { resumerReprise } from "./reprise";
 
   type VueStrate = Component<ProprietesVue<object, ActionBase>>;
 
@@ -23,6 +24,7 @@
 
   const arrets: (() => void)[] = [];
   let avis = $state<string | null>(null);
+  let resume = $state<string[] | null>(null);
 
   async function demarrer() {
     const { stockage, persistant } = ouvrirStockage();
@@ -48,8 +50,10 @@
       chargement.type === "ok" ? chargement.etat : creerEtatNoyau(graineAleatoire(), maintenant());
     const noyau = new Noyau(creerRegistre(), etat);
     await noyau.demarrer(maintenant());
+    // Rattrape le temps passé depuis la dernière sauvegarde, avant de rendre l'état réactif.
+    resume = resumerReprise(noyau.rattraper(maintenant()));
     const etatVue = rendreStrateReactive(noyau);
-    arrets.push(demarrerBoucle(noyau));
+    arrets.push(demarrerBoucle(noyau, (reprise) => (resume = resumerReprise(reprise) ?? resume)));
 
     const sauvegarder = () => sauvegarderPartie(noyau.etat, gestionnaire, maintenant());
     await sauvegarder();
@@ -66,6 +70,14 @@
 <main>
   {#if avis}
     <p role="status">{avis}</p>
+  {/if}
+  {#if resume}
+    <section role="status" aria-label="Pendant votre absence">
+      {#each resume as ligne, i (i)}
+        <p>{ligne}</p>
+      {/each}
+      <button onclick={() => (resume = null)}>D'accord</button>
+    </section>
   {/if}
   {#await demarrage}
     <p>Chargement…</p>

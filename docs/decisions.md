@@ -231,8 +231,10 @@ Chaque module sérialise et relit lui-même son `etat`, et versionne son propre 
 ### Temps et horloge
 
 - **Référence** : le plus grand horodatage connu. Elle ne recule jamais.
-- Pendant une session, les ticks avancent selon l'horloge monotone du navigateur (`performance.now()`). L'horloge système n'est lue qu'au chargement, au retour au premier plan et à chaque sauvegarde.
-- À chaque lecture, écart = maintenant − référence :
+- Pendant une session, les ticks avancent selon l'horloge monotone du navigateur (`performance.now()`). L'horloge système est lue au chargement, puis à chaque image, et la référence la suit.
+  - *Précision apportée par #27* : le texte initial ne lisait l'horloge système qu'au chargement, au retour au premier plan et à chaque sauvegarde. La lire à chaque image couvre aussi la mise en veille d'un ordinateur dont l'onglet reste au premier plan, que l'horloge monotone ne voit pas toujours passer.
+  - Entre deux images, un écart de plus de 2 s avec la référence est une absence (onglet caché, veille). En deçà, c'est une image lente, jouée normalement.
+- Au chargement et à chaque absence, écart = maintenant − référence :
   - **écart positif** : c'est une absence, traitée par la politique hors-ligne de la strate (80 %, plafond 12 h ; strates 6 et 7 à part) ;
   - **écart négatif** : il compte pour zéro, et la référence ne bouge pas ; reculer puis avancer l'horloge ne fait rien gagner. Au-delà de 5 minutes de recul, une **perturbation** est notée dans le journal de partie, avec la strate et l'ampleur.
 - **Limite assumée** : une avance de l'horloge ne se distingue pas d'une vraie absence ou d'une mise en veille. Elle est traitée comme une absence, dans la limite des plafonds. La triche type (avancer l'horloge puis la remettre à l'heure) est constatée au moment où le joueur la remet à l'heure.

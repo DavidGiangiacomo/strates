@@ -3,6 +3,7 @@
 export * from "./alea";
 export * from "./effets";
 export * from "./etat";
+export * from "./horsligne";
 export * from "./migrations";
 export * from "./noyau";
 export * from "./registre";
