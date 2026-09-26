@@ -186,7 +186,7 @@ Sans objet : aucun artefact n'arrive jamais à la surface, puisqu'aucune strate 
 
 - C'est le **cumul des crédits gagnés** dans la strate : clics et production, absences comprises. Les achats ne le diminuent pas (D-003).
 - En simulation, le cumul au seuil vaut 6 × 10⁸ cr pour les trois profils, soit **12 points**. Un meilleur jeu fait gagner du temps (63 min au lieu de 78), pas des points.
-- Rester après le seuil rapporte peu : il faut 3 fois plus de cumul pour 13 points, et 16 fois plus pour 14. En simulation, 10 minutes de plus donnent 12 ou 13 points, et une heure de plus en donne 14.
+- Rester après le seuil rapporte peu : il faut 3 fois plus de cumul pour 13 points, et 16 fois plus pour 14. Mesuré sur cinq profils de joueur ([mesures](strate-1-mesures.md)) : 10 minutes de plus ne rapportent aucun point, une heure de plus en rapporte 2 (14 points).
 - Pour le catalogue ([#10](https://github.com/DavidGiangiacomo/strates/issues/10)), le budget réaliste va donc de 12 à 14 points. Les 16 points d'un « jeu parfait », selon la règle générale du §4, ne s'atteignent pas à la surface sans un farm déraisonnable. Avec le catalogue indicatif de [`artefacts.md`](../artefacts.md) (6 objets, 17 points au total), le joueur laisse un ou deux objets en haut.
 
 ## 10. Hors-ligne
@@ -227,3 +227,20 @@ Elle dure 1 h 15 et non 2 h : pour elle, le critère se juge sur la qualité plu
 4. ~~**Le sol qui résiste**~~ : fait dans le bandeau ([#22](https://github.com/DavidGiangiacomo/strates/issues/22)), comportement commun à toutes les strates. Il manque le son sourd, qui attend le moteur audio ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)).
 5. **Budget du catalogue** ([#10](https://github.com/DavidGiangiacomo/strates/issues/10)) : le calibrer sur 12 à 14 points, plutôt que sur 16.
 6. **Remontée à 100 %, sans plafond** : c'est une proposition, à confirmer avec la fin « Remonter » ([#128](https://github.com/DavidGiangiacomo/strates/issues/128)).
+
+## 14. Équilibrage
+
+Issue [#35](https://github.com/DavidGiangiacomo/strates/issues/35). Les mesures détaillées sont dans [`strate-1-mesures.md`](strate-1-mesures.md), un fichier généré que la CI tient à jour.
+
+**Méthode.** Cinq joueurs automatiques (`sim/joueurs/surface.ts`) jouent une partie complète à travers le noyau, du joueur parfait au joueur occasionnel qui ne passe que toutes les 5 minutes. Ils achètent toujours ce qui se rembourse le plus vite. `tests/equilibrage-surface.test.ts` vérifie que tous tombent dans les cibles ; après un changement de règles, `npm run mesures` régénère le rapport.
+
+**Résultats**, tous dans les cibles :
+- **Durée** : le seuil tombe entre 67 et 78 minutes pour les joueurs réguliers (73 pour un joueur correct), et en 95 minutes pour un joueur occasionnel.
+- **Points** : 12 pour tous les profils. Rester après le seuil rapporte peu : rien en 10 minutes, 2 points en une heure ou après une nuit d'absence.
+- **Du clic à l'automatisation** : le clic fait la moitié de la production à 5 minutes, moins de 10 % à 15 minutes. La production dépasse le clic vers 2 minutes.
+- **Rythme** : les quatre premiers objectifs tombent dans la première minute (le tutoriel), puis les suivants s'espacent de 5 à 25 minutes. Passé le premier quart d'heure, un nouvel étage arrive toutes les 10 à 17 minutes.
+- **Attentes** : un joueur attentif n'attend jamais plus de 6 minutes entre deux achats. Les deux plus longues attentes (4 à 5 minutes) sont des économies : pour la première filiale (50 M cr), puis pour « Plan stratégique » (200 M cr), dont l'achat fait franchir le seuil.
+
+**Décision.** Aucun chiffre du § 3 ne change : le calibrage de la fiche tient. Les deux économies de fin de strate sont gardées. Elles marquent le passage au jeu de fond décrit au § 4 (« le joueur n'intervient plus que toutes les quelques minutes »), et la strate finit sur un achat qui compte.
+
+**À vérifier au playtest** ([#37](https://github.com/DavidGiangiacomo/strates/issues/37)) : que le passage du clic à l'automatisation est agréable, et que les attentes de fin de strate ne font pas décrocher. Si elles sont trop longues, les leviers sont le coût de la filiale et celui de « Plan stratégique ».
