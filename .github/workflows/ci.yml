@@ -3,6 +3,10 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   verifier:
@@ -24,3 +28,28 @@ jobs:
         run: npm test
       - name: Build
         run: npm run build
+      # Sur main, le build qui vient de passer toutes les vérifications devient la version de playtest (#19).
+      - name: Préparer la publication
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  publier:
+    needs: verifier
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    # Une publication à la fois ; celle en cours va jusqu'au bout.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - name: Publier sur GitHub Pages
+        id: deploiement
+        uses: actions/deploy-pages@v5
