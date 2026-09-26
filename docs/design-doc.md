@@ -290,7 +290,7 @@ Un mois, pas un week-end — c'est la contrainte de ce concept :
 
 ## À trancher ensuite
 
-1. **Est-ce le bon projet maintenant ?** Réponse honnête : non, pas en premier. C'est le concept le plus ambitieux des douze, et il demande un jeu déjà terminé derrière soi. À garder comme projet n°3.
-2. Verrouiller R1 par écrit : 8 strates, jamais plus, jamais de procédural.
+1. **Est-ce le bon projet maintenant ?** Réponse honnête : non, pas en premier. C'est le concept le plus ambitieux des douze, et il demande un jeu déjà terminé derrière soi. À garder comme projet n°3. *Tranché par D-006 : le projet va au moins jusqu'au MVP, et la suite se décide au go / no-go.*
+2. Verrouiller R1 par écrit : 8 strates, jamais plus, jamais de procédural. *Fait : D-001.*
 3. Concevoir les strates 2 et 5 en détail (les deux plus originales) avant les autres — si celles-là ne tiennent pas, le concept ne tient pas.
 4. Prototyper : strates 1 et 2 seulement, avec la descente.
