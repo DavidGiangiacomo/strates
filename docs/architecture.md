@@ -270,7 +270,7 @@ Le contrat a été relu strate par strate, en particulier pour les strates atypi
 
 | Strate | Leviers | Valeur convertible | Seuil | Hors-ligne | Rendu | Particularités couvertes |
 |---|---|---|---|---|---|---|
-| 1 — La surface | production | Crédits gagnés | palier de production | standard | Svelte, DOM | le bouton « creuser » de la vue appelle `demanderFouille()` ; `remontee()` fait tourner la production pendant l'absence |
+| 1 — La surface | production | Crédits gagnés | 1 M cr/s de production | standard | Svelte, DOM | « creuser » est le bouton de fouille du bandeau, que rien ne mentionne ; `remontee()` fait tourner la production pendant l'absence |
 | 2 — Les caves | récolte ; conservation | Grain récolté | trois hivers sans rupture | standard, ou propre (voir § 9) | Svelte, DOM | les saisons sont un cycle interne à l'état ; les ruptures de stock se comptent dans l'état |
 | 3 — L'atelier | production | Pièces produites | grille pleine qui fonctionne | standard | Svelte, grille DOM ou Canvas | placer et retirer sont des actions avec coordonnées, sérialisables |
 | 4 — Le réseau | débit | Flux acheminé | 5 min sans goulot | standard, ou propre (voir § 9) | Svelte + SVG | « goulot trouvé avant le signal » est un acte émis par la strate ; le graphe de dépendances ne doit pas résoudre la strate |
@@ -283,7 +283,7 @@ Le contrat a été relu strate par strate, en particulier pour les strates atypi
 
 Le contrat les permet toutes ; c'est la fiche de chaque strate qui tranche.
 
-- **Strate 1** ([#5](https://github.com/DavidGiangiacomo/strates/issues/5)) : que fait le bouton « creuser » avant le seuil ? Le noyau refuse la descente tant que le seuil n'est pas atteint.
+- **Strate 1** ([#5](https://github.com/DavidGiangiacomo/strates/issues/5)) : que fait le bouton « creuser » avant le seuil ? *Tranché par la [fiche](strates/strate-1.md), § 4 : c'est le bouton de fouille du bandeau ; avant le seuil, le sol résiste (un tressaillement, un son sourd, sans texte).*
 - **Strate 2** ([#6](https://github.com/DavidGiangiacomo/strates/issues/6)) : une rupture de stock pendant l'absence compte-t-elle contre les trois hivers ? Si oui, il faut une politique hors-ligne propre, pour que l'absence ne fasse pas perdre le seuil sans que le joueur puisse réagir.
 - **Strate 4** ([#62](https://github.com/DavidGiangiacomo/strates/issues/62)) : les 5 minutes sans goulot se comptent-elles pendant l'absence ?
 - **Strate 5** ([#7](https://github.com/DavidGiangiacomo/strates/issues/7)) : `formules()` réintroduirait des nombres dans la seule strate qui n'en montre pas. Faut-il l'omettre, ou écrire les formules sans chiffres ?

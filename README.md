@@ -10,6 +10,7 @@ Jeu incrémental long (18–25 h) en huit strates. Chaque strate est un incréme
 | [`docs/roadmap.md`](docs/roadmap.md) | Phases, points de décision et graphe des dépendances |
 | [`docs/decisions.md`](docs/decisions.md) | Journal des décisions prises |
 | [`docs/strates/modele-fiche.md`](docs/strates/modele-fiche.md) | Modèle de fiche de design, à suivre pour chaque strate |
+| [`docs/strates/strate-1.md`](docs/strates/strate-1.md) | Fiche de design de la strate 1, la surface |
 | [`docs/architecture.md`](docs/architecture.md) | Contrat entre le noyau et les strates (types, boucle, descente, journal) |
 | [`docs/artefacts.md`](docs/artefacts.md) | Modèle des artefacts (points de fouille, usure, plafond, écran de choix) et catalogue |
 
