@@ -2,6 +2,16 @@
 
 Jeu incrémental long (18–25 h) en huit strates. Chaque strate est un incrémental complet et différent ; le prestige est une descente d'un étage, qui change les règles au lieu de les remettre à zéro.
 
+## Version de playtest
+
+**<https://davidgiangiacomo.github.io/strates/>**
+
+Chaque push sur `main` qui passe la CI y est publié automatiquement (job `publier` de `.github/workflows/ci.yml`). Le bas de la page affiche la version et le commit du build (« Strates 0.0.0 · 07eede8 ») : c'est ce qu'il faut noter avec chaque retour de playtest.
+
+Les sauvegardes des testeurs restent dans leur navigateur, propres à ce site.
+
+Réglage unique du dépôt, déjà nécessaire au premier déploiement : *Settings → Pages → Build and deployment → Source : GitHub Actions*.
+
 ## Documents
 
 | Fichier | Contenu |
@@ -28,7 +38,7 @@ npm run check        # types : application, puis logique sans DOM
 npm run format       # Prettier
 ```
 
-La CI (GitHub Actions) lance le lint, le formatage, les types, les tests et le build à chaque push et à chaque pull request.
+La CI (GitHub Actions) lance le lint, le formatage, les types, les tests et le build à chaque push et à chaque pull request. Sur `main`, elle publie ensuite la version de playtest.
 
 ## Organisation des tâches
 

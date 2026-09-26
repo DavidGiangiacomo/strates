@@ -8,7 +8,7 @@
   import { graineAleatoire, maintenant } from "../plateforme/horloge";
   import { GestionnaireSauvegarde, sauvegarderPartie } from "../plateforme/sauvegarde";
   import { ouvrirStockage } from "../plateforme/stockage";
-  import { VERSION_JEU } from "../plateforme/version";
+  import { BUILD, VERSION_JEU } from "../plateforme/version";
   import { creerRegistre } from "../../strates/registre";
   import { rendreStrateReactive } from "./reactivite.svelte";
   import { resumerReprise } from "./reprise";
@@ -94,3 +94,14 @@
     <p role="alert">{erreur instanceof Error ? erreur.message : String(erreur)}</p>
   {/await}
 </main>
+
+<!-- Provisoire : pour les playtests, en attendant une place dans le bandeau ou le menu. -->
+<footer data-test="version">Strates {VERSION_JEU} · {BUILD}</footer>
+
+<style>
+  footer {
+    margin-top: 3rem;
+    font-size: 0.75rem;
+    opacity: 0.6;
+  }
+</style>
