@@ -3,6 +3,8 @@
 export * from "./alea";
 export * from "./effets";
 export * from "./etat";
+export * from "./migrations";
 export * from "./noyau";
 export * from "./registre";
+export * from "./sauvegarde";
 export type * from "./types";

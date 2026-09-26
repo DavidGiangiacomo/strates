@@ -217,7 +217,7 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
 - **Hors-ligne standard** : le noyau simule 80 % de l'absence, plafonnée à 12 h, par ticks de `pasMax` au plus. En politique propre, il appelle `absence()`.
 - **Actions** : mises en file, appliquées au début du tick suivant dans l'ordre d'arrivée, et journalisées si le journal de session est actif.
 - **Après chaque tick** : le noyau lit `seuil()`. Si le seuil est atteint et `automatique` vaut vrai, il lance la descente sans le joueur. Sinon, il rend le bouton de fouille disponible dans le bandeau.
-- **Sauvegarde** : selon D-005 (toutes les 30 s, en arrière-plan, après chaque descente).
+- **Sauvegarde** : selon D-005 (toutes les 30 s, en arrière-plan, après chaque descente). Le format, sa validation et les migrations sont dans `noyau/logique/sauvegarde.ts` et `migrations.ts` ; le stockage, la rotation des deux emplacements et la mise de côté des sauvegardes illisibles, dans `noyau/plateforme/sauvegarde.ts`. Les migrations d'une strate s'appliquent à son démarrage. De vraies sauvegardes de chaque version publiée sont archivées dans `tests/sauvegardes/` et doivent toutes se charger.
 
 ### La descente
 

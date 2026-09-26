@@ -10,7 +10,7 @@ import { rendreStrateReactive } from "./reactivite.svelte";
 async function noyauDemarre(): Promise<Noyau> {
   const registre = new Registre();
   registre.enregistrer(1, async () => ({ logique: creerLogiqueFactice(1), vue: null, textes: {} }));
-  const noyau = new Noyau(registre, creerEtatNoyau(1));
+  const noyau = new Noyau(registre, creerEtatNoyau(1, 0));
   await noyau.demarrer(0);
   return noyau;
 }

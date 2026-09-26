@@ -1,0 +1,39 @@
+{
+  "format": 1,
+  "versionJeu": "0.0.0",
+  "partieCreeeLe": 1790352265880,
+  "reference": 1790352267996,
+  "noyau": {
+    "profondeur": 1,
+    "artefacts": [],
+    "kappa": 0,
+    "meta": {
+      "journal": {
+        "strates": [
+          {
+            "strate": 1,
+            "arrivee": 1790352265881,
+            "tempsDeJeu": 2.0000000000000004,
+            "tempsHorsLigne": 0,
+            "aideConsultee": false,
+            "perturbations": []
+          }
+        ]
+      }
+    },
+    "graine": 3894547531
+  },
+  "strates": {
+    "1": {
+      "version": 1,
+      "etat": {
+        "unites": 6.499999999999995,
+        "cumul": 16.500000000000004,
+        "generateurs": 1,
+        "alea": {
+          "s": 2102944893
+        }
+      }
+    }
+  }
+}
