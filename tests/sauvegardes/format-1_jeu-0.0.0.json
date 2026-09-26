@@ -1,8 +1,8 @@
 {
   "format": 1,
   "versionJeu": "0.0.0",
-  "partieCreeeLe": 1790352265880,
-  "reference": 1790352267996,
+  "partieCreeeLe": 1790446512929,
+  "reference": 1790446530327,
   "noyau": {
     "profondeur": 1,
     "artefacts": [],
@@ -12,27 +12,38 @@
         "strates": [
           {
             "strate": 1,
-            "arrivee": 1790352265881,
-            "tempsDeJeu": 2.0000000000000004,
-            "tempsHorsLigne": 0,
+            "arrivee": 1790446512929,
+            "tempsDeJeu": 17.199999999999974,
+            "tempsHorsLigne": 0.117,
             "aideConsultee": false,
             "perturbations": []
           }
         ]
       }
     },
-    "graine": 3894547531
+    "graine": 1791431143
   },
   "strates": {
     "1": {
       "version": 1,
       "etat": {
-        "unites": 6.499999999999995,
-        "cumul": 16.500000000000004,
-        "generateurs": 1,
-        "alea": {
-          "s": 2102944893
-        }
+        "credits": 10.700000000000141,
+        "cumul": 142.95000000000144,
+        "generateurs": {
+          "poste": 2,
+          "equipe": 0,
+          "serveur": 0,
+          "chaine": 0,
+          "turbine": 0,
+          "usine": 0,
+          "filiale": 0
+        },
+        "ameliorations": ["clic-1"],
+        "objectif": 2,
+        "temps": 17.293599999999977,
+        "seuilAtteintA": null,
+        "historique": [0.5],
+        "multiplicateur": 1
       }
     }
   }

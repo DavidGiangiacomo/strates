@@ -103,6 +103,7 @@ interface EtatSurface {
   temps: number;                  // secondes simulées depuis l'arrivée, absences comprises
   seuilAtteintA: number | null;   // valeur de `temps` au seuil
   historique: number[];           // P toutes les 10 s, sur les 15 dernières minutes (90 points)
+  multiplicateur: number;         // artefacts sur la production, relu à chaque tick ; toujours 1 ici
 }
 
 type ActionSurface =
