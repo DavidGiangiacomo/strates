@@ -254,11 +254,34 @@ Safari peut effacer les données d'un site qu'on n'a pas visité depuis 7 jours.
 
 ---
 
+## D-006 — Le MVP d'abord : le projet est engagé jusqu'au go / no-go
+
+- **Date** : 2026-09-26
+- **Statut** : active
+- **Origine** : issue [#2](https://github.com/DavidGiangiacomo/strates/issues/2) ; design doc, §0, §12, §14 et « À trancher ensuite », point 1
+
+**Contexte.** Le design doc répond lui-même « non, pas en premier » à la question du bon projet : c'est le concept le plus ambitieux des douze, il coûte 6 à 8 fois les autres, et il « demande un jeu déjà terminé derrière soi ». Il fallait trancher en connaissance de cause avant d'engager la phase 1.
+
+**Options étudiées.**
+1. *Lancer le projet complet* : engager d'emblée les huit strates, jusqu'à la 1.0.
+2. *Lancer seulement le MVP, comme test* : les strates 1 et 2 avec la descente (§14), puis décider de la suite.
+3. *Reporter* : garder Strates comme projet n°3, comme le suggère le design doc.
+
+**Décision.** Option 2 : on va **au moins jusqu'au MVP**, c'est-à-dire au bout des phases 0 et 1. La suite se décide au go / no-go ([#38](https://github.com/DavidGiangiacomo/strates/issues/38)).
+- Le MVP est conçu pour être falsifiable (§14). Il teste l'hypothèse la plus risquée, le passage de la strate 1 à la strate 2 : si elle ne tient pas, les six strates suivantes ne la sauveront pas.
+- Son coût est borné : environ un mois selon le §14, alors que le jeu complet coûte 6 à 8 fois un projet ordinaire.
+- Le noyau déjà écrit (contrat, boucle, sauvegarde, hors-ligne) est celui dont le MVP a besoin. Il ne suppose pas le projet complet.
+
+**Conséquences.**
+- La phase 1 est engagée. Les phases 2 à 5 restent suspendues au go / no-go.
+- Le go / no-go ([#38](https://github.com/DavidGiangiacomo/strates/issues/38)) reprend aussi la question de [#2](https://github.com/DavidGiangiacomo/strates/issues/2), avec des faits en plus : le résultat du test du §14, et le temps réellement passé sur le MVP, comparé à l'estimation. C'est là que se jugera l'avertissement du design doc sur l'expérience nécessaire.
+
+---
+
 ## Décisions en attente
 
 | Issue | Question | Phase |
 |---|---|---|
-| [#2](https://github.com/DavidGiangiacomo/strates/issues/2) | Strates est-il le projet à lancer maintenant ? | 0 |
 | [#44](https://github.com/DavidGiangiacomo/strates/issues/44) | Palier κ = 100 (dans le design de la Compréhension) | 2 |
 | [#38](https://github.com/DavidGiangiacomo/strates/issues/38) | Go / no-go après le MVP | 1 |
 | [#133](https://github.com/DavidGiangiacomo/strates/issues/133) | Garder 8 strates ou en retirer une (R5) | 5 |
