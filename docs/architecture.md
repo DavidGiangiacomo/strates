@@ -215,6 +215,7 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
 - **En session, onglet visible** : un pas fixe de 0,1 s (10 ticks par seconde), mesuré avec l'horloge monotone du navigateur. Un pas trop grand est découpé en pas de `pasMax` au plus.
 - **Onglet caché ou fermé, ordinateur en veille** : c'est une absence. À chaque image, la boucle lit aussi l'horloge système (`Noyau.avancerJusqua`) : un écart de plus de 2 s avec la référence déclenche le rattrapage (`Noyau.rattraper`), selon les règles d'horloge de D-005. Au chargement, le rattrapage part de la référence de la sauvegarde. Un recul d'horloge compte pour zéro ; au-delà de 5 minutes, il est noté une fois par épisode dans les perturbations du journal.
 - **Hors-ligne standard** : le noyau simule 80 % de l'absence, plafonnée à 12 h, par ticks de `pasMax` au plus. En politique propre, il appelle `absence()`. Le temps rattrapé s'ajoute à `tempsHorsLigne`, pas à `tempsDeJeu`. Le rattrapage du chargement se fait avant l'enveloppe réactive, sur l'objet brut ; en session, il passe par l'enveloppe, comme les ticks (12 h de la strate factice : moins de 0,1 s dans Chromium).
+- **Bandeau** (`noyau/ui/Bandeau.svelte`, §12) : 24 px en haut de l'écran, identique quelle que soit la strate montée, avec la Profondeur, les artefacts et le bouton « creuser ». Le bouton a le même aspect avant et après le seuil ; seule sa réponse change. Avant le seuil, `demanderFouille()` refuse et le bandeau tressaille, sans texte ni pénalité (un bref assombrissement si le joueur préfère moins de mouvement ; le son sourd viendra avec le moteur audio, [#46](https://github.com/DavidGiangiacomo/strates/issues/46)). Le bouton d'une strate qui appellerait `CommandesNoyau.demanderFouille()` a la même réponse.
 - **Résumé au retour** : `noyau/ui/reprise.ts` rédige le résumé d'une absence d'au moins une minute (durée, taux, plafond atteint, ou les lignes de la strate en politique propre). L'interface l'affiche jusqu'à ce que le joueur le ferme.
 - **Actions** : mises en file, appliquées au début du tick suivant dans l'ordre d'arrivée, et journalisées si le journal de session est actif.
 - **Après chaque tick** : le noyau lit `seuil()`. Si le seuil est atteint et `automatique` vaut vrai, il lance la descente sans le joueur. Sinon, il rend le bouton de fouille disponible dans le bandeau.
@@ -222,7 +223,7 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
 
 ### La descente
 
-1. `demanderFouille()` : le noyau vérifie que le seuil est atteint.
+1. `demanderFouille()` : le noyau vérifie que le seuil est atteint (`Noyau.demanderFouille`). En attendant la suite ([#30](https://github.com/DavidGiangiacomo/strates/issues/30)), une fouille acceptée n'affiche qu'un message provisoire.
 2. Points de fouille = `⌊log₁₀(valeurConvertible()) × 1,4⌋` (D-002).
 3. Écran de choix sur le catalogue de la strate quittée, avec la présélection. En descente automatique, la présélection s'applique sans écran.
 4. Le journal reçoit le seuil, l'issue et la fouille (points, objets emportés, objets abandonnés).
