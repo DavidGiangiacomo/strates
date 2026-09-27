@@ -1,6 +1,6 @@
-// Le tracé de la fissure : une ligne brisée, toujours la même, d'un point du graphique jusqu'au
-// bouton « creuser » du bandeau (fiche, § 4). Irrégulière et ramifiée, pour ne pas passer pour
-// une seconde courbe du tableau de bord.
+// Le tracé de la fissure : une ligne brisée, toujours la même, d'un point de la strate jusqu'au
+// bouton « creuser » du bandeau (fiches des strates 1 et 2, § 4). Irrégulière et ramifiée, pour ne
+// pas passer pour une seconde courbe du tableau de bord de la surface.
 
 export interface Point {
   x: number;

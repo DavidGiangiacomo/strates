@@ -1,5 +1,5 @@
-// Les caves : la production suit les saisons, elle oscille au lieu de monter, et il faut lisser
-// (docs/strates/strate-2.md). Le seuil de fouille arrive avec #32.
+// Les caves : la production suit les saisons, elle oscille au lieu de monter, et il faut lisser.
+// Le seuil : trois grands hivers de suite sans rupture (docs/strates/strate-2.md).
 import { TAUX_HORS_LIGNE } from "../../../noyau/logique/horsligne";
 import type { ContexteTick, LogiqueStrate, ResumeAbsence } from "../../../noyau/logique/types";
 import { textes } from "../textes.fr";
@@ -7,6 +7,7 @@ import {
   etatInitial,
   PERIODE_HISTORIQUE,
   TAILLE_HISTORIQUE,
+  TAILLE_HIVERS,
   TAILLE_REGISTRE,
   type EtatCaves,
 } from "./etat";
@@ -17,8 +18,11 @@ import {
   coutFamille,
   coutStockage,
   DEPARTS,
+  dureeHiver,
   enHiver,
+  estGrandHiver,
   FAMILLES_FONDATRICES,
+  HIVER_COURT,
   finSoudure,
   JOURS_PAR_AN,
   NAISSANCES,
@@ -26,6 +30,7 @@ import {
   prochainOutil,
   recolteEntre,
   saisonChaude,
+  SERIE_SEUIL,
   stockage,
   VALLEE,
   valeurGlanage,
@@ -121,27 +126,68 @@ function couler(etat: EtatCaves, duree: number): void {
   rompre(etat, duree - avantVide);
 }
 
-/** Le bilan de l'hiver, à la fin de sa soudure : naissances s'il est passé sans rupture. */
+/**
+ * Le bilan de l'hiver, à la fin de sa soudure : naissances s'il est passé sans rupture, série des
+ * grands hivers, seuil. Après le seuil, le registre n'a plus rien à noter qu'une rupture : c'est la
+ * saturation (fiche, § 4).
+ */
 function faireBilan(etat: EtatCaves): void {
   const hiver = etat.annee - 1;
+  const grand = estGrandHiver(hiver);
+  const avantSeuil = etat.seuilAtteintA === null;
   const { rupture, joursDeRupture, departs } = etat.bilan;
+
+  etat.hivers.push({ annee: hiver, rupture });
+  if (etat.hivers.length > TAILLE_HIVERS) etat.hivers.splice(0, etat.hivers.length - TAILLE_HIVERS);
+
   if (rupture) {
-    ecrire(etat, "registre.rupture", {
+    const serieRompue = etat.serie > 0;
+    etat.serie = 0;
+    ecrire(etat, grand ? "registre.grand-hiver-rupture" : "registre.rupture", {
       annee: hiver,
       jours: Math.max(1, Math.round(joursDeRupture)),
       departs: Math.round(departs),
     });
+    if (serieRompue && avantSeuil) ecrire(etat, "registre.serie-rompue", {});
   } else {
     const avant = etat.familles;
     etat.familles = Math.max(avant, Math.min(VALLEE, avant * (1 + NAISSANCES)));
     const naissances = Math.round(etat.familles - avant);
-    ecrire(etat, naissances > 0 ? "registre.sans-rupture" : "registre.sans-rupture-vallee-pleine", {
-      annee: hiver,
-      naissances,
-    });
+    if (grand) etat.serie += 1;
+    if (avantSeuil) {
+      if (grand) ecrire(etat, "registre.grand-hiver", { annee: hiver, serie: etat.serie });
+      else {
+        ecrire(
+          etat,
+          naissances > 0 ? "registre.sans-rupture" : "registre.sans-rupture-vallee-pleine",
+          { annee: hiver, naissances },
+        );
+      }
+      if (etat.serie >= SERIE_SEUIL) {
+        etat.seuilAtteintA = etat.temps;
+        ecrire(etat, "registre.seuil", {});
+      }
+    }
   }
   etat.soudure = false;
   etat.bilan = { rupture: false, joursDeRupture: 0, departs: 0 };
+}
+
+/** Le premier jour de l'hiver : le registre note le premier hiver plus long, puis le premier grand hiver. */
+function debutHiver(etat: EtatCaves): void {
+  const { annee } = etat;
+  if (dureeHiver(annee) > HIVER_COURT && dureeHiver(annee - 1) === HIVER_COURT) {
+    ecrire(etat, "registre.hivers-allongent", { annee, duree: dureeHiver(annee) });
+  }
+  if (estGrandHiver(annee) && !estGrandHiver(annee - 1)) {
+    ecrire(etat, "registre.grand-hiver-arrive", { annee });
+  }
+}
+
+/** Le calendrier atteint une borne ; le premier jour de l'hiver a ses lignes au registre. */
+function atteindre(etat: EtatCaves, borne: number): void {
+  etat.jour = borne;
+  if (borne === saisonChaude(etat.annee)) debutHiver(etat);
 }
 
 /** Le changement d'année, puis la fin de la soudure, quand le calendrier les atteint. */
@@ -179,17 +225,18 @@ function avancer(etat: EtatCaves, duree: number): void {
     const borne = prochaineBorne(etat);
     // Une borne à un cheveu est atteinte : sans cela, un pas plus court que la tolérance n'avancerait plus.
     if (borne - jour <= EPSILON) {
-      etat.jour = borne;
+      atteindre(etat, borne);
       continue;
     }
     if (reste <= EPSILON) return;
     const pas = Math.min(reste, borne - jour);
     const tempsAvant = etat.temps;
     couler(etat, pas);
-    // Une borne atteinte l'est exactement, pour que le changement de saison ne dépende pas des arrondis.
-    etat.jour = pas === borne - jour ? borne : jour + pas;
     etat.temps += pas;
     reste -= pas;
+    // Une borne atteinte l'est exactement, pour que le changement de saison ne dépende pas des arrondis.
+    if (pas === borne - jour) atteindre(etat, borne);
+    else etat.jour = jour + pas;
     echantillonner(etat, tempsAvant);
   }
 }
@@ -244,8 +291,11 @@ function absence(etat: EtatCaves, duree: number, ctx: ContexteTick): ResumeAbsen
 
 export const logique: LogiqueStrate<EtatCaves, ActionCaves> = {
   numero: 2,
-  versionEtat: 1,
-  migrations: {},
+  versionEtat: 2,
+  migrations: {
+    // Version 2 (#32) : la série des grands hivers, le seuil et l'historique des hivers.
+    1: (etat) => ({ ...(etat as object), hivers: [], serie: 0, seuilAtteintA: null }),
+  },
   // Un jour. Chaque pas est coupé aux bornes des saisons, et la récolte y est intégrée exactement.
   pasMax: 1,
   leviers: { principal: "recolte", secondaires: ["conservation"] },
@@ -286,8 +336,7 @@ export const logique: LogiqueStrate<EtatCaves, ActionCaves> = {
     }
   },
 
-  // Le seuil, trois grands hivers de suite sans rupture, arrive avec #32.
-  seuil: () => ({ atteint: false }),
+  seuil: (etat) => ({ atteint: etat.seuilAtteintA !== null }),
   valeurConvertible: (etat) => etat.cumul,
   absence,
 };

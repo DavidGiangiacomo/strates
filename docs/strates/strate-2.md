@@ -126,8 +126,9 @@ interface EtatCaves {
     joursDeRupture: number;
     departs: number;
   };
-  serie: number;                    // grands hivers de suite sans rupture (#32)
-  seuilAtteintA: number | null;     // valeur de `temps` au seuil (#32)
+  hivers: { annee: number; rupture: boolean }[];  // les 20 derniers hivers jugés, pour le calendrier
+  serie: number;                    // grands hivers de suite sans rupture
+  seuilAtteintA: number | null;     // valeur de `temps` au seuil
   temps: number;                    // secondes simulées depuis l'arrivée, absences comprises
   pertes: { debord: number; pourri: number };
   registre: { cle: string; valeurs: Record<string, number> }[];  // les dernières lignes, à formater par la vue
@@ -148,7 +149,7 @@ type ActionCaves =
   - Un pas qui vide la réserve est coupé au moment de la rupture.
 - **Le bilan d'un hiver** se fait à la fin de sa soudure, au premier jour où la récolte couvre la consommation. Il écrit une ligne au registre, puis :
   - il applique les naissances, s'il n'y a pas eu de rupture ;
-  - il met à jour la série des grands hivers et vérifie le seuil ([#32](https://github.com/DavidGiangiacomo/strates/issues/32)).
+  - il met à jour la série des grands hivers et vérifie le seuil.
 - **`pasMax`** vaut 1 s, soit un jour.
 - **Les prix** sont arrondis au boisseau : on paie exactement ce qui est affiché.
 - La strate n'utilise pas d'aléatoire.
@@ -191,13 +192,13 @@ Le seuil ne peut pas tomber avant 1 h 51, quelle que soit l'habileté du joueur 
 ### Après le seuil
 
 - Les saisons continuent ; les grands hivers aussi.
-- Le registre n'écrit plus que « passé sans rupture », ou plus rien : c'est la saturation.
+- Le registre n'a plus rien à noter, sauf une rupture : c'est la saturation.
 - Rester rapporte peu : un point de plus en 10 minutes, puis aucun en deux heures (§ 9).
 
 ### Le bouton « creuser »
 
 - C'est le bouton de fouille du bandeau commun, comme partout. Avant le seuil, le sol résiste, et rien dans la strate ne le mentionne.
-- **Filet** : si le joueur n'a pas creusé 5 minutes après le seuil (en temps de strate), une fissure apparaît dans la coupe des stockages (§ 6). Elle part du fond de la cave la plus profonde et monte en 2 minutes vers le bouton du bandeau, sans texte ni blocage.
+- **Filet** : si le joueur n'a pas creusé 5 minutes après le seuil (en temps de strate), une fissure apparaît dans la coupe des stockages (§ 6). Elle part du fond de la cave la plus profonde et monte en 2 minutes vers le bouton du bandeau, sans texte ni blocage. En attendant la coupe ([#33](https://github.com/DavidGiangiacomo/strates/issues/33)), elle part de la jauge de la réserve. Le délai, la durée et le tracé sont communs aux strates : `src/noyau/logique/filet.ts` et `src/noyau/ui/fissure.ts`.
 - C'est le même principe qu'à la surface, dans le décor des caves ; les constantes sont les mêmes, à régler au playtest.
 
 ### En simulation

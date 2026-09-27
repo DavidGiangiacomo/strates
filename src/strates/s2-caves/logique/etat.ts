@@ -6,6 +6,8 @@ export const PERIODE_HISTORIQUE = 5;
 export const TAILLE_HISTORIQUE = 252;
 /** Le registre garde ses 30 dernières lignes. */
 export const TAILLE_REGISTRE = 30;
+/** Les 20 derniers hivers jugés, pour l'anneau du grand cycle. */
+export const TAILLE_HIVERS = 20;
 
 /** Une ligne du registre : une clé de texte et ses valeurs, formatées par la vue. */
 export interface LigneRegistre {
@@ -33,6 +35,12 @@ export interface EtatCaves {
   soudure: boolean;
   /** L'hiver en cours de jugement : ce qui s'est passé depuis le bilan précédent. */
   bilan: { rupture: boolean; joursDeRupture: number; departs: number };
+  /** Les derniers hivers jugés, du plus ancien au plus récent. */
+  hivers: { annee: number; rupture: boolean }[];
+  /** Grands hivers de suite passés sans rupture. */
+  serie: number;
+  /** Valeur de `temps` au seuil ; il reste atteint. */
+  seuilAtteintA: number | null;
   /** Secondes simulées depuis l'arrivée, absences comprises. */
   temps: number;
   /** Le grain perdu : débordé faute de place, pourri dans les stockages. */
@@ -61,6 +69,9 @@ export function etatInitial(): EtatCaves {
     jour: ARRIVEE.jour,
     soudure: false,
     bilan: { rupture: false, joursDeRupture: 0, departs: 0 },
+    hivers: [],
+    serie: 0,
+    seuilAtteintA: null,
     temps: 0,
     pertes: { debord: 0, pourri: 0 },
     registre: [

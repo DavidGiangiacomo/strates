@@ -1,6 +1,7 @@
 <script lang="ts">
-  // La fissure : un calque sur toute la fenêtre, qui ne capte aucun clic. Elle part du graphique et
-  // s'allonge jusqu'au bouton « creuser », à droite du bandeau commun de 24 px (§12). Aucun texte.
+  // La fissure, le filet commun aux strates : un calque sur toute la fenêtre, qui ne capte aucun clic.
+  // Elle part d'un élément de la strate (le graphique de la surface, la réserve des caves) et s'allonge
+  // jusqu'au bouton « creuser », à droite du bandeau commun de 24 px (§12). Aucun texte.
   import { cheminFissure, ramificationsFissure, type Point } from "./fissure";
 
   let { depart, avancee }: { depart: HTMLElement | undefined; avancee: number } = $props();
@@ -19,7 +20,7 @@
     origine = r ? { x: r.left + r.width * 0.72, y: r.top + r.height * 0.5 } : null;
   }
 
-  // Le graphique peut bouger (défilement, message au-dessus) : on remesure à chaque progression.
+  // Le départ peut bouger (défilement, message au-dessus) : on remesure à chaque progression.
   $effect(() => {
     void avancee;
     mesurer();

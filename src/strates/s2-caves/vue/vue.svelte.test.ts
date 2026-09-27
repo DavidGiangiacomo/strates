@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { strate } from "..";
 import type { CommandesNoyau } from "../../../noyau/logique/types";
 import type { ActionCaves, EtatCaves } from "../logique";
-import { etatInitial } from "../logique/etat";
+import { etatInitial, type LigneRegistre } from "../logique/etat";
 import Vue from "./Vue.svelte";
 
 const commandes: CommandesNoyau = { demanderFouille() {}, ouvrirAide() {}, terminer() {} };
@@ -83,22 +83,71 @@ describe("la vue des caves", () => {
   });
 
   it("n'utilise que des clés de texte qui existent", () => {
+    const lignes: LigneRegistre[] = [
+      { cle: "registre.sans-rupture", valeurs: { annee: 1, naissances: 3 } },
+      { cle: "registre.rupture", valeurs: { annee: 2, jours: 12, departs: 4 } },
+      { cle: "registre.sans-rupture-vallee-pleine", valeurs: { annee: 3 } },
+      { cle: "registre.hivers-allongent", valeurs: { annee: 5, duree: 80 } },
+      { cle: "registre.grand-hiver-arrive", valeurs: { annee: 14 } },
+      { cle: "registre.grand-hiver", valeurs: { annee: 14, serie: 1 } },
+      { cle: "registre.grand-hiver-rupture", valeurs: { annee: 15, jours: 5, departs: 2 } },
+      { cle: "registre.serie-rompue", valeurs: {} },
+      { cle: "registre.seuil", valeurs: {} },
+    ];
+    // Le registre n'affiche que ses 8 dernières lignes : deux passages.
+    for (const partie of [lignes.slice(0, 4), lignes.slice(4)]) {
+      monter((etat) => {
+        etat.cumul = 1e7;
+        etat.reserve = 1e5;
+        etat.outils = 2;
+        etat.stockages = { grenier: 3, silo: 2, cave: 1, caveProfonde: 1 };
+        etat.registre.push(...partie);
+        etat.historique.reserve = [100, 200, 300, 250];
+        etat.historique.achats = [0];
+      });
+      expect(document.body.textContent).not.toContain("?");
+      expect(document.body.textContent).not.toContain("{");
+      expect(bouton("Acheter : Charrue")).toBeDefined();
+      if (composant) unmount(composant);
+      composant = null;
+    }
+  });
+
+  it("dessine le calendrier : l'année en cours et les années vécues, les hivers manqués barrés", () => {
     monter((etat) => {
-      etat.cumul = 1e7;
-      etat.reserve = 1e5;
-      etat.outils = 2;
-      etat.stockages = { grenier: 3, silo: 2, cave: 1, caveProfonde: 1 };
-      etat.registre.push(
-        { cle: "registre.sans-rupture", valeurs: { annee: 1, naissances: 3 } },
-        { cle: "registre.rupture", valeurs: { annee: 2, jours: 12, departs: 4 } },
-        { cle: "registre.sans-rupture-vallee-pleine", valeurs: { annee: 3 } },
-      );
-      etat.historique.reserve = [100, 200, 300, 250];
-      etat.historique.achats = [0];
+      etat.annee = 4;
+      etat.hivers = [
+        { annee: 1, rupture: true },
+        { annee: 2, rupture: false },
+        { annee: 3, rupture: false },
+      ];
     });
-    expect(document.body.textContent).not.toContain("?");
-    expect(document.body.textContent).not.toContain("{");
-    expect(bouton("Acheter : Charrue")).toBeDefined();
+    const cases = [...document.querySelectorAll("[data-test^=case-]")];
+    expect(cases.map((c) => c.getAttribute("data-test"))).toEqual([
+      "case-1",
+      "case-2",
+      "case-3",
+      "case-4",
+    ]);
+    expect(cases[0]!.classList.contains("manque")).toBe(true);
+    expect(cases[0]!.querySelector("line")).not.toBeNull();
+    expect(cases[1]!.querySelector("line")).toBeNull();
+    expect(cases[3]!.classList.contains("courante")).toBe(true);
+  });
+
+  it("fait apparaître la fissure 5 minutes après le seuil, sans texte", () => {
+    const { etat } = monter((e) => {
+      e.seuilAtteintA = 1_000;
+      e.temps = 1_000 + 299;
+    });
+    expect(document.querySelector("[data-test=fissure]")).toBeNull();
+    const texteAvant = document.body.textContent;
+
+    etat.temps = 1_000 + 360;
+    flushSync();
+    const trace = document.querySelector("[data-test=fissure] path");
+    expect(trace?.getAttribute("stroke-dashoffset")).toBe("0.5");
+    expect(document.body.textContent).toBe(texteAvant);
   });
 
   it("dit que la vallée est pleine, et qu'elle a tous ses outils", () => {

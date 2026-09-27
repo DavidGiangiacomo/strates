@@ -129,6 +129,22 @@ describe("les premières années, à travers le noyau", () => {
     expect(etat.familles).toBeGreaterThan(20);
   });
 
+  it("rendent la descente possible au seuil, et seulement au seuil", async () => {
+    const noyau = await demarrer();
+    const etat = noyau.etatStrate as EtatCaves;
+    // Une vallée qui ne manque jamais, au printemps de l'an 14 : le seuil tombe à l'an 17.
+    Object.assign(etat, { annee: 14, jour: 0, familles: 50, outils: 4, reserve: 200_000 });
+    etat.stockages.caveProfonde = 2;
+    let fouilleAvantSeuil = false;
+    while (!noyau.seuil.atteint && etat.annee < 18) {
+      if (noyau.demanderFouille()) fouilleAvantSeuil = true;
+      noyau.avancer(1);
+    }
+    expect(fouilleAvantSeuil).toBe(false);
+    expect(etat.annee).toBe(17);
+    expect(noyau.demanderFouille()).toBe(true);
+  });
+
   it("rattrapent l'absence avec la politique de la strate, et le noyau la compte en entier", async () => {
     const noyau = await demarrer();
     const etat = noyau.etatStrate as EtatCaves;

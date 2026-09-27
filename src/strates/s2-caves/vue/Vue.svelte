@@ -1,7 +1,8 @@
 <script lang="ts">
-  // Interface minimale des caves : tout est jouable. La direction artistique viendra avec #33, le
-  // calendrier circulaire avec #32.
+  // Interface minimale des caves : tout est jouable. La direction artistique viendra avec #33.
+  import { avanceeFissure } from "../../../noyau/logique/filet";
   import type { ProprietesVue } from "../../../noyau/logique/types";
+  import Fissure from "../../../noyau/ui/Fissure.svelte";
   import type { ActionCaves, EtatCaves } from "../logique";
   import { PERIODE_HISTORIQUE, TAILLE_HISTORIQUE } from "../logique/etat";
   import { remplir } from "../logique/notation";
@@ -26,6 +27,7 @@
     valeurGlanage,
     valleePleine,
   } from "../logique/regles";
+  import Calendrier from "./Calendrier.svelte";
   import Courbe from "./Courbe.svelte";
 
   let { etat, agir, o }: ProprietesVue<EtatCaves, ActionCaves> = $props();
@@ -35,6 +37,10 @@
   const cap = $derived(capacite(etat));
   const marque = $derived(marqueHiver(etat));
   const part = (x: number) => Math.min(100, (x / Math.max(cap, 1)) * 100);
+
+  // Le filet : si le joueur n'a pas creusé après le seuil, une fissure part de la réserve vers le bandeau.
+  const fissure = $derived(avanceeFissure(etat.temps, etat.seuilAtteintA));
+  let zoneReserve: HTMLElement | undefined = $state();
 
   const calendrier = $derived.by(() => {
     if (enHiver(etat)) return t("calendrier.hiver", { jours: Math.ceil(JOURS_PAR_AN - etat.jour) });
@@ -62,15 +68,18 @@
 <section class="caves">
   <h2>{o("titre")}</h2>
 
-  <p class="date">
-    <strong data-test="date"
-      >{t("date", { jour: Math.floor(etat.jour) + 1, annee: etat.annee })}</strong
-    >
-    · <span data-test="saison">{o(`saison.${saison(etat)}`)}</span>
-    · <span data-test="calendrier">{calendrier}</span>
-  </p>
+  <div class="temps">
+    <Calendrier {etat} titre={o("calendrier")} />
+    <p class="date">
+      <strong data-test="date"
+        >{t("date", { jour: Math.floor(etat.jour) + 1, annee: etat.annee })}</strong
+      ><br />
+      <span data-test="saison">{o(`saison.${saison(etat)}`)}</span><br />
+      <span data-test="calendrier">{calendrier}</span>
+    </p>
+  </div>
 
-  <div class="reserve">
+  <div class="reserve" bind:this={zoneReserve}>
     <p>
       {o("reserve")}
       <strong data-test="reserve"
@@ -96,6 +105,10 @@
       {/if}
     </p>
   </div>
+
+  {#if fissure > 0}
+    <Fissure depart={zoneReserve} avancee={fissure} />
+  {/if}
 
   <ul class="flux">
     <li>
@@ -195,6 +208,11 @@
     max-width: 48rem;
     font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
     font-variant-numeric: tabular-nums;
+  }
+  .temps {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
   }
   .jauge {
     position: relative;

@@ -1,5 +1,6 @@
 // Règles de la surface : générateurs, améliorations, objectifs et formules.
 // Fiche de design : docs/strates/strate-1.md, § 3 et § 4.
+import { avanceeFissure as avanceeFissureCommune } from "../../../noyau/logique/filet";
 import type { EtatSurface } from "./etat";
 
 /** Chaque exemplaire d'un générateur coûte 15 % de plus que le précédent. */
@@ -167,16 +168,11 @@ export function ameliorationDisponible(etat: EtatSurface, def: DefAmelioration):
   return etat.cumul >= def.cout / 2;
 }
 
-// ——— Le filet : la fissure (fiche, § 4)
+// ——— Le filet : la fissure (fiche, § 4), commune aux strates
 
-/** Temps de strate après le seuil, en secondes, avant qu'une fissure n'apparaisse si le joueur n'a pas creusé. */
-export const DELAI_FISSURE = 5 * 60;
-/** Durée, en secondes, pendant laquelle la fissure s'allonge du graphique jusqu'au bouton « creuser ». */
-export const DUREE_FISSURE = 2 * 60;
+export { DELAI_FISSURE, DUREE_FISSURE } from "../../../noyau/logique/filet";
 
 /** Où en est la fissure : 0 tant qu'elle n'est pas apparue, puis de 0 à 1 à mesure qu'elle s'allonge. */
 export function avanceeFissure(etat: EtatSurface): number {
-  if (etat.seuilAtteintA === null) return 0;
-  const ecoule = etat.temps - etat.seuilAtteintA - DELAI_FISSURE;
-  return Math.min(1, Math.max(0, ecoule / DUREE_FISSURE));
+  return avanceeFissureCommune(etat.temps, etat.seuilAtteintA);
 }

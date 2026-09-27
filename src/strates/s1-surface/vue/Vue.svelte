@@ -16,7 +16,7 @@
     quantiteAbordable,
     type DefAmelioration,
   } from "../logique/regles";
-  import Fissure from "./Fissure.svelte";
+  import Fissure from "../../../noyau/ui/Fissure.svelte";
   import Graphique from "./Graphique.svelte";
   import { formaterDebit, formaterMontant, formaterNombre } from "./notation";
 
