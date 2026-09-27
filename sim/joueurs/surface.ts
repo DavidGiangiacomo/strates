@@ -17,22 +17,47 @@ import {
 } from "../../src/strates/s1-surface/logique/regles";
 
 export interface Profil {
+  /** Ce qui le caractérise, pour les rapports. */
+  description: string;
   /** Clics par seconde, selon le temps de jeu. */
   clics: (t: number) => number;
   /** Secondes entre deux passages du joueur sur le tableau de bord. */
   attention: (t: number) => number;
 }
 
+/** Un joueur parfait : il clique beaucoup et achète à la seconde près. */
+export const PARFAIT: Profil = {
+  description: "6 clics/s pendant 10 min, puis 2/s ; achète à la seconde près",
+  clics: (t) => (t < 600 ? 6 : 2),
+  attention: () => 1,
+};
+
+/** Un joueur actif : il clique pendant la première demi-heure et surveille de près. */
+export const ACTIF: Profil = {
+  description: "5 clics/s pendant 10 min, 2/s jusqu'à 30 min ; passe toutes les 5 s",
+  clics: (t) => (t < 600 ? 5 : t < 1800 ? 2 : 0),
+  attention: () => 5,
+};
+
 /** Un joueur correct : il clique au début, puis passe voir le tableau de bord toutes les 20 s. */
 export const CORRECT: Profil = {
+  description: "4 clics/s pendant 5 min, 1/s jusqu'à 15 min ; passe toutes les 5 s, puis 20 s",
   clics: (t) => (t < 300 ? 4 : t < 900 ? 1 : 0),
   attention: (t) => (t < 600 ? 5 : 20),
 };
 
 /** Un joueur distrait : il clique moins, puis ne passe qu'une fois par minute. */
 export const DISTRAIT: Profil = {
+  description: "3 clics/s pendant 5 min ; passe toutes les 10 s, puis chaque minute",
   clics: (t) => (t < 300 ? 3 : 0),
   attention: (t) => (t < 600 ? 10 : 60),
+};
+
+/** Un joueur occasionnel : quelques clics, puis un passage toutes les 5 minutes. */
+export const OCCASIONNEL: Profil = {
+  description: "3 clics/s pendant 2 min ; passe toutes les 10 s, puis toutes les 5 min",
+  clics: (t) => (t < 120 ? 3 : 0),
+  attention: (t) => (t < 300 ? 10 : 300),
 };
 
 const SANS_EFFETS = {

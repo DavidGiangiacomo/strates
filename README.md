@@ -21,6 +21,7 @@ Réglage unique du dépôt, déjà nécessaire au premier déploiement : *Settin
 | [`docs/decisions.md`](docs/decisions.md) | Journal des décisions prises |
 | [`docs/strates/modele-fiche.md`](docs/strates/modele-fiche.md) | Modèle de fiche de design, à suivre pour chaque strate |
 | [`docs/strates/strate-1.md`](docs/strates/strate-1.md) | Fiche de design de la strate 1, la surface |
+| [`docs/strates/strate-1-mesures.md`](docs/strates/strate-1-mesures.md) | Mesures d'équilibrage de la surface, générées par la CI |
 | [`docs/architecture.md`](docs/architecture.md) | Contrat entre le noyau et les strates (types, boucle, descente, journal) |
 | [`docs/artefacts.md`](docs/artefacts.md) | Modèle des artefacts (points de fouille, usure, plafond, écran de choix) et catalogue |
 
@@ -37,6 +38,7 @@ npm run lint         # ESLint, dont les règles d'architecture
 npm run check        # types : application, puis logique sans DOM
 npm run format       # Prettier
 npm run sauvegardes  # régénère les sauvegardes nommées (sauvegardes-nommees/)
+npm run mesures      # régénère les mesures d'équilibrage (docs/strates/strate-1-mesures.md)
 ```
 
 ### Outils de développement
