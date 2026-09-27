@@ -49,6 +49,7 @@ export const textes: Record<string, string> = {
   prix: "{prix:boisseau}",
   registre: "Registre",
   courbe: "Réserve, 3 dernières années",
+  calendrier: "Le calendrier : l'année au centre, les années passées autour",
 
   "registre.arrivee": "An {annee}. {familles:famille}, un grenier.",
   "registre.sans-rupture":
@@ -56,6 +57,16 @@ export const textes: Record<string, string> = {
   "registre.sans-rupture-vallee-pleine": "Hiver de l'an {annee} : passé sans rupture.",
   "registre.rupture":
     "Hiver de l'an {annee} : le grain a manqué {jours:jour}. Départs : {departs:famille}.",
+  "registre.hivers-allongent":
+    "An {annee} : l'hiver durera {duree:jour}. Les hivers s'allongent ; les anciens se souviennent des grands hivers.",
+  "registre.grand-hiver-arrive":
+    "An {annee} : le grand hiver est là. Les anciens disent qu'une vallée qui en passe trois de suite n'a plus rien à craindre.",
+  "registre.grand-hiver":
+    "Grand hiver de l'an {annee} : passé sans rupture. Grands hivers de suite : {serie}.",
+  "registre.grand-hiver-rupture":
+    "Grand hiver de l'an {annee} : le grain a manqué {jours:jour}. Départs : {departs:famille}.",
+  "registre.serie-rompue": "Les anciens recommencent à compter.",
+  "registre.seuil": "Trois grands hivers sans rupture. La vallée n'a plus rien à craindre.",
 
   "absence.hiver": "L'hiver vous attendait : rien n'a bougé.",
   "absence.recolte": "La récolte a continué {jours:jour} : {recolte:boisseau}.",

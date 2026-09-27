@@ -20,6 +20,14 @@ export function dureeHiver(annee: number): number {
   return Math.min(GRAND_HIVER, HIVER_COURT + allongement);
 }
 
+/** Un grand hiver : 170 jours, à partir de l'an 14. */
+export function estGrandHiver(annee: number): boolean {
+  return dureeHiver(annee) >= GRAND_HIVER;
+}
+
+/** Le seuil de fouille : trois grands hivers de suite sans rupture, soudure comprise (fiche, § 4). */
+export const SERIE_SEUIL = 3;
+
 /** Durée de la saison chaude de l'année `annee`, en jours : l'hiver occupe la fin de l'année. */
 export function saisonChaude(annee: number): number {
   return JOURS_PAR_AN - dureeHiver(annee);

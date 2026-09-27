@@ -5,7 +5,7 @@ describe("le tracé de la fissure", () => {
   const depart = { x: 300, y: 400 };
   const arrivee = { x: 860, y: 24 };
 
-  it("part du graphique et arrive exactement sous le bouton « creuser »", () => {
+  it("part de la strate et arrive exactement sous le bouton « creuser »", () => {
     const sommets = sommetsFissure(depart, arrivee);
     expect(sommets[0]).toEqual(depart);
     expect(sommets.at(-1)!.x).toBeCloseTo(arrivee.x, 10);
