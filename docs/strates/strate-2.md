@@ -120,17 +120,19 @@ interface EtatCaves {
   outils: number;                   // outils possédés, de 0 à 4, dans l'ordre
   annee: number;                    // 1, 2, …
   jour: number;                     // jour de l'année, de 0 à 420 ; l'hiver occupe la fin
+  soudure: boolean;                 // du premier jour du printemps à la fin de la soudure
   bilan: {                          // l'hiver en cours de jugement, jusqu'à la fin de sa soudure
     rupture: boolean;               // la réserve a été vide depuis le bilan précédent
     joursDeRupture: number;
     departs: number;
   };
-  serie: number;                    // grands hivers de suite sans rupture
-  seuilAtteintA: number | null;     // valeur de `temps` au seuil
+  serie: number;                    // grands hivers de suite sans rupture (#32)
+  seuilAtteintA: number | null;     // valeur de `temps` au seuil (#32)
   temps: number;                    // secondes simulées depuis l'arrivée, absences comprises
   pertes: { debord: number; pourri: number };
   registre: { cle: string; valeurs: Record<string, number> }[];  // les dernières lignes, à formater par la vue
   historique: { reserve: number[]; achats: number[] };  // tous les 5 jours, sur 3 ans
+  multiplicateurs: { recolte: number; conservation: number };  // artefacts, relus à chaque tick
 }
 
 type ActionCaves =
@@ -141,12 +143,14 @@ type ActionCaves =
 ```
 
 - **`tick(dt)`** fait avancer le calendrier : récolte, consommation, pertes, débordement et ruptures.
-  - La récolte s'intègre exactement sur le pas.
+  - Le pas est coupé aux bornes du calendrier : le premier jour de l'hiver, la nouvelle année, la fin de la soudure.
+  - La récolte s'intègre exactement sur le pas ; les pertes sont comptées sur la réserve du début du pas.
   - Un pas qui vide la réserve est coupé au moment de la rupture.
 - **Le bilan d'un hiver** se fait à la fin de sa soudure, au premier jour où la récolte couvre la consommation. Il écrit une ligne au registre, puis :
   - il applique les naissances, s'il n'y a pas eu de rupture ;
-  - il met à jour la série des grands hivers et vérifie le seuil.
+  - il met à jour la série des grands hivers et vérifie le seuil ([#32](https://github.com/DavidGiangiacomo/strates/issues/32)).
 - **`pasMax`** vaut 1 s, soit un jour.
+- **Les prix** sont arrondis au boisseau : on paie exactement ce qui est affiché.
 - La strate n'utilise pas d'aléatoire.
 - Un achat impossible (grain insuffisant, vallée pleine, plus d'outil) est ignoré sans erreur. Acheter est permis en toute saison, hiver compris.
 

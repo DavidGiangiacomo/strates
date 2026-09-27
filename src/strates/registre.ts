@@ -4,5 +4,6 @@ import { Registre } from "../noyau/logique/registre";
 export function creerRegistre(): Registre {
   const registre = new Registre();
   registre.enregistrer(1, () => import("./s1-surface").then((m) => m.strate));
+  registre.enregistrer(2, () => import("./s2-caves").then((m) => m.strate));
   return registre;
 }
