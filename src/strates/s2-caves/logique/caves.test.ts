@@ -13,7 +13,7 @@ import {
 
 function contexte(multiplicateurs: Record<string, number> = {}): ContexteTick {
   return {
-    effets: { multiplicateur: (levier) => multiplicateurs[levier] ?? 1, actif: () => false },
+    effets: { multiplicateur: (levier) => multiplicateurs[levier] ?? 1, niveau: () => null },
     emettre: () => {},
   };
 }

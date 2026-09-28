@@ -61,7 +61,7 @@ export const OCCASIONNEL: Profil = {
 };
 
 const SANS_EFFETS = {
-  effets: { multiplicateur: () => 1, actif: () => false },
+  effets: { multiplicateur: () => 1, niveau: () => null },
   emettre: () => {},
 };
 

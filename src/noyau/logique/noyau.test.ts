@@ -121,6 +121,35 @@ describe("le démarrage", () => {
   });
 });
 
+describe("les effets des artefacts", () => {
+  it("sont calculés au démarrage, d'après les objets possédés et la Profondeur", async () => {
+    // La strate factice en profondeur 2, avec la roue chaude et les bras en plus de la surface :
+    // son levier principal, « production », reçoit × 1,5 × 1,2.
+    const logique = creerLogiqueFactice(2);
+    const etat = creerEtatNoyau(1, 0);
+    Object.assign(etat, { profondeur: 2, artefacts: ["s1-turbine", "s1-equipe", "s1-serveur"] });
+    const noyau = new Noyau(registreAvec(logique), etat);
+    await noyau.demarrer(0);
+    expect(noyau.effets.multiplicateur("production")).toBeCloseTo(1.8, 12);
+    expect(noyau.effets.niveau("s1-serveur")).toBe("puissant");
+    expect(noyau.effets.plafonne).toBe(false);
+
+    noyau.agir({ type: "acheter" });
+    etatDe(noyau).unites = 10;
+    noyau.agir({ type: "acheter" });
+    noyau.tick(0);
+    noyau.tick(1);
+    expect(etatDe(noyau).cumul).toBeCloseTo(1.8, 12);
+  });
+
+  it("sont neutres à la surface, où aucun objet n'est encore descendu", async () => {
+    const noyau = await noyauDemarre();
+    noyau.etat.artefacts.push("s1-turbine");
+    await noyau.demarrer(0);
+    expect(noyau.effets.multiplicateur("production")).toBe(1);
+  });
+});
+
 describe("la boucle de tick", () => {
   it("applique les actions au début du tick suivant, dans l'ordre", async () => {
     const noyau = await noyauDemarre();

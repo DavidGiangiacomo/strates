@@ -1,4 +1,5 @@
 import { deriverGraine } from "./alea";
+import { effetsActifs, type Effets } from "./artefacts";
 import { EFFETS_NEUTRES } from "./effets";
 import { estNumeroStrate, noterInstant, type EtatNoyau, type EtatStrateRange } from "./etat";
 import {
@@ -37,6 +38,7 @@ export class Noyau {
   #evenements: EvenementStrate[] = [];
   #accumulateur = 0;
   #seuil: EtatSeuil = { atteint: false };
+  #effets: Effets = { ...EFFETS_NEUTRES, plafonne: false };
   #contexte: ContexteTick;
 
   constructor(registre: Registre, etat: EtatNoyau) {
@@ -83,7 +85,15 @@ export class Noyau {
 
     this.#strate = strate;
     this.#accumulateur = 0;
+    // Les artefacts et la Profondeur ne changent qu'à la descente : les effets se calculent ici.
+    this.#effets = effetsActifs(this.etat.artefacts, numero, logique.leviers);
+    this.#contexte.effets = this.#effets;
     this.#seuil = logique.seuil(this.etatStrate);
+  }
+
+  /** Les effets des artefacts dans la strate courante, après usure et plafond × 4. */
+  get effets(): Effets {
+    return this.#effets;
   }
 
   /** La strate courante. */

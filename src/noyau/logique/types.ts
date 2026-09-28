@@ -98,10 +98,14 @@ export interface ContexteTick {
 }
 
 export interface EffetsActifs {
-  /** Multiplicateur total sur un levier ; vaut 1 si aucun artefact n'agit dessus. */
+  /** Multiplicateur total sur un levier, après usure et plafond ; vaut 1 si aucun artefact n'agit dessus. */
   multiplicateur(levier: string): number;
-  /** Un affichage, un raccourci ou un effet unique est-il actif ? */
-  actif(effet: string): boolean;
+  /**
+   * Comment agit un objet, par son identifiant (« s1-serveur ») : puissant ou utile, ou null s'il
+   * n'agit pas ici (non possédé, décoratif, inerte ou inconnu). C'est ainsi qu'une strate reçoit un
+   * affichage, un raccourci ou un effet unique ; elle ignore les objets qu'elle ne connaît pas.
+   */
+  niveau(artefact: string): "puissant" | "utile" | null;
 }
 
 /** Acte de compréhension : la strate le signale, le barème est appliqué par le noyau. */
