@@ -28,6 +28,17 @@ export function estGrandHiver(annee: number): boolean {
 /** Le seuil de fouille : trois grands hivers de suite sans rupture, soudure comprise (fiche, § 4). */
 export const SERIE_SEUIL = 3;
 
+/**
+ * Les objets de la surface que les caves savent recevoir (fiche, § 8 ; docs/artefacts.md, § 8). Les
+ * multiplicateurs passent par les leviers ; les caves les nomment seulement à leur éveil.
+ */
+export const OBJETS = {
+  multiplicateurs: ["s1-equipe", "s1-turbine", "s1-filiale"],
+  fenetres: "s1-double-ecran",
+  armoire: "s1-serveur",
+  feuille: "s1-plan",
+} as const;
+
 /** Durée de la saison chaude de l'année `annee`, en jours : l'hiver occupe la fin de l'année. */
 export function saisonChaude(annee: number): number {
   return JOURS_PAR_AN - dureeHiver(annee);

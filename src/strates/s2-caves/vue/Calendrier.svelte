@@ -2,12 +2,17 @@
   // Le calendrier circulaire (fiche, § 6) : le temps tourne au lieu d'avancer. Au centre, l'année et
   // son aiguille ; la soudure prolonge l'hiver sur le printemps. Autour, le grand cycle : une case par
   // année vécue, dont l'hiver s'allonge ; un hiver manqué y est barré. Les années futures ne sont pas
-  // dessinées. Minimal : la direction artistique viendra avec #33.
+  // dessinées, sauf par l'armoire qui compte les hivers (`avenir`). Minimal : la direction artistique
+  // viendra avec #33.
   import type { EtatCaves } from "../logique";
   import { finSoudure } from "../logique/regles";
   import { angleJour, casesCycle, point, saisonsAnnee, secteur, TAILLE } from "./calendrier";
 
-  let { etat, titre }: { etat: Readonly<EtatCaves>; titre: string } = $props();
+  let {
+    etat,
+    titre,
+    avenir = false,
+  }: { etat: Readonly<EtatCaves>; titre: string; avenir?: boolean } = $props();
 
   const ANNEAU = { interieur: 84, exterieur: 96 };
   const ANNEE = 76;
@@ -15,7 +20,7 @@
 
   const saisons = $derived(saisonsAnnee(etat.annee));
   const soudure = $derived(angleJour(finSoudure(etat)));
-  const cases = $derived(casesCycle(etat));
+  const cases = $derived(casesCycle(etat, avenir));
   const aiguille = $derived(point(ANNEE + 4, angleJour(etat.jour)));
 
   /** Le trait qui barre un hiver manqué, au milieu de son arc. */
@@ -38,6 +43,7 @@
       class:courante={c.annee === etat.annee}
       class:grand={c.grand}
       class:manque={c.rupture === true}
+      class:future={c.future}
       data-test="case-{c.annee}"
     >
       <path class="chaude" d={secteur(ANNEAU.interieur, ANNEAU.exterieur, c.debut, c.hiver)} />
@@ -90,6 +96,9 @@
   }
   .case.grand .hiver {
     fill: #56708c;
+  }
+  .case.future {
+    opacity: 0.35;
   }
   .case.courante path {
     stroke: #3b2f22;

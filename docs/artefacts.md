@@ -165,6 +165,6 @@ Dans les caves, les **multiplicateurs ne s'éveillent qu'au bilan du premier hiv
   Éveillés au premier bilan, les multiplicateurs laissent le premier hiver se jouer comme sans artefact, puis aident à s'en relever.
 
 **Pour la suite.**
-- **La conversion** ([#21](https://github.com/DavidGiangiacomo/strates/issues/21)) : la table porte ces six objets, et `EffetsActifs.niveau` dit si un effet autre qu'un multiplicateur est puissant ou utile.
-- **La réception dans les caves** ([#34](https://github.com/DavidGiangiacomo/strates/issues/34)) : l'éveil au premier bilan, et les trois effets propres (les deux fenêtres, l'armoire, la feuille).
+- **La conversion** ([#21](https://github.com/DavidGiangiacomo/strates/issues/21)) : faite. La table porte ces six objets, et `EffetsActifs.niveau` dit si un effet autre qu'un multiplicateur est puissant ou utile.
+- **La réception dans les caves** ([#34](https://github.com/DavidGiangiacomo/strates/issues/34)) : faite. L'éveil au premier bilan et les trois effets propres (les deux fenêtres, l'armoire, la feuille) sont codés et testés, y compris le choc d'arrivée : avec les objets d'un jeu correct, le joueur réflexe qui achète au meilleur rendement manque encore le premier hiver.
 - **Le catalogue des caves** ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : avec ces objets, un jeu correct descend des caves avec 9 points plutôt que 8. Le catalogue des caves doit en tenir compte, et l'équilibrage des caves ([#36](https://github.com/DavidGiangiacomo/strates/issues/36)) le mesurer avec et sans artefacts.

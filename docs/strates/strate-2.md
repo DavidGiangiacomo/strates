@@ -285,7 +285,7 @@ On ne cache jamais le calendrier ni la marque d'hiver : ce sont les deux informa
 
 - **Opaque à l'arrivée** :
   - la marque d'hiver est un trait sur la jauge, sans légende. Elle prend son nom (« marque d'hiver ») au premier bilan ;
-  - les pertes des stockages ne sont pas affichées. Le registre les révèle au premier bilan (« 212 boisseaux ont pourri dans les greniers. »), puis le taux de chaque stockage s'affiche ;
+  - les pertes des stockages ne sont pas affichées. Le registre les révèle au premier bilan (« Grain pourri dans les stockages depuis l'arrivée : 212 boisseaux. »), puis les pertes de chaque stockage s'affichent ;
   - le grand cycle : les années futures ne sont pas dessinées. On découvre en l'an 5 que l'hiver s'allonge ;
   - les naissances ne sont annoncées qu'au premier bilan réussi.
 - **Actes de compréhension** : des propositions, car le barème appartient à [#44](https://github.com/DavidGiangiacomo/strates/issues/44). Ensemble, ils couvrent les 14 points de κ prévus (§9).
@@ -313,6 +313,8 @@ Seuls les artefacts de la surface peuvent être actifs ici, et ils sont **puissa
 | unique | au seuil | la feuille qui annonce : le registre écrit une ligne de plus, d'une autre main, une ligne de l'atelier |
 
 **L'éveil au premier hiver.** Les multiplicateurs ne s'éveillent qu'au bilan du premier hiver, et le registre le note, un objet par ligne : « Les familles ont compris la roue chaude. » Avant, les objets d'en haut sont là, mais personne ne sait s'en servir. C'est ce qui protège le choc d'arrivée (§ 5). Simulé dans le code du jeu, un joueur réflexe qui achète les familles au meilleur rendement passerait les deux premiers hivers sans disette si les cinq objets d'un jeu correct agissaient dès l'arrivée (récolte × 1,8, conservation × 1,5) : il ne manquerait le premier hiver qu'avec des objets bien plus faibles, vers récolte × 1,2. Avec l'éveil, le premier hiver se joue comme sans artefact ; les objets aident ensuite à s'en relever. C'est aussi ainsi que le joueur apprend le nom d'en bas de ses objets.
+
+**Dans le code** ([#34](https://github.com/DavidGiangiacomo/strates/issues/34)) : les caves reconnaissent les objets de la surface par leur identifiant (`OBJETS`, dans `logique/regles.ts`) et les lisent par `EffetsActifs`. Les multiplicateurs restent à 1 tant qu'aucun hiver n'a été jugé ; les autres objets sont notés dans l'état (`objets`), que la vue lit. L'opacité de la marque et des pertes (§ 7) est codée pour que les deux fenêtres aient quelque chose à lever ; le reste de l'opacité viendra avec la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)).
 
 - **Aucun artefact ne raccourcit la strate** : le calendrier en impose la durée (§ 4). Un artefact rend les hivers plus sûrs et la vallée plus grande. Il rapporte donc des points, pas du temps : en simulation, avec les cinq objets d'un jeu correct, le seuil tombe toujours à 1 h 51, avec 9 points au lieu de 8.
 - **I2** : le noyau plafonne le produit des multiplicateurs à × 4. Même à × 4 sur la récolte, le cumul ne gagne qu'un point de fouille au plus (log₁₀ 4 × 1,4 ≈ 0,8).

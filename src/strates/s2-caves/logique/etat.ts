@@ -13,6 +13,8 @@ export const TAILLE_HIVERS = 20;
 export interface LigneRegistre {
   cle: string;
   valeurs: Record<string, number>;
+  /** Un objet d'en haut (« s1-turbine »), que la vue nomme de son nom d'en bas. */
+  objet?: string;
 }
 
 export interface EtatCaves {
@@ -53,8 +55,10 @@ export interface EtatCaves {
     /** Les instants (`temps`) des achats des 3 dernières années. */
     achats: number[];
   };
-  /** Multiplicateurs des artefacts, relus à chaque tick. */
+  /** Multiplicateurs des artefacts, relus à chaque tick ; 1 jusqu'au bilan du premier hiver. */
   multiplicateurs: { recolte: number; conservation: number };
+  /** Les objets d'en haut qui agissent ici hors multiplicateurs, relus à chaque tick (fiche, § 8). */
+  objets: { fenetres: boolean; armoire: boolean; feuille: boolean };
 }
 
 export function etatInitial(): EtatCaves {
@@ -79,5 +83,6 @@ export function etatInitial(): EtatCaves {
     ],
     historique: { reserve: [], achats: [] },
     multiplicateurs: { recolte: 1, conservation: 1 },
+    objets: { fenetres: false, armoire: false, feuille: false },
   };
 }

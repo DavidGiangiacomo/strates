@@ -41,7 +41,9 @@ function avecCaves(etat: EtatCaves, caves = 10): EtatCaves {
   return etat;
 }
 
-const derniereLigne = (etat: EtatCaves) => etat.registre.at(-1)!;
+/** La dernière ligne du registre, hors celles que le premier bilan ajoute (les pertes, l'éveil des objets). */
+const derniereLigne = (etat: EtatCaves) =>
+  etat.registre.filter((l) => l.cle !== "registre.pertes" && l.cle !== "registre.eveil").at(-1)!;
 
 describe("l'arrivée dans les caves", () => {
   it("se fait à la fin du printemps de l'an 1, avec 8 familles, 250 boisseaux et un grenier", () => {
@@ -264,10 +266,11 @@ describe("la marque d'hiver", () => {
 });
 
 describe("les artefacts", () => {
-  it("multiplient la récolte et la capacité des stockages", () => {
+  it("multiplient la récolte et la capacité des stockages, après le premier hiver", () => {
     const ctx = contexte({ recolte: 2, conservation: 1.5 });
     const avec = avecCaves(etatInitial());
     const sans = avecCaves(etatInitial());
+    for (const e of [avec, sans]) e.hivers = [{ annee: 1, rupture: false }];
     logique.tick(avec, 1, ctx);
     logique.tick(sans, 1, CTX);
     expect(avec.multiplicateurs).toEqual({ recolte: 2, conservation: 1.5 });

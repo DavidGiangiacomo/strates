@@ -147,10 +147,12 @@ describe("le grand cycle au registre", () => {
 });
 
 describe("la migration de l'état", () => {
-  it("ajoute la série, le seuil et les hivers à un état de la version 1", () => {
-    const { hivers, serie, seuilAtteintA, ...v1 } = etatInitial();
-    void [hivers, serie, seuilAtteintA];
-    expect(logique.versionEtat).toBe(2);
-    expect(logique.migrations[1]!(v1)).toEqual(etatInitial());
+  it("mène un état de la version 1 à la version 3 : série, seuil et hivers, puis objets d'en haut", () => {
+    const { hivers, serie, seuilAtteintA, objets, ...v1 } = etatInitial();
+    void [hivers, serie, seuilAtteintA, objets];
+    expect(logique.versionEtat).toBe(3);
+    const v2 = logique.migrations[1]!(v1);
+    expect(v2).toMatchObject({ hivers: [], serie: 0, seuilAtteintA: null });
+    expect(logique.migrations[2]!(v2)).toEqual(etatInitial());
   });
 });

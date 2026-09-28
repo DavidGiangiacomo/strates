@@ -26,6 +26,7 @@ import {
   finSoudure,
   JOURS_PAR_AN,
   NAISSANCES,
+  OBJETS,
   pertes,
   prochainOutil,
   recolteEntre,
@@ -49,13 +50,28 @@ export type ActionCaves =
 // Tolérance pour les sommes de pas en virgule flottante, en jours ou en boisseaux.
 const EPSILON = 1e-9;
 
+/**
+ * Les effets des objets d'en haut (fiche, § 8). Les multiplicateurs ne s'éveillent qu'au bilan du
+ * premier hiver : avant, personne ne sait s'en servir, et le choc d'arrivée reste entier. Les autres
+ * objets agissent dès l'arrivée.
+ */
 function lireEffets(etat: EtatCaves, ctx: ContexteTick): void {
-  etat.multiplicateurs.recolte = ctx.effets.multiplicateur("recolte");
-  etat.multiplicateurs.conservation = ctx.effets.multiplicateur("conservation");
+  const eveilles = etat.hivers.length > 0;
+  etat.multiplicateurs.recolte = eveilles ? ctx.effets.multiplicateur("recolte") : 1;
+  etat.multiplicateurs.conservation = eveilles ? ctx.effets.multiplicateur("conservation") : 1;
+  const agit = (id: string) => ctx.effets.niveau(id) !== null;
+  etat.objets.fenetres = agit(OBJETS.fenetres);
+  etat.objets.armoire = agit(OBJETS.armoire);
+  etat.objets.feuille = agit(OBJETS.feuille);
 }
 
-function ecrire(etat: EtatCaves, cle: string, valeurs: Record<string, number>): void {
-  etat.registre.push({ cle, valeurs });
+function ecrire(
+  etat: EtatCaves,
+  cle: string,
+  valeurs: Record<string, number>,
+  objet?: string,
+): void {
+  etat.registre.push(objet === undefined ? { cle, valeurs } : { cle, valeurs, objet });
   if (etat.registre.length > TAILLE_REGISTRE) {
     etat.registre.splice(0, etat.registre.length - TAILLE_REGISTRE);
   }
@@ -129,10 +145,12 @@ function couler(etat: EtatCaves, duree: number): void {
 /**
  * Le bilan de l'hiver, à la fin de sa soudure : naissances s'il est passé sans rupture, série des
  * grands hivers, seuil. Après le seuil, le registre n'a plus rien à noter qu'une rupture : c'est la
- * saturation (fiche, § 4).
+ * saturation (fiche, § 4). Le premier bilan révèle aussi les pertes (§ 7) et éveille les objets d'en
+ * haut (§ 8).
  */
-function faireBilan(etat: EtatCaves): void {
+function faireBilan(etat: EtatCaves, ctx: ContexteTick): void {
   const hiver = etat.annee - 1;
+  const premier = etat.hivers.length === 0;
   const grand = estGrandHiver(hiver);
   const avantSeuil = etat.seuilAtteintA === null;
   const { rupture, joursDeRupture, departs } = etat.bilan;
@@ -166,7 +184,15 @@ function faireBilan(etat: EtatCaves): void {
       if (etat.serie >= SERIE_SEUIL) {
         etat.seuilAtteintA = etat.temps;
         ecrire(etat, "registre.seuil", {});
+        // La feuille qui annonce : une ligne de l'atelier, d'une autre main.
+        if (ctx.effets.niveau(OBJETS.feuille)) ecrire(etat, "registre.feuille", {});
       }
+    }
+  }
+  if (premier) {
+    ecrire(etat, "registre.pertes", { pourri: etat.pertes.pourri });
+    for (const id of OBJETS.multiplicateurs) {
+      if (ctx.effets.niveau(id)) ecrire(etat, "registre.eveil", {}, id);
     }
   }
   etat.soudure = false;
@@ -191,13 +217,13 @@ function atteindre(etat: EtatCaves, borne: number): void {
 }
 
 /** Le changement d'année, puis la fin de la soudure, quand le calendrier les atteint. */
-function passerBornes(etat: EtatCaves): void {
+function passerBornes(etat: EtatCaves, ctx: ContexteTick): void {
   if (etat.jour >= JOURS_PAR_AN) {
     etat.annee += 1;
     etat.jour = 0;
     etat.soudure = true;
   }
-  if (etat.soudure && etat.jour >= finSoudure(etat)) faireBilan(etat);
+  if (etat.soudure && etat.jour >= finSoudure(etat)) faireBilan(etat, ctx);
 }
 
 /** La prochaine date où les règles changent : l'hiver, la nouvelle année, ou la fin de la soudure. */
@@ -217,10 +243,10 @@ function echantillonner(etat: EtatCaves, tempsAvant: number): void {
 }
 
 /** Fait avancer le calendrier de `duree` jours, en coupant aux bornes des saisons. */
-function avancer(etat: EtatCaves, duree: number): void {
+function avancer(etat: EtatCaves, duree: number, ctx: ContexteTick): void {
   let reste = duree;
   for (;;) {
-    passerBornes(etat);
+    passerBornes(etat, ctx);
     const jour = etat.jour;
     const borne = prochaineBorne(etat);
     // Une borne à un cheveu est atteinte : sans cela, un pas plus court que la tolérance n'avancerait plus.
@@ -275,7 +301,7 @@ function absence(etat: EtatCaves, duree: number, ctx: ContexteTick): ResumeAbsen
       rupture = true;
       break;
     }
-    avancer(etat, pas);
+    avancer(etat, pas, ctx);
     compte -= pas;
     jours += pas;
   }
@@ -291,10 +317,15 @@ function absence(etat: EtatCaves, duree: number, ctx: ContexteTick): ResumeAbsen
 
 export const logique: LogiqueStrate<EtatCaves, ActionCaves> = {
   numero: 2,
-  versionEtat: 2,
+  versionEtat: 3,
   migrations: {
     // Version 2 (#32) : la série des grands hivers, le seuil et l'historique des hivers.
     1: (etat) => ({ ...(etat as object), hivers: [], serie: 0, seuilAtteintA: null }),
+    // Version 3 (#34) : les objets d'en haut qui agissent hors multiplicateurs.
+    2: (etat) => ({
+      ...(etat as object),
+      objets: { fenetres: false, armoire: false, feuille: false },
+    }),
   },
   // Un jour. Chaque pas est coupé aux bornes des saisons, et la récolte y est intégrée exactement.
   pasMax: 1,
@@ -305,7 +336,7 @@ export const logique: LogiqueStrate<EtatCaves, ActionCaves> = {
 
   tick(etat, dt, ctx) {
     lireEffets(etat, ctx);
-    avancer(etat, dt);
+    avancer(etat, dt, ctx);
   },
 
   agir(etat, action, ctx) {

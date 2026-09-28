@@ -35,6 +35,7 @@ export const textes: Record<string, string> = {
   "stockage.cave": "Cave",
   "stockage.caveProfonde": "Cave profonde",
   "stockage.detail": "{nombre} construits · {capacite:boisseau} chacun",
+  "stockage.pertes": "pertes : {pertes:boisseau} par jour",
   construire: "Construire",
 
   outils: "Outils",
@@ -67,6 +68,10 @@ export const textes: Record<string, string> = {
     "Grand hiver de l'an {annee} : le grain a manqué {jours:jour}. Départs : {departs:famille}.",
   "registre.serie-rompue": "Les anciens recommencent à compter.",
   "registre.seuil": "Trois grands hivers sans rupture. La vallée n'a plus rien à craindre.",
+  "registre.pertes": "Grain pourri dans les stockages depuis l'arrivée : {pourri:boisseau}.",
+  "registre.eveil": "Les familles ont compris {objet}.",
+  // La feuille qui annonce : une ligne de l'atelier (strate 3), d'une autre main. Provisoire (#68, #43).
+  "registre.feuille": "Il reste soixante-trois cases.",
 
   "absence.hiver": "L'hiver vous attendait : rien n'a bougé.",
   "absence.recolte": "La récolte a continué {jours:jour} : {recolte:boisseau}.",

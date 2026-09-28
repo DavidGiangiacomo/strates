@@ -67,13 +67,21 @@ export interface CaseCycle {
   grand: boolean;
   /** L'hiver a-t-il manqué ? null tant qu'il n'est pas jugé (l'année en cours, ou pendant la soudure). */
   rupture: boolean | null;
+  /** Une année à venir, dessinée d'avance par l'armoire qui compte les hivers. */
+  future: boolean;
 }
 
-/** Les cases de l'anneau du grand cycle : une par année vécue, les 20 dernières au plus. */
-export function casesCycle(etat: Pick<EtatCaves, "annee" | "hivers">): CaseCycle[] {
+/**
+ * Les cases de l'anneau du grand cycle : une par année vécue, les 20 dernières au plus. Avec `avenir`
+ * (l'armoire qui compte les hivers, fiche, § 8), les places libres de l'anneau montrent d'avance les
+ * années à venir et la longueur de leurs hivers.
+ */
+export function casesCycle(etat: Pick<EtatCaves, "annee" | "hivers">, avenir = false): CaseCycle[] {
   const cases: CaseCycle[] = [];
   const pas = (2 * Math.PI) / CASES;
-  for (let annee = Math.max(1, etat.annee - CASES + 1); annee <= etat.annee; annee++) {
+  const premiere = Math.max(1, etat.annee - CASES + 1);
+  const derniere = avenir ? premiere + CASES - 1 : etat.annee;
+  for (let annee = premiere; annee <= derniere; annee++) {
     const debut = ((annee - 1) % CASES) * pas + ECART / 2;
     const fin = debut + pas - ECART;
     const jugement = etat.hivers.find((h) => h.annee === annee);
@@ -84,6 +92,7 @@ export function casesCycle(etat: Pick<EtatCaves, "annee" | "hivers">): CaseCycle
       hiver: fin - ((fin - debut) * dureeHiver(annee)) / JOURS_PAR_AN,
       grand: estGrandHiver(annee),
       rupture: jugement ? jugement.rupture : null,
+      future: annee > etat.annee,
     });
   }
   return cases;

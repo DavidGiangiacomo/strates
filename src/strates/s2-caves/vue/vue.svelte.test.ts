@@ -40,7 +40,7 @@ const bouton = (debut: string) =>
   [...document.querySelectorAll("button")].find((b) => b.textContent?.trim().startsWith(debut));
 
 describe("la vue des caves", () => {
-  it("affiche la date, la saison, la réserve et la marque d'hiver, en boisseaux entiers", () => {
+  it("affiche la date, la saison et la réserve, en boisseaux entiers", () => {
     monter();
     expect(texte("[data-test=date]")).toBe("Jour 71 de l'an 1");
     expect(texte("[data-test=saison]")).toBe("Printemps");
@@ -48,7 +48,6 @@ describe("la vue des caves", () => {
       "L'hiver commence dans 280\u00a0jours ; il durera 70\u00a0jours.",
     );
     expect(texte("[data-test=reserve]")).toBe("250 sur 400\u00a0boisseaux");
-    expect(texte("[data-test=marque]")).toMatch(/^\d+\u00a0boisseaux$/);
     expect(texte("[data-test=familles]")).toBe("8\u00a0familles");
     expect(texte("[data-test=registre]")).toBe("An 1. 8\u00a0familles, un grenier.");
   });
@@ -76,6 +75,7 @@ describe("la vue des caves", () => {
     monter((etat) => {
       etat.reserve = 10;
       etat.familles = 40;
+      etat.hivers = [{ annee: 1, rupture: false }];
     });
     expect(bouton("Installer une famille")!.disabled).toBe(true);
     expect(bouton("Construire")!.disabled).toBe(true);
@@ -93,6 +93,9 @@ describe("la vue des caves", () => {
       { cle: "registre.grand-hiver-rupture", valeurs: { annee: 15, jours: 5, departs: 2 } },
       { cle: "registre.serie-rompue", valeurs: {} },
       { cle: "registre.seuil", valeurs: {} },
+      { cle: "registre.pertes", valeurs: { pourri: 212 } },
+      { cle: "registre.eveil", valeurs: {}, objet: "s1-filiale" },
+      { cle: "registre.feuille", valeurs: {} },
     ];
     // Le registre n'affiche que ses 8 dernières lignes : deux passages.
     for (const partie of [lignes.slice(0, 4), lignes.slice(4)]) {
@@ -148,6 +151,49 @@ describe("la vue des caves", () => {
     const trace = document.querySelector("[data-test=fissure] path");
     expect(trace?.getAttribute("stroke-dashoffset")).toBe("0.5");
     expect(document.body.textContent).toBe(texteAvant);
+  });
+
+  it("ne légende ni la marque d'hiver ni les pertes avant le premier bilan", () => {
+    monter();
+    expect(document.querySelector(".jauge .marque")).not.toBeNull();
+    expect(document.querySelector("[data-test=marque]")).toBeNull();
+    expect(document.querySelector("[data-test=pertes]")).toBeNull();
+    expect(document.querySelector("[data-test=pertes-grenier]")).toBeNull();
+  });
+
+  it("les dévoile au premier bilan, avec les pertes de chaque stockage", () => {
+    monter((etat) => (etat.hivers = [{ annee: 1, rupture: true }]));
+    expect(texte("[data-test=marque]")).toMatch(/^\d+\u00a0boisseaux$/);
+    expect(texte("[data-test=pertes]")).toMatch(/par jour$/);
+    expect(texte("[data-test=pertes-grenier]")).toMatch(/^pertes : \d+\u00a0boisseau/);
+  });
+
+  it("les dévoile dès l'arrivée avec les deux fenêtres", () => {
+    monter((etat) => (etat.objets.fenetres = true));
+    expect(document.querySelector("[data-test=marque]")).not.toBeNull();
+    expect(document.querySelector("[data-test=pertes]")).not.toBeNull();
+  });
+
+  it("dessine d'avance les années à venir avec l'armoire qui compte les hivers", () => {
+    monter((etat) => (etat.objets.armoire = true));
+    const cases = [...document.querySelectorAll("[data-test^=case-]")];
+    expect(cases).toHaveLength(20);
+    expect(cases[0]!.classList.contains("future")).toBe(false);
+    expect(cases[1]!.classList.contains("future")).toBe(true);
+    expect(document.querySelector("[data-test=case-14]")?.classList.contains("grand")).toBe(true);
+  });
+
+  it("nomme les objets d'en haut à leur éveil, et écrit la ligne de la feuille d'une autre main", () => {
+    monter((etat) => {
+      etat.registre.push(
+        { cle: "registre.eveil", valeurs: {}, objet: "s1-turbine" },
+        { cle: "registre.feuille", valeurs: {} },
+      );
+    });
+    const lignes = [...document.querySelectorAll("[data-test=registre] li")];
+    expect(lignes[0]!.textContent).toBe("Il reste soixante-trois cases.");
+    expect(lignes[0]!.classList.contains("autre-main")).toBe(true);
+    expect(lignes[1]!.textContent).toBe("Les familles ont compris la roue chaude.");
   });
 
   it("dit que la vallée est pleine, et qu'elle a tous ses outils", () => {
