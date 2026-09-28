@@ -258,7 +258,7 @@ Les caves les prennent tous les trois à contre-pied, dans cet ordre.
 
 Le §14 demande : « au bout de dix minutes dans la strate 2, le joueur essaie-t-il de jouer comme en strate 1 ? » Il aura vu deux hivers : le premier à 4 min 40, le deuxième à 11 min 40. Le premier lui montre que ça ne marche pas. Le deuxième lui laisse le prouver autrement.
 - Le protocole ([#37](https://github.com/DavidGiangiacomo/strates/issues/37)) doit observer le moment entre la première rupture et le premier hiver réussi, et demander au joueur ce qu'il a compris.
-- Le storyboard du passage ([#11](https://github.com/DavidGiangiacomo/strates/issues/11)) doit amener le joueur au jour 70, pas plus tard : il lui faut une saison chaude entière avant le premier hiver.
+- Le [storyboard du passage](descente-1-2.md) ([#11](https://github.com/DavidGiangiacomo/strates/issues/11)) amène le joueur au jour 70, pas plus tard : il lui faut une saison chaude entière avant le premier hiver. Ni la fouille ni la transition ne prennent de temps aux caves, dont le calendrier part à la fin de la descente. Le storyboard détaille aussi les dix premières minutes (P7).
 - Les objets emportés de la surface ne changent pas l'économie du premier hiver : leurs multiplicateurs ne s'éveillent qu'à son bilan (§ 8). Seuls l'affichage et le raccourci peuvent le rendre plus lisible, et c'est voulu.
 
 ## 6. Interface et direction artistique
@@ -312,7 +312,15 @@ Seuls les artefacts de la surface peuvent être actifs ici, et ils sont **puissa
 | raccourci | dès l'arrivée | les deux fenêtres : la marque d'hiver porte son nom, et les pertes des stockages sont affichées (§ 7) |
 | unique | au seuil | la feuille qui annonce : le registre écrit une ligne de plus, d'une autre main, une ligne de l'atelier |
 
-**L'éveil au premier hiver.** Les multiplicateurs ne s'éveillent qu'au bilan du premier hiver, et le registre le note, un objet par ligne : « Les familles ont compris la roue chaude. » Avant, les objets d'en haut sont là, mais personne ne sait s'en servir. C'est ce qui protège le choc d'arrivée (§ 5). Simulé dans le code du jeu, un joueur réflexe qui achète les familles au meilleur rendement passerait les deux premiers hivers sans disette si les cinq objets d'un jeu correct agissaient dès l'arrivée (récolte × 1,8, conservation × 1,5) : il ne manquerait le premier hiver qu'avec des objets bien plus faibles, vers récolte × 1,2. Avec l'éveil, le premier hiver se joue comme sans artefact ; les objets aident ensuite à s'en relever. C'est aussi ainsi que le joueur apprend le nom d'en bas de ses objets.
+**L'éveil au premier hiver.** Les multiplicateurs ne s'éveillent qu'au bilan du premier hiver, et le registre le note, un objet par ligne : « Les familles ont compris la roue chaude. » Avant, les objets d'en haut sont là, mais personne ne sait s'en servir. C'est ce qui protège le choc d'arrivée (§ 5). Simulé dans le code du jeu, un joueur réflexe qui achète les familles au meilleur rendement passerait les deux premiers hivers sans disette si les cinq objets d'un jeu correct agissaient dès l'arrivée (récolte × 1,8, conservation × 1,5) : il ne manquerait le premier hiver qu'avec des objets bien plus faibles, vers récolte × 1,2. Avec l'éveil, le premier hiver se joue comme sans artefact ; les objets aident ensuite à s'en relever.
+
+**Les noms d'en bas.** Un objet prend son nom d'en bas la première fois qu'il agit, et le registre le note avec la même formule. C'est ainsi que le joueur apprend le nom d'en bas de ses objets ([storyboard du passage](descente-1-2.md), § 6).
+- L'armoire et les deux fenêtres sont nommées sur la première page du registre.
+- Une ligne y compte les objets qui attendent : « 3 objets venus d'en haut, que personne ne sait employer. »
+- Les multiplicateurs sont nommés au premier bilan.
+- La feuille est nommée au seuil, juste avant sa ligne.
+
+Ces lignes de l'arrivée et du seuil viendront avec l'orchestration de la descente ([#30](https://github.com/DavidGiangiacomo/strates/issues/30)).
 
 **Dans le code** ([#34](https://github.com/DavidGiangiacomo/strates/issues/34)) : les caves reconnaissent les objets de la surface par leur identifiant (`OBJETS`, dans `logique/regles.ts`) et les lisent par `EffetsActifs`. Les multiplicateurs restent à 1 tant qu'aucun hiver n'a été jugé ; les autres objets sont notés dans l'état (`objets`), que la vue lit. L'opacité de la marque et des pertes (§ 7) est codée pour que les deux fenêtres aient quelque chose à lever ; le reste de l'opacité viendra avec la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)).
 
@@ -387,7 +395,7 @@ Les caves doivent tenir seules, comme un petit jeu de gestion agricole de 2 heur
 5. **Le temps hors ligne des politiques propres** : le noyau compte l'absence entière dans le journal, même quand la strate n'en utilise qu'une partie (§ 10). À trancher pour la coupe, avec les strates 6 et 7.
 6. ~~**Les effets des artefacts de la surface**~~ : choisis par [#10](https://github.com/DavidGiangiacomo/strates/issues/10) (§ 8), codés par [#34](https://github.com/DavidGiangiacomo/strates/issues/34). Reste à vérifier au playtest que l'éveil au premier hiver se comprend.
 7. **La remontée finale** (§ 10) : à décider avec [#128](https://github.com/DavidGiangiacomo/strates/issues/128).
-8. **Le premier jour** : le jour 70 laisse 4 min 40 avant le premier hiver. C'est assez pour que le joueur installe des familles et voie la réserve monter, mais c'est peut-être trop peu pour qu'il remarque la marque. À observer au playtest.
+8. **Le premier jour** : le jour 70 laisse 4 min 40 avant le premier hiver. C'est assez pour que le joueur installe des familles et voie la réserve monter, mais c'est peut-être trop peu pour qu'il remarque la marque. À observer au playtest. Le [storyboard](descente-1-2.md) fait partir le calendrier à la fin de la descente, sans attendre un geste du joueur.
 
 ## 14. Équilibrage
 
