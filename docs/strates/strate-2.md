@@ -1,6 +1,6 @@
 # Strate 2 — Les caves
 
-*Fiche de design, issue [#6](https://github.com/DavidGiangiacomo/strates/issues/6). Première version, avant l'équilibrage ([#36](https://github.com/DavidGiangiacomo/strates/issues/36)). Les chiffres viennent d'une simulation grossière de six profils de joueur (§ 4), à refaire avec le simulateur headless ([#23](https://github.com/DavidGiangiacomo/strates/issues/23)).*
+*Fiche de design, issue [#6](https://github.com/DavidGiangiacomo/strates/issues/6). Les chiffres des § 1 à § 13 viennent d'une première simulation grossière (§ 4). L'équilibrage ([#36](https://github.com/DavidGiangiacomo/strates/issues/36)) les a mesurés dans le code du jeu et a changé deux règles, la taille de la vallée et le prix des familles : voir § 14 et les [mesures](strate-2-mesures.md).*
 
 *Choix tranchés le 27 septembre 2026 :*
 - *le seuil demande trois **grands** hivers de suite sans rupture ;*
@@ -19,7 +19,7 @@ C'est la strate du test du MVP (§14). Elle doit prouver que le changement de r�
 | Verbe | stocker |
 | Ressource | Grain |
 | Unité et notation | Le **boisseau**, toujours entier et jamais abrégé : « 24 038 boisseaux », « 1 boisseau ». Les milliers sont séparés par une espace fine. Il n'y a ni suffixe, ni décimale, ni notation scientifique. Les débits se comptent par jour (« 312 boisseaux par jour »), et le temps en jours et en années (« jour 214 de l'an 3 »), jamais en secondes. Aucune autre strate ne compte en boisseaux (I1). |
-| Ordre de grandeur final | ≈ 10⁶ boisseaux récoltés : de 1,6 à 2,6 × 10⁶ au seuil en simulation. La réserve, elle, ne dépasse pas quelques centaines de milliers. C'est l'échelle basse **exprès** du §9, mille fois sous celle de la surface. |
+| Ordre de grandeur final | ≈ 10⁶ boisseaux récoltés : de 1,5 à 2,5 × 10⁶ au seuil sans artefact, environ 5 × 10⁶ avec les objets d'un jeu correct (§ 14). La réserve, elle, ne dépasse pas quelques centaines de milliers. C'est l'échelle basse **exprès** du §9, mille fois sous celle de la surface. |
 | Durée cible | 2 h. Le calendrier impose 1 h 51 au plus tôt (§ 4) ; c'est le temps de tous les profils réguliers en simulation. |
 | κ à l'entrée → à la sortie | 8 → 22 |
 
@@ -63,10 +63,10 @@ Le bouton « Glaner » rapporte `sin(π d / S)` boisseau par clic : 1 au plus fo
 
 ### Les familles
 
-- **Installer une famille** coûte `25 × 1,08ⁿ` boisseaux, où n est le nombre de familles déjà installées par le joueur.
+- **Installer une famille** coûte `25 × 1,09ⁿ` boisseaux, où n est le nombre de familles déjà installées par le joueur.
 - **Naissances** : après chaque hiver passé sans rupture, les familles augmentent de 10 %. Les naissances sont gratuites et ne renchérissent pas l'installation.
 - **Départs** : chaque jour de rupture, 0,5 % des familles quittent la vallée. Les 8 familles fondatrices restent toujours.
-- **La vallée** accueille 250 familles au plus. Pleine, elle refuse les installations et les naissances : « La vallée est pleine. »
+- **La vallée** accueille 360 familles au plus. Pleine, elle refuse les installations et les naissances : « La vallée est pleine. »
 - Les familles se comptent en nombre réel (les départs sont fractionnaires), affiché arrondi.
 
 ### Les stockages
@@ -163,7 +163,7 @@ type ActionCaves =
 |---|---|---|
 | 0 – 12 min (ans 1 et 2) | L'école des hivers | Hivers de 70 jours. Faucille (1 min), premiers greniers, silo (6 min), fléau (8 min). La première soudure manque de peu. |
 | 12 – 35 min (ans 3 à 5) | La vallée se remplit | Charrue (15 min), caves (27 min), assolement (30 min). Les naissances suivent chaque hiver réussi. À partir de l'an 5 (27 min), l'hiver s'allonge. |
-| 35 – 94 min (ans 6 à 13) | Le grand cycle | L'hiver gagne 10 jours par an, et la marque monte plus vite que les familles. On construit en bas : première cave profonde à 83 min. La vallée est pleine à la fin de l'an 13 (90 min). |
+| 35 – 94 min (ans 6 à 13) | Le grand cycle | L'hiver gagne 10 jours par an, et la marque monte plus vite que les familles. On construit en bas : première cave profonde à 83 min. La vallée se remplit pendant les grands hivers (§ 14). |
 | 94 – 111 min (ans 14 à 16) | Les grands hivers | Trois hivers de 170 jours, de 2 min 50 chacun. Le seuil tombe au bilan du troisième. |
 
 La boucle moyenne du §3, c'est l'année : 7 minutes, avec au milieu un hiver qui juge ce qu'on a fait de la saison chaude. Le joueur correct fait 157 achats, dont 80 dans les vingt premières minutes, puis de moins en moins. Il ne fait plus aucun achat après 97 minutes (§ 13).
@@ -324,7 +324,7 @@ Seuls les artefacts de la surface peuvent être actifs ici, et ils sont **puissa
 ## 9. Valeur convertible
 
 - C'est le **cumul du grain récolté** dans la strate, glanage compris, y compris le grain qui a débordé ou pourri. Ni les achats ni les pertes ne le diminuent (D-003).
-- En simulation, le cumul au seuil vaut de 1,6 à 2,6 × 10⁶ boisseaux pour tous les profils réguliers : **8 points** (il en faut de 5,2 × 10⁵ à 2,7 × 10⁶). Un joueur qui a raté ses premiers hivers descend avec les mêmes points qu'un joueur prudent.
+- Mesuré dans le code du jeu (§ 14), le cumul au seuil vaut de 1,5 à 2,5 × 10⁶ boisseaux pour tous les profils réguliers sans artefact : **8 points** (il en faut de 5,2 × 10⁵ à 2,7 × 10⁶). Avec les objets d'un jeu correct, il vaut de 5 à 6 × 10⁶ : **9 points**. Un joueur qui a raté ses premiers hivers descend avec les mêmes points qu'un joueur prudent.
 - Rester après le seuil rapporte peu. En simulation, le joueur correct gagne 1 point en 10 minutes (9 points), puis plus rien en deux heures : le 10ᵉ demande 1,4 × 10⁷ boisseaux.
 - Pour le catalogue : le budget de 8 points correspond au catalogue indicatif de la strate 2 ([`artefacts.md`](../artefacts.md) : 5 objets, 13 points au total). Le joueur laisse donc un ou deux objets en bas.
 
@@ -373,12 +373,11 @@ Les caves doivent tenir seules, comme un petit jeu de gestion agricole de 2 heur
 - **une fin qui est une vraie fin** : la saturation, la vallée pleine et le registre qui n'a plus rien à noter ;
 - **un geste d'agriculture et non d'usine** : garder, et pas seulement produire.
 
-**Le point faible** est la dernière demi-heure. En simulation, le joueur correct ne fait plus que 4 achats après 80 minutes, et son dernier achat tombe à 97 minutes. Les grands hivers occupent le joueur (on les regarde passer), mais on n'y décide plus rien. C'est la première question de l'équilibrage ([#36](https://github.com/DavidGiangiacomo/strates/issues/36)) ; voir § 13.
+**Le point faible** était la dernière demi-heure : dans la première simulation, le joueur correct ne faisait plus que 4 achats après 80 minutes, et attendait jusqu'à 14 minutes entre deux achats pendant les grands hivers. L'équilibrage ([#36](https://github.com/DavidGiangiacomo/strates/issues/36)) a agrandi la vallée pour qu'elle se remplisse pendant les grands hivers : aucun joueur régulier n'attend plus de 7 minutes (§ 14). Les grands hivers restent surtout des moments où l'on regarde la réserve baisser ; le playtest dira si c'est une tension ou une attente.
 
 ## 13. Questions ouvertes
 
-1. **La fin de strate sans décision** (§ 12). Pistes pour [#36](https://github.com/DavidGiangiacomo/strates/issues/36), dont les trois premières sont compatibles avec la marque d'hiver :
-   - une vallée plus grande, qui se remplit plus tard ;
+1. **La fin de strate sans décision** (§ 12) : en partie réglée par l'équilibrage ([#36](https://github.com/DavidGiangiacomo/strates/issues/36)), qui a choisi la vallée plus grande (§ 14). Si le playtest trouve encore les grands hivers longs, il reste :
    - des améliorations de conservation (chats, jarres, chaux), qui divisent les pertes et se paient en fin de strate ;
    - des caves profondes rendues nécessaires aux grands hivers ;
    - le rationnement (question 2).
@@ -386,6 +385,32 @@ Les caves doivent tenir seules, comme un petit jeu de gestion agricole de 2 heur
 3. **Le rythme des départs** : 0,5 % par jour de rupture, avec 8 familles fondatrices qui ne partent jamais. C'est assez dur pour qu'on le sente (un tiers de la vallée sur un hiver raté), assez doux pour qu'on s'en relève en une année. À régler au playtest ([#37](https://github.com/DavidGiangiacomo/strates/issues/37)).
 4. **La marge du calibrage de départ** (§ 4, « Fragilité ») : une récolte à peine plus faible fait s'effondrer les profils trop prudents. À élargir si le playtest montre des joueurs qui n'osent pas investir.
 5. **Le temps hors ligne des politiques propres** : le noyau compte l'absence entière dans le journal, même quand la strate n'en utilise qu'une partie (§ 10). À trancher pour la coupe, avec les strates 6 et 7.
-6. ~~**Les effets des artefacts de la surface**~~ : choisis par [#10](https://github.com/DavidGiangiacomo/strates/issues/10) (§ 8), à coder dans [#34](https://github.com/DavidGiangiacomo/strates/issues/34). Reste à vérifier au playtest que l'éveil au premier hiver se comprend.
+6. ~~**Les effets des artefacts de la surface**~~ : choisis par [#10](https://github.com/DavidGiangiacomo/strates/issues/10) (§ 8), codés par [#34](https://github.com/DavidGiangiacomo/strates/issues/34). Reste à vérifier au playtest que l'éveil au premier hiver se comprend.
 7. **La remontée finale** (§ 10) : à décider avec [#128](https://github.com/DavidGiangiacomo/strates/issues/128).
 8. **Le premier jour** : le jour 70 laisse 4 min 40 avant le premier hiver. C'est assez pour que le joueur installe des familles et voie la réserve monter, mais c'est peut-être trop peu pour qu'il remarque la marque. À observer au playtest.
+
+## 14. Équilibrage
+
+Issue [#36](https://github.com/DavidGiangiacomo/strates/issues/36). Les mesures détaillées sont dans [`strate-2-mesures.md`](strate-2-mesures.md), un fichier généré que la CI tient à jour.
+
+**Méthode.** Cinq joueurs automatiques (`sim/joueurs/caves.ts`) jouent une partie complète à travers le noyau, sans artefact puis avec les objets qu'emporte un jeu correct à la surface.
+- Le joueur **réflexe** achète dès qu'il peut ce qui se rembourse le plus vite, comme à la surface.
+- Le joueur qui **apprend** fait de même jusqu'à 6 minutes, puis prévoit.
+- Les autres (**correct**, **prudent**, **distrait**) prévoient : ils ne dépensent que ce qui laisse, au plus bas d'ici la fin de la prochaine soudure, une marge de 30 ou 90 jours de consommation.
+
+`tests/equilibrage-caves.test.ts` vérifie les cibles ; après un changement de règles, `npm run mesures` régénère le rapport.
+
+**Deux règles ont changé** par rapport à la première simulation :
+- **la vallée** accueille 360 familles au lieu de 250. Avec 250, elle était pleine vers 90 minutes, et les joueurs attendaient jusqu'à 14 minutes entre deux achats pendant les grands hivers. Avec 360, elle se remplit pendant les grands hivers, et aucun joueur régulier n'attend plus de 7 minutes ;
+- **le prix des familles** croît de 9 % par famille au lieu de 8 %, pour que la vallée plus grande ne fasse pas passer le cumul au-dessus de 8 points sans artefact.
+
+Le prix des familles est aussi **le levier du choc d'arrivée**, et il ne doit pas monter plus : à 10 %, le joueur réflexe achète moins de familles, grandit moins avant l'hiver, et ne manque plus aucun hiver. C'est parce que les familles sont bon marché que le réflexe de la surface vide la réserve au pire moment.
+
+**Résultats**, tous dans les cibles, avec et sans artefacts :
+- **Durée** : tous les joueurs réguliers atteignent le seuil à 1 h 51, le plus tôt possible, avec ou sans objets. Aucun ne manque un grand hiver. Sans artefact, c'est sous les 3 h 15 d'I5.
+- **Points** : 8 sans artefact (de 1,5 à 2,5 × 10⁶ boisseaux), 9 avec les objets d'un jeu correct (de 5 à 6 × 10⁶). Rester rapporte peu : 1 point au plus en 10 minutes comme en une heure.
+- **Le test du MVP** : le joueur réflexe manque le premier hiver à 4 min 30, avec ou sans objets, et n'atteint jamais le seuil. Le joueur qui apprend manque ce premier hiver, puis atteint le seuil en même temps que les autres.
+- **Rythme** : 125 à 166 achats avant le seuil ; 7 minutes au plus entre deux achats.
+- **I2** : avec les objets d'un jeu correct, le plafond × 4 n'agit jamais.
+
+**À vérifier au playtest** ([#37](https://github.com/DavidGiangiacomo/strates/issues/37)) : que le premier hiver manqué se comprend (§ 5), que l'éveil des objets se remarque (§ 8), et que les grands hivers se vivent comme une tension plutôt que comme une attente (§ 12).

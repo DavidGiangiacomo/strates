@@ -137,17 +137,20 @@ export function finSoudure(etat: EtatCaves, annee = etat.annee): number {
 // ——— Les familles
 
 export const FAMILLES_FONDATRICES = 8;
-/** La vallée accueille 250 familles au plus. */
-export const VALLEE = 250;
+/** La vallée accueille 360 familles au plus. */
+export const VALLEE = 360;
 /** Après un hiver sans rupture, les familles augmentent de 10 %. */
 export const NAISSANCES = 0.1;
 /** Chaque jour de rupture, 0,5 % des familles quittent la vallée. */
 export const DEPARTS = 0.005;
 
 const COUT_FAMILLE = 25;
-const CROISSANCE_COUT_FAMILLE = 1.08;
+const CROISSANCE_COUT_FAMILLE = 1.09;
 
-/** Installer une famille : 25 × 1,08ⁿ, n étant le nombre de familles déjà installées par le joueur. */
+/**
+ * Installer une famille : 25 × 1,09ⁿ, n étant le nombre de familles déjà installées par le joueur. Plus
+ * cher, le joueur réflexe ne grandirait plus assez pour manquer le premier hiver (#36).
+ */
 export function coutFamille(etat: EtatCaves): number {
   return Math.round(COUT_FAMILLE * CROISSANCE_COUT_FAMILLE ** etat.installees);
 }

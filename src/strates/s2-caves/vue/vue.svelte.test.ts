@@ -5,6 +5,7 @@ import { strate } from "..";
 import type { CommandesNoyau } from "../../../noyau/logique/types";
 import type { ActionCaves, EtatCaves } from "../logique";
 import { etatInitial, type LigneRegistre } from "../logique/etat";
+import { VALLEE } from "../logique/regles";
 import Vue from "./Vue.svelte";
 
 const commandes: CommandesNoyau = { demanderFouille() {}, ouvrirAide() {}, terminer() {} };
@@ -198,7 +199,7 @@ describe("la vue des caves", () => {
 
   it("dit que la vallée est pleine, et qu'elle a tous ses outils", () => {
     monter((etat) => {
-      etat.familles = 250;
+      etat.familles = VALLEE;
       etat.outils = 4;
     });
     expect(bouton("Installer une famille")).toBeUndefined();

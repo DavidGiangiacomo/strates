@@ -233,7 +233,7 @@ describe("la rupture et le bilan de l'hiver", () => {
     });
     expect(etat.familles).toBeCloseTo(44, 9);
 
-    const pleine = avecCaves({ ...etatInitial(), familles: 240, jour: 350 }, 3);
+    const pleine = avecCaves({ ...etatInitial(), familles: VALLEE - 10, jour: 350 }, 3);
     pleine.reserve = marqueHiver(pleine);
     jusquauBilan(pleine, 1);
     expect(pleine.familles).toBe(VALLEE);
