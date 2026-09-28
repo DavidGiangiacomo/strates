@@ -29,6 +29,12 @@ interface ArtefactDef {
   };                      // décoratif et inerte : aucun effet mécanique
 }
 
+// Un multiplicateur vise un levier de la strate d'arrivée (voir § 4). Pour les autres familles,
+// l'effet est décrit ici et codé par la strate d'arrivée, qui le reconnaît par l'identifiant de l'objet.
+type Effet =
+  | { levier: "principal" | "secondaire"; facteur: number } // famille multiplicateur
+  | { description: string };                                // affichage, raccourci, unique
+
 // Dans la sauvegarde : la liste des identifiants emportés, rien d'autre.
 // L'usure se calcule, elle ne se stocke pas.
 type ArtefactsPossedes = string[];
@@ -61,10 +67,12 @@ Un artefact de la strate 2 est donc puissant en strate 3, utile en 4, décoratif
 
 Un artefact ne connaît pas les règles des strates où il arrive. Chaque module déclare comment il reçoit chaque famille d'effet :
 
-- **multiplicateur** : le module désigne son levier principal (et d'éventuels leviers secondaires) sur lequel s'applique le multiplicateur ;
+- **multiplicateur** : le module désigne son levier principal (et d'éventuels leviers secondaires) sur lequel s'applique le multiplicateur. Un multiplicateur « secondaire » agit sur le premier levier secondaire de la strate d'arrivée ; si elle n'en a pas, sur son levier principal ;
 - **affichage** : un élément d'interface dévoilé d'avance (une valeur, un libellé, une jauge) ;
 - **raccourci** : un apprentissage accéléré (par exemple, une partie de l'opacité levée à l'arrivée) ;
 - **unique** : l'un des 6 effets étranges, codé au cas par cas.
+
+Le module déclare aussi **quand** il reçoit : dès l'arrivée, ou à un moment de sa boucle. Les caves n'éveillent les multiplicateurs qu'au bilan du premier hiver, pour que le choc d'arrivée survive aux artefacts (§ 8).
 
 C'est la section 8 de chaque [fiche de strate](strates/modele-fiche.md).
 
@@ -113,4 +121,50 @@ Répartition indicative des 34 artefacts, vérifiée par simulation (présélect
 
 ## 8. Catalogue
 
-*À remplir : artefacts de la strate 1 ([#10](https://github.com/DavidGiangiacomo/strates/issues/10)), puis catalogue complet ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)).*
+*Artefacts de la strate 1 ([#10](https://github.com/DavidGiangiacomo/strates/issues/10)). Le reste du catalogue viendra avec [#57](https://github.com/DavidGiangiacomo/strates/issues/57).*
+
+### Strate 1 — La surface
+
+Six objets, 17 points au total. Les noms d'en bas sont ceux des caves : une vallée de paysans qui compte en récoltes et ne comprend pas ce qu'elle reçoit (fiche de la [strate 2](strates/strate-2.md), § 2). Les noms et les effets sont provisoires jusqu'à la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)).
+
+| Coût | Id | Nom d'en haut | Nom d'en bas | Famille |
+|---|---|---|---|---|
+| 1 | `s1-equipe` | L'équipe | les bras en plus | multiplicateur, principal |
+| 2 | `s1-double-ecran` | Double écran | les deux fenêtres | raccourci |
+| 2 | `s1-serveur` | Le serveur | l'armoire qui compte les hivers | affichage |
+| 3 | `s1-filiale` | La filiale | le grenier d'ailleurs | multiplicateur, secondaire |
+| 4 | `s1-turbine` | La turbine | la roue chaude | multiplicateur, principal |
+| 5 | `s1-plan` | Plan stratégique | la feuille qui annonce | unique |
+
+**Effets.** Puissants dans les caves (strate 2), utiles dans l'atelier (strate 3). Les effets utiles des familles autres que multiplicateur seront écrits avec la fiche de la strate 3 ([#61](https://github.com/DavidGiangiacomo/strates/issues/61)) ; ce qui suit en fixe le principe.
+
+| Objet | Puissant, dans les caves | Utile, dans l'atelier |
+|---|---|---|
+| les bras en plus | récolte × 1,2 | levier principal × 1,1 |
+| les deux fenêtres | dès l'arrivée, la marque d'hiver porte son nom et les pertes des stockages sont affichées : l'opacité du § 7 de la fiche est levée pour ces deux éléments | une part plus petite de l'opacité de l'atelier, levée à l'arrivée |
+| l'armoire qui compte les hivers | dès l'arrivée, l'anneau du grand cycle dessine d'avance les années à venir, avec la longueur de leurs hivers | une grandeur future de l'atelier, dévoilée d'avance, moins loin |
+| le grenier d'ailleurs | capacité de tous les stockages × 1,5 (levier `conservation`) | levier secondaire de l'atelier, ou principal s'il n'en a pas, × 1,25 |
+| la roue chaude | récolte × 1,5 | levier principal × 1,25 |
+| la feuille qui annonce | au seuil, le registre écrit une ligne de plus, d'une autre main : une ligne de l'atelier, avant d'y descendre. Proposition : « Il reste soixante-trois cases. » | au seuil de l'atelier, la moitié d'une ligne du réseau (strate 4), coupée au milieu |
+
+Dans les caves, les **multiplicateurs ne s'éveillent qu'au bilan du premier hiver**. Le registre le note, un objet par ligne : « Les familles ont compris la roue chaude. » C'est ainsi que le joueur apprend le nom d'en bas de ses objets. Les affichages et les raccourcis agissent dès l'arrivée ; l'effet unique, au seuil.
+
+**Les budgets** (fiche de la [strate 1](strates/strate-1.md), § 9) :
+- **12 points, jeu correct** : la présélection prend les cinq objets les moins chers (1 + 2 + 2 + 3 + 4). La feuille qui annonce reste en haut.
+- **14 points**, après une heure de plus à la surface : on peut prendre la feuille à la place du grenier d'ailleurs (1 + 2 + 2 + 4 + 5). C'est le « meilleur objet à la place d'un moins cher » du § 7.
+- **Aucun budget ne prend tout** : le catalogue coûte 17 points, et la surface n'en donne pas plus de 14 sans un farm déraisonnable.
+
+**Vérifications.**
+- **I2** : avec les six objets, le produit des multiplicateurs vaut 1,2 × 1,5 × 1,5 = 2,7 dans les caves, sous × 4. Dans l'atelier, 1,1 × 1,25 × 1,25 ≈ 1,7 ; le noyau plafonnera le total avec les objets des caves.
+- **I5** : les caves sont calibrées sans aucun artefact (fiche de la strate 2, § 4). Les objets n'y changent pas la durée, que fixe le calendrier.
+- **En simulation**, avec les cinq objets d'un jeu correct actifs dès le début, tous les profils réguliers atteignent toujours le seuil des caves en 1 h 51, avec 9 points au lieu de 8.
+- **Le choc d'arrivée** (fiche de la strate 2, § 5) : c'est la raison de l'éveil retardé. Deux joueurs réflexes ont été simulés dans le code du jeu :
+  - celui qui achète chaque outil dès qu'il est abordable manque le premier hiver, avec ou sans objets ;
+  - celui qui achète les familles au meilleur rendement manque le premier hiver sans artefact (disette à 4 min 37). Mais avec les cinq objets actifs dès l'arrivée, il passe les deux premiers hivers sans disette : la leçon disparaît. Pour la retrouver, il faudrait rester vers récolte × 1,2 et conservation × 1,5.
+
+  Éveillés au premier bilan, les multiplicateurs laissent le premier hiver se jouer comme sans artefact, puis aident à s'en relever.
+
+**Pour la suite.**
+- **La conversion** ([#21](https://github.com/DavidGiangiacomo/strates/issues/21)) : la table porte ces six objets. Une strate doit savoir si un effet autre qu'un multiplicateur est puissant ou utile : `EffetsActifs.actif` devra le dire, par exemple en renvoyant le niveau d'usure.
+- **La réception dans les caves** ([#34](https://github.com/DavidGiangiacomo/strates/issues/34)) : l'éveil au premier bilan, et les trois effets propres (les deux fenêtres, l'armoire, la feuille).
+- **Le catalogue des caves** ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : avec ces objets, un jeu correct descend des caves avec 9 points plutôt que 8. Le catalogue des caves doit en tenir compte, et l'équilibrage des caves ([#36](https://github.com/DavidGiangiacomo/strates/issues/36)) le mesurer avec et sans artefacts.

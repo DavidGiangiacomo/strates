@@ -187,7 +187,7 @@ Sans objet : aucun artefact n'arrive jamais à la surface, puisqu'aucune strate 
 - C'est le **cumul des crédits gagnés** dans la strate : clics et production, absences comprises. Les achats ne le diminuent pas (D-003).
 - En simulation, le cumul au seuil vaut 6 × 10⁸ cr pour les trois profils, soit **12 points**. Un meilleur jeu fait gagner du temps (63 min au lieu de 78), pas des points.
 - Rester après le seuil rapporte peu : il faut 3 fois plus de cumul pour 13 points, et 16 fois plus pour 14. Mesuré sur cinq profils de joueur ([mesures](strate-1-mesures.md)) : 10 minutes de plus ne rapportent aucun point, une heure de plus en rapporte 2 (14 points).
-- Pour le catalogue ([#10](https://github.com/DavidGiangiacomo/strates/issues/10)), le budget réaliste va donc de 12 à 14 points. Les 16 points d'un « jeu parfait », selon la règle générale du §4, ne s'atteignent pas à la surface sans un farm déraisonnable. Avec le catalogue indicatif de [`artefacts.md`](../artefacts.md) (6 objets, 17 points au total), le joueur laisse un ou deux objets en haut.
+- Pour le catalogue ([#10](https://github.com/DavidGiangiacomo/strates/issues/10)), le budget réaliste va donc de 12 à 14 points. Les 16 points d'un « jeu parfait », selon la règle générale du §4, ne s'atteignent pas à la surface sans un farm déraisonnable. Le catalogue de la surface ([`artefacts.md`](../artefacts.md), § 8) coûte 17 points : avec 12, la présélection emporte cinq objets sur six ; avec 14, on peut prendre le plus cher à la place d'un autre.
 
 ## 10. Hors-ligne
 
@@ -225,7 +225,7 @@ Elle dure 1 h 15 et non 2 h : pour elle, le critère se juge sur la qualité plu
 2. **Délai du filet** (5 minutes avant la fissure) : à régler d'après le test du MVP ([#37](https://github.com/DavidGiangiacomo/strates/issues/37)).
 3. **Aucune opacité** : à confirmer par le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)).
 4. ~~**Le sol qui résiste**~~ : fait dans le bandeau ([#22](https://github.com/DavidGiangiacomo/strates/issues/22)), comportement commun à toutes les strates. Il manque le son sourd, qui attend le moteur audio ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)).
-5. **Budget du catalogue** ([#10](https://github.com/DavidGiangiacomo/strates/issues/10)) : le calibrer sur 12 à 14 points, plutôt que sur 16.
+5. ~~**Budget du catalogue**~~ : calibré sur 12 à 14 points par [#10](https://github.com/DavidGiangiacomo/strates/issues/10) (six objets, 17 points au total ; voir [`artefacts.md`](../artefacts.md), § 8).
 6. **Remontée à 100 %, sans plafond** : c'est une proposition, à confirmer avec la fin « Remonter » ([#128](https://github.com/DavidGiangiacomo/strates/issues/128)).
 
 ## 14. Équilibrage

@@ -259,6 +259,7 @@ Les caves les prennent tous les trois à contre-pied, dans cet ordre.
 Le §14 demande : « au bout de dix minutes dans la strate 2, le joueur essaie-t-il de jouer comme en strate 1 ? » Il aura vu deux hivers : le premier à 4 min 40, le deuxième à 11 min 40. Le premier lui montre que ça ne marche pas. Le deuxième lui laisse le prouver autrement.
 - Le protocole ([#37](https://github.com/DavidGiangiacomo/strates/issues/37)) doit observer le moment entre la première rupture et le premier hiver réussi, et demander au joueur ce qu'il a compris.
 - Le storyboard du passage ([#11](https://github.com/DavidGiangiacomo/strates/issues/11)) doit amener le joueur au jour 70, pas plus tard : il lui faut une saison chaude entière avant le premier hiver.
+- Les objets emportés de la surface ne changent pas l'économie du premier hiver : leurs multiplicateurs ne s'éveillent qu'à son bilan (§ 8). Seuls l'affichage et le raccourci peuvent le rendre plus lisible, et c'est voulu.
 
 ## 6. Interface et direction artistique
 
@@ -302,16 +303,18 @@ On ne cache jamais le calendrier ni la marque d'hiver : ce sont les deux informa
 
 ## 8. Artefacts reçus
 
-Seuls les artefacts de la surface peuvent être actifs ici, et ils sont **puissants** (effet entier). Aucune strate n'est au-dessus d'eux, donc aucun n'est utile ni décoratif. Selon le §9, le joueur en a environ 5. Leur contenu est l'objet de [#10](https://github.com/DavidGiangiacomo/strates/issues/10), et leur réception de [#34](https://github.com/DavidGiangiacomo/strates/issues/34).
+Seuls les artefacts de la surface peuvent être actifs ici, et ils sont **puissants** (effet entier). Aucune strate n'est au-dessus d'eux, donc aucun n'est utile ni décoratif. Un jeu correct en emporte 5 sur 6. Leur catalogue est dans [`artefacts.md`](../artefacts.md), § 8 ([#10](https://github.com/DavidGiangiacomo/strates/issues/10)) ; leur réception est l'objet de [#34](https://github.com/DavidGiangiacomo/strates/issues/34).
 
-| Famille d'effet | Réception dans les caves |
-|---|---|
-| multiplicateur | **levier principal `recolte`** : la récolte et le glanage × m. **Levier secondaire `conservation`** : la capacité de tous les stockages × m. |
-| affichage | par exemple, les années futures du grand cycle dessinées d'avance, ou les pertes des stockages affichées dès l'arrivée |
-| raccourci | par exemple, la marque d'hiver légendée dès l'arrivée |
-| unique | au cas par cas ([#10](https://github.com/DavidGiangiacomo/strates/issues/10)) |
+| Famille d'effet | Réception dans les caves | Objets de la surface |
+|---|---|---|
+| multiplicateur | **levier principal `recolte`** : la récolte et le glanage × m. **Levier secondaire `conservation`** : la capacité de tous les stockages × m. **À partir du bilan du premier hiver** (voir plus bas). | les bras en plus (récolte × 1,2), la roue chaude (récolte × 1,5), le grenier d'ailleurs (conservation × 1,5) |
+| affichage | dès l'arrivée | l'armoire qui compte les hivers : l'anneau du grand cycle dessine d'avance les années à venir, avec la longueur de leurs hivers |
+| raccourci | dès l'arrivée | les deux fenêtres : la marque d'hiver porte son nom, et les pertes des stockages sont affichées (§ 7) |
+| unique | au seuil | la feuille qui annonce : le registre écrit une ligne de plus, d'une autre main, une ligne de l'atelier |
 
-- **Aucun artefact ne raccourcit la strate** : le calendrier en impose la durée (§ 4). Un artefact rend les hivers plus sûrs et la vallée plus grande. Il rapporte donc des points, pas du temps.
+**L'éveil au premier hiver.** Les multiplicateurs ne s'éveillent qu'au bilan du premier hiver, et le registre le note, un objet par ligne : « Les familles ont compris la roue chaude. » Avant, les objets d'en haut sont là, mais personne ne sait s'en servir. C'est ce qui protège le choc d'arrivée (§ 5). Simulé dans le code du jeu, un joueur réflexe qui achète les familles au meilleur rendement passerait les deux premiers hivers sans disette si les cinq objets d'un jeu correct agissaient dès l'arrivée (récolte × 1,8, conservation × 1,5) : il ne manquerait le premier hiver qu'avec des objets bien plus faibles, vers récolte × 1,2. Avec l'éveil, le premier hiver se joue comme sans artefact ; les objets aident ensuite à s'en relever. C'est aussi ainsi que le joueur apprend le nom d'en bas de ses objets.
+
+- **Aucun artefact ne raccourcit la strate** : le calendrier en impose la durée (§ 4). Un artefact rend les hivers plus sûrs et la vallée plus grande. Il rapporte donc des points, pas du temps : en simulation, avec les cinq objets d'un jeu correct, le seuil tombe toujours à 1 h 51, avec 9 points au lieu de 8.
 - **I2** : le noyau plafonne le produit des multiplicateurs à × 4. Même à × 4 sur la récolte, le cumul ne gagne qu'un point de fouille au plus (log₁₀ 4 × 1,4 ≈ 0,8).
 - **I5** : toute la simulation du § 4 est faite **sans aucun artefact**. La strate se termine en 1 h 51, sous les 3 h 15.
 - Les effets uniques ne doivent pas toucher au calendrier : ni hiver raccourci, ni année accélérée. Ce serait le seul moyen de contourner I5 par le haut et le sens de la strate par le bas.
@@ -354,6 +357,7 @@ Seuls les artefacts de la surface peuvent être actifs ici, et ils sont **puissa
     - le bilan d'un hiver, avec ou sans rupture, avec les naissances ou les départs ;
     - les pertes révélées, la vallée pleine, les hivers qui s'allongent ;
     - le premier grand hiver, la série, le seuil ;
+    - l'éveil des objets d'en haut (« Les familles ont compris la roue chaude. »), et la ligne de l'atelier qu'écrit la feuille qui annonce ;
   - le résumé d'absence (§ 10) ;
   - l'aide de la strate : une page courte, écrite comme une page du registre, qui décrit le calendrier, la réserve et les stockages, et ne dit rien du bandeau.
 - **Traces laissées au fond** (strate 8) : trois lignes du registre au plus. Par exemple la dernière ligne écrite, le nombre d'hivers passés sans rupture, et la profondeur de la cave la plus basse.
@@ -380,6 +384,6 @@ Les caves doivent tenir seules, comme un petit jeu de gestion agricole de 2 heur
 3. **Le rythme des départs** : 0,5 % par jour de rupture, avec 8 familles fondatrices qui ne partent jamais. C'est assez dur pour qu'on le sente (un tiers de la vallée sur un hiver raté), assez doux pour qu'on s'en relève en une année. À régler au playtest ([#37](https://github.com/DavidGiangiacomo/strates/issues/37)).
 4. **La marge du calibrage de départ** (§ 4, « Fragilité ») : une récolte à peine plus faible fait s'effondrer les profils trop prudents. À élargir si le playtest montre des joueurs qui n'osent pas investir.
 5. **Le temps hors ligne des politiques propres** : le noyau compte l'absence entière dans le journal, même quand la strate n'en utilise qu'une partie (§ 10). À trancher pour la coupe, avec les strates 6 et 7.
-6. **Les effets des artefacts de la surface** : à choisir dans [#10](https://github.com/DavidGiangiacomo/strates/issues/10) et [#34](https://github.com/DavidGiangiacomo/strates/issues/34), avec la règle du § 8 (rien sur le calendrier).
+6. ~~**Les effets des artefacts de la surface**~~ : choisis par [#10](https://github.com/DavidGiangiacomo/strates/issues/10) (§ 8), à coder dans [#34](https://github.com/DavidGiangiacomo/strates/issues/34). Reste à vérifier au playtest que l'éveil au premier hiver se comprend.
 7. **La remontée finale** (§ 10) : à décider avec [#128](https://github.com/DavidGiangiacomo/strates/issues/128).
 8. **Le premier jour** : le jour 70 laisse 4 min 40 avant le premier hiver. C'est assez pour que le joueur installe des familles et voie la réserve monter, mais c'est peut-être trop peu pour qu'il remarque la marque. À observer au playtest.
