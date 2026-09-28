@@ -3,7 +3,7 @@ export const INTERVALLE_AUTOSAUVEGARDE = 30_000;
 
 /**
  * Sauvegarde toutes les 30 s, et chaque fois que la page passe en arrière-plan ou se ferme.
- * Les sauvegardes après une descente ou un choix d'artefacts sont demandées par le noyau (#30).
+ * La sauvegarde qui suit une descente est demandée par le passage (noyau/ui/passage.svelte.ts).
  * Renvoie de quoi tout arrêter.
  */
 export function demarrerAutosauvegarde(sauvegarder: () => unknown): () => void {

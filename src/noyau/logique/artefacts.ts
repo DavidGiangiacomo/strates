@@ -45,6 +45,14 @@ export function pointsDeFouille(valeur: number): number {
   return Math.floor(Math.log10(valeur) * 1.4 + EPSILON);
 }
 
+/**
+ * La plus petite valeur convertible qui donne `points` points de fouille. L'écran de fouille montre
+ * celle du point suivant : c'est ainsi que le taux s'affiche franchement (docs/strates/descente-1-2.md, P3).
+ */
+export function valeurPourPoints(points: number): number {
+  return points <= 0 ? 0 : 10 ** (points / 1.4);
+}
+
 /** Le niveau d'usure d'un objet à une profondeur, ou null tant qu'il n'est pas descendu. */
 export function niveauUsure(origine: number, profondeur: number): Niveau | null {
   const niveau = profondeur - origine;
@@ -117,6 +125,11 @@ export function effetsActifs(
   };
 }
 
+/** Le catalogue d'une strate d'origine par coût croissant, comme l'écran de choix. À coût égal, l'ordre de la table. */
+export function catalogueParCout(origine: number, catalogue = CATALOGUE): ArtefactDef[] {
+  return catalogueDe(origine, catalogue).sort((a, b) => a.cout - b.cout);
+}
+
 /**
  * La présélection de l'écran de choix : les objets les moins chers d'abord, tant que les points
  * suffisent (docs/artefacts.md, § 6). À coût égal, l'ordre de la table.
@@ -124,8 +137,7 @@ export function effetsActifs(
 export function preselection(points: number, origine: number, catalogue = CATALOGUE): string[] {
   const choix: string[] = [];
   let reste = points;
-  const parCout = catalogueDe(origine, catalogue).sort((a, b) => a.cout - b.cout);
-  for (const def of parCout) {
+  for (const def of catalogueParCout(origine, catalogue)) {
     if (def.cout > reste) break;
     choix.push(def.id);
     reste -= def.cout;
@@ -171,9 +183,44 @@ export function verifierChoix(
 }
 
 /**
+ * Une fouille ouverte : ce que montre l'écran de fouille, avant que le joueur ne choisisse
+ * (docs/strates/descente-1-2.md, § 4). Rien n'en est noté tant qu'il n'a pas choisi.
+ */
+export interface FouilleOuverte {
+  /** La strate quittée. */
+  strate: NumeroStrate;
+  /** Sa valeur convertible, lue à l'ouverture. */
+  valeur: number;
+  points: number;
+  /** La valeur qu'il faudrait pour un point de plus : le taux, affiché franchement. */
+  pointSuivant: number;
+  /** Le catalogue de la strate quittée, par coût croissant. */
+  catalogue: ArtefactDef[];
+  /** La présélection : les moins chers d'abord, tant que les points suffisent. */
+  preselection: string[];
+}
+
+/** Ouvre la fouille d'une strate de valeur convertible `valeur`. */
+export function ouvrirFouille(
+  strate: NumeroStrate,
+  valeur: number,
+  catalogue = CATALOGUE,
+): FouilleOuverte {
+  const points = pointsDeFouille(valeur);
+  return {
+    strate,
+    valeur,
+    points,
+    pointSuivant: valeurPourPoints(points + 1),
+    catalogue: catalogueParCout(strate, catalogue),
+    preselection: preselection(points, strate, catalogue),
+  };
+}
+
+/**
  * La fouille de la strate courante : le choix est vérifié, noté au journal de la strate (points,
  * objets emportés, objets abandonnés), et les objets emportés rejoignent les artefacts. La descente
- * elle-même (la Profondeur, la strate suivante) appartient à l'orchestration (#30).
+ * elle-même (la Profondeur, la strate suivante) appartient au noyau (`Noyau.descendre`).
  */
 export function fouiller(etat: EtatNoyau, points: number, emportes: readonly string[]): Fouille {
   const entree = etat.meta.journal.strates.at(-1);

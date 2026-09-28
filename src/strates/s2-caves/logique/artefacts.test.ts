@@ -121,11 +121,46 @@ describe("les autres objets", () => {
       for (let i = 0; i < 5 * 420 && !logique.seuil(etat).atteint; i++) logique.tick(etat, 1, ctx);
       return etat;
     };
-    expect(cles(seuil(contexte(["s1-plan"]))).slice(-2)).toEqual([
-      "registre.seuil",
-      "registre.feuille",
+    const avec = seuil(contexte(["s1-plan"]));
+    // Elle est nommée quand elle agit, juste avant sa ligne (docs/strates/descente-1-2.md, § 6).
+    expect(avec.registre.slice(-3)).toEqual([
+      { cle: "registre.seuil", valeurs: {} },
+      { cle: "registre.eveil", valeurs: {}, objet: "s1-plan" },
+      { cle: "registre.feuille", valeurs: {} },
     ]);
     expect(cles(seuil(NEUTRE))).not.toContain("registre.feuille");
+  });
+});
+
+describe("l'arrivée", () => {
+  const arrivee = (ctx: ContexteTick) =>
+    logique.etatInitial({ graine: 1, journal: { strates: [] }, effets: ctx.effets });
+
+  it("nomme sur la première page les objets qui agissent déjà, et compte ceux qui attendent", () => {
+    const etat = arrivee(TOUT);
+    expect(etat.registre).toEqual([
+      { cle: "registre.arrivee", valeurs: { annee: 1, familles: 8 } },
+      { cle: "registre.eveil", valeurs: {}, objet: "s1-double-ecran" },
+      { cle: "registre.eveil", valeurs: {}, objet: "s1-serveur" },
+      // Les trois multiplicateurs et la feuille.
+      { cle: "registre.attente", valeurs: { objets: 4 } },
+    ]);
+    // Leurs effets sont là dès la première image, avant le premier tick.
+    expect(etat.objets).toEqual({ fenetres: true, armoire: true, feuille: true });
+    expect(etat.multiplicateurs).toEqual({ recolte: 1, conservation: 1 });
+  });
+
+  it("accorde la ligne des objets qui attendent", () => {
+    const etat = arrivee(contexte(["s1-serveur", "s1-turbine"]));
+    expect(etat.registre.slice(1)).toEqual([
+      { cle: "registre.eveil", valeurs: {}, objet: "s1-serveur" },
+      { cle: "registre.attente.un", valeurs: { objets: 1 } },
+    ]);
+  });
+
+  it("n'écrit que la ligne d'arrivée sans objets de la surface", () => {
+    expect(arrivee(NEUTRE).registre).toEqual(etatInitial().registre);
+    expect(logique.etatInitial({ graine: 1, journal: { strates: [] } })).toEqual(etatInitial());
   });
 });
 
@@ -202,6 +237,11 @@ describe("à travers le noyau, avec les six objets de la surface", () => {
     noyau.avancer(1);
     expect(etat.multiplicateurs.recolte).toBeCloseTo(1.8, 12);
     expect(etat.multiplicateurs.conservation).toBe(1.5);
-    expect(cles(etat).filter((c) => c === "registre.eveil")).toHaveLength(3);
+    // Deux objets nommés à l'arrivée, trois au premier bilan.
+    expect(etat.registre.filter((l) => l.cle === "registre.eveil").map((l) => l.objet)).toEqual([
+      "s1-double-ecran",
+      "s1-serveur",
+      ...OBJETS.multiplicateurs,
+    ]);
   });
 });

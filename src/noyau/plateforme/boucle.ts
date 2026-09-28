@@ -6,13 +6,15 @@ import { maintenant as horloge } from "./horloge";
  * Fait avancer le noyau à chaque image du navigateur, sur l'horloge monotone. À chaque image,
  * le noyau compare aussi l'horloge système à sa référence : un grand écart est une absence
  * (onglet caché, veille), qu'il rattrape et signale à `surReprise`. `vitesse` multiplie le temps
- * de jeu, pour les outils de développement ; elle ne touche pas au rattrapage. Renvoie de quoi arrêter.
+ * de jeu, pour les outils de développement ; elle ne touche pas au rattrapage. `apresImage` est
+ * appelée à la fin de chaque image (la descente automatique s'y déclenche). Renvoie de quoi arrêter.
  */
 export function demarrerBoucle(
   noyau: Noyau,
   surReprise: (reprise: Reprise) => void = () => {},
   maintenant: () => number = horloge,
   vitesse: () => number = () => 1,
+  apresImage: () => void = () => {},
 ): () => void {
   let precedent = performance.now();
   let id = requestAnimationFrame(image);
@@ -23,6 +25,7 @@ export function demarrerBoucle(
     precedent = instant;
     const reprise = noyau.avancerJusqua(maintenant(), dt * vitesse());
     if (reprise) surReprise(reprise);
+    apresImage();
     id = requestAnimationFrame(image);
   }
 

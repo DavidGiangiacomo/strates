@@ -16,7 +16,10 @@
             "tempsDeJeu": 4360.999999998334,
             "tempsHorsLigne": 0,
             "aideConsultee": false,
-            "perturbations": []
+            "perturbations": [],
+            "seuil": {
+              "le": 1767229960000
+            }
           }
         ]
       }

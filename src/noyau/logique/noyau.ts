@@ -1,5 +1,13 @@
 import { deriverGraine } from "./alea";
-import { effetsActifs, type Effets } from "./artefacts";
+import {
+  effetsActifs,
+  fouiller,
+  ouvrirFouille,
+  verifierChoix,
+  type Effets,
+  type Fouille,
+  type FouilleOuverte,
+} from "./artefacts";
 import { EFFETS_NEUTRES } from "./effets";
 import { estNumeroStrate, noterInstant, type EtatNoyau, type EtatStrateRange } from "./etat";
 import {
@@ -40,6 +48,10 @@ export class Noyau {
   #seuil: EtatSeuil = { atteint: false };
   #effets: Effets = { ...EFFETS_NEUTRES, plafonne: false };
   #contexte: ContexteTick;
+  /** La fouille ouverte, en attendant le choix du joueur. */
+  #fouille: FouilleOuverte | null = null;
+  /** La strate courante est figée : pendant la fouille, puis pendant la transition vers la suivante. */
+  #suspendu = false;
 
   constructor(registre: Registre, etat: EtatNoyau) {
     if (!estNumeroStrate(etat.profondeur)) {
@@ -61,9 +73,16 @@ export class Noyau {
    * plus récent que la strate. `maintenant` est l'horodatage d'arrivée (ms), noté dans le journal.
    */
   async demarrer(maintenant: number): Promise<void> {
+    const strate = await this.#registre.charger(this.etat.profondeur);
+    this.#installer(strate, maintenant);
+  }
+
+  /** Installe la strate chargée pour la profondeur courante : son état, son journal, ses effets. */
+  #installer(strate: StrateQuelconque, maintenant: number): void {
     const numero = this.etat.profondeur;
-    const strate = await this.#registre.charger(numero);
     const logique = strate.logique;
+    // Les artefacts et la Profondeur ne changent qu'à la descente : les effets se calculent ici.
+    const effets = effetsActifs(this.etat.artefacts, numero, logique.leviers);
     const range = this.etat.strates[numero];
 
     if (!range) {
@@ -72,6 +91,7 @@ export class Noyau {
         etat: logique.etatInitial({
           graine: deriverGraine(this.etat.graine, numero),
           journal: this.etat.meta.journal,
+          effets,
         }),
       };
     } else if (range.version !== logique.versionEtat) {
@@ -85,10 +105,10 @@ export class Noyau {
 
     this.#strate = strate;
     this.#accumulateur = 0;
-    // Les artefacts et la Profondeur ne changent qu'à la descente : les effets se calculent ici.
-    this.#effets = effetsActifs(this.etat.artefacts, numero, logique.leviers);
-    this.#contexte.effets = this.#effets;
-    this.#seuil = logique.seuil(this.etatStrate);
+    this.#fouille = null;
+    this.#effets = effets;
+    this.#contexte.effets = effets;
+    this.#lireSeuil();
   }
 
   /** Les effets des artefacts dans la strate courante, après usure et plafond × 4. */
@@ -122,12 +142,14 @@ export class Noyau {
 
   /**
    * Fait avancer le temps de `duree` secondes, par pas fixes de `PAS`.
-   * Le reste s'accumule pour l'appel suivant. Renvoie le nombre de ticks joués.
+   * Le reste s'accumule pour l'appel suivant. Renvoie le nombre de ticks joués : aucun si la strate
+   * est figée.
    */
   avancer(duree: number): number {
     if (!Number.isFinite(duree) || duree < 0) {
       throw new RangeError(`Durée invalide : ${duree}.`);
     }
+    if (this.#suspendu) return 0;
     this.#accumulateur += duree;
     let ticks = 0;
     while (this.#accumulateur >= PAS - EPSILON) {
@@ -141,16 +163,17 @@ export class Noyau {
 
   /**
    * Un tick : applique les actions en file, dans l'ordre, puis avance la strate de `dt` secondes,
-   * en pas égaux qui ne dépassent jamais son `pasMax`.
+   * en pas égaux qui ne dépassent jamais son `pasMax`. Sans effet si la strate est figée.
    */
   tick(dt: number): void {
     if (!Number.isFinite(dt) || dt < 0) {
       throw new RangeError(`Pas invalide : ${dt}.`);
     }
+    if (this.#suspendu) return;
     this.#appliquerActions();
     this.#avancerStrate(dt);
     this.#entreeCourante().tempsDeJeu += dt;
-    this.#seuil = this.strate.logique.seuil(this.etatStrate);
+    this.#lireSeuil();
   }
 
   /**
@@ -159,11 +182,16 @@ export class Noyau {
    * - Écart positif : une absence, traitée par la politique hors-ligne de la strate.
    * - Écart négatif : un recul d'horloge, qui compte pour zéro. La référence ne bouge pas,
    *   et au-delà de 5 minutes une perturbation est notée, une fois par épisode.
+   * Une strate figée ne vit pas l'absence : la référence suit, et rien ne se rattrape.
    */
   rattraper(maintenant: number): Reprise {
     const ecart = (maintenant - this.etat.reference) / 1000;
     if (ecart < 0) return this.#constaterRecul(maintenant, -ecart);
     if (ecart === 0) return { type: "aucune" };
+    if (this.#suspendu) {
+      noterInstant(this.etat, maintenant);
+      return { type: "aucune" };
+    }
 
     const logique = this.strate.logique;
     const etat = this.etatStrate;
@@ -189,8 +217,8 @@ export class Noyau {
     }
 
     this.#entreeCourante().tempsHorsLigne += comptee;
-    this.#seuil = logique.seuil(etat);
     noterInstant(this.etat, maintenant);
+    this.#lireSeuil();
     return { type: "absence", politique: logique.horsLigne.type, duree: ecart, comptee, lignes };
   }
 
@@ -219,15 +247,121 @@ export class Noyau {
 
   /**
    * Le joueur demande la descente : refusée tant que le seuil n'est pas atteint
-   * (docs/architecture.md § 6, « La descente », étape 1). La suite de la descente arrive avec #30.
+   * (docs/architecture.md § 6, « La descente », étape 1). Acceptée, elle s'ouvre par `ouvrirFouille`.
    */
   demanderFouille(): boolean {
     return this.#seuil.atteint;
   }
 
+  /** La profondeur sous la strate courante, si une strate l'occupe ; null au fond, ou tant qu'elle n'existe pas. */
+  get strateSuivante(): NumeroStrate | null {
+    const suivante = this.etat.profondeur + 1;
+    return estNumeroStrate(suivante) && this.#registre.numeros().includes(suivante)
+      ? suivante
+      : null;
+  }
+
+  /** La fouille ouverte, en attendant le choix du joueur ; null sinon. */
+  get fouille(): FouilleOuverte | null {
+    return this.#fouille;
+  }
+
+  /** La strate courante est figée : ni tick ni absence, pendant la fouille et la transition. */
+  get suspendu(): boolean {
+    return this.#suspendu;
+  }
+
+  /**
+   * Le seuil est atteint et la strate descend d'elle-même (strate 7) : l'interface lance la descente,
+   * sans écran de choix, avec la présélection.
+   */
+  get descenteAutomatique(): boolean {
+    return (
+      this.#seuil.atteint &&
+      this.#seuil.automatique === true &&
+      !this.#suspendu &&
+      this.strateSuivante !== null
+    );
+  }
+
+  /**
+   * Ouvre la fouille (docs/strates/descente-1-2.md, P2) : les actions en attente sont appliquées, la
+   * strate se fige, et sa valeur convertible devient des points de fouille. Rien n'est encore noté.
+   * Refusée avant le seuil, ou s'il n'y a pas de strate dessous.
+   */
+  ouvrirFouille(): FouilleOuverte {
+    if (this.#fouille) return this.#fouille;
+    if (!this.#seuil.atteint) throw new Error("Le seuil de fouille n'est pas atteint.");
+    if (this.strateSuivante === null) {
+      throw new Error(`Aucune strate n'est sous la profondeur ${this.etat.profondeur}.`);
+    }
+    this.#appliquerActions();
+    this.#suspendu = true;
+    this.#accumulateur = 0;
+    const logique = this.strate.logique;
+    this.#fouille = ouvrirFouille(logique.numero, logique.valeurConvertible(this.etatStrate));
+    return this.#fouille;
+  }
+
+  /** Referme la fouille sans rien noter : la strate reprend là où elle s'était figée. */
+  reboucher(): void {
+    this.#fouille = null;
+    this.reprendre();
+  }
+
+  /** La strate courante repart : après « reboucher », ou à la fin de la transition d'une descente. */
+  reprendre(): void {
+    if (this.#fouille) throw new Error("La fouille est ouverte : il faut descendre ou reboucher.");
+    this.#suspendu = false;
+    this.#accumulateur = 0;
+  }
+
+  /**
+   * Descend (docs/architecture.md § 6, « La descente ») avec les objets `emportes`, à l'instant
+   * `maintenant` (ms). Le choix est vérifié et la strate suivante chargée ; puis tout est engagé d'un
+   * coup : la fouille est notée au journal, les objets rejoignent les artefacts, la Profondeur augmente
+   * et la nouvelle strate s'installe. Si le chargement échoue, rien n'a changé et la fouille reste ouverte.
+   *
+   * L'état de la strate quittée reste tel quel dans `etat.strates`. La nouvelle strate est figée
+   * jusqu'à `reprendre()`, le temps de la transition. Sans choix, la présélection s'applique : c'est
+   * la descente automatique, qui ouvre la fouille elle-même.
+   */
+  async descendre(maintenant: number, emportes?: readonly string[]): Promise<Fouille> {
+    const fouille = this.#fouille ?? (this.descenteAutomatique ? this.ouvrirFouille() : null);
+    if (!fouille) throw new Error("La fouille n'est pas ouverte.");
+    const choix = emportes ?? fouille.preselection;
+    verifierChoix(fouille.points, fouille.strate, choix);
+    const suivante = this.strateSuivante;
+    if (suivante === null) {
+      throw new Error(`Aucune strate n'est sous la profondeur ${this.etat.profondeur}.`);
+    }
+
+    const strate = await this.#registre.charger(suivante);
+    if (this.#fouille !== fouille) throw new Error("La fouille a été refermée entre-temps.");
+
+    const resultat = fouiller(this.etat, fouille.points, choix);
+    const entree = this.#entreeCourante();
+    entree.seuil ??= { le: maintenant };
+    // Une action restée en file appartient à la strate quittée : elle ne doit pas atteindre la suivante.
+    this.#actions.length = 0;
+    this.etat.profondeur = suivante;
+    noterInstant(this.etat, maintenant);
+    this.#installer(strate, maintenant);
+    return resultat;
+  }
+
   /** Renvoie les événements émis par la strate depuis le dernier appel, et les oublie. */
   viderEvenements(): EvenementStrate[] {
     return this.#evenements.splice(0);
+  }
+
+  /** Lit le seuil de la strate courante, et note au journal le moment où il est atteint (ms). */
+  #lireSeuil(): void {
+    this.#seuil = this.strate.logique.seuil(this.etatStrate);
+    const entree = this.#entreeCourante();
+    if (!this.#seuil.atteint || entree.seuil) return;
+    entree.seuil = { le: this.etat.reference };
+    if (this.#seuil.issue !== undefined) entree.seuil.issue = this.#seuil.issue;
   }
 
   #appliquerActions(): void {
