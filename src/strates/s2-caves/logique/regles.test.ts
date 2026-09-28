@@ -91,9 +91,9 @@ describe("la récolte", () => {
 });
 
 describe("les familles", () => {
-  it("coûtent 25 × 1,08ⁿ boisseaux, arrondis", () => {
+  it("coûtent 25 × 1,09ⁿ boisseaux, arrondis", () => {
     expect([0, 1, 2, 10].map((installees) => coutFamille(etat({ installees })))).toEqual([
-      25, 27, 29, 54,
+      25, 27, 30, 59,
     ]);
   });
 
