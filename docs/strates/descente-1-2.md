@@ -359,13 +359,13 @@ Ces durées sont des cibles de départ, réglables au playtest. La descente et l
 - **Une absence juste après l'arrivée** suit la politique des caves : la saison chaude compte à 80 %, jusqu'au premier jour de l'hiver (fiche 2, § 10).
 - **Le bouton « creuser » pendant la fouille et la descente** ne répond pas. Dans les caves, il résiste de nouveau.
 - **Un double clic sur « descendre »** ne descend qu'une fois : `fouiller` refuse une deuxième fouille de la même strate, et le bouton se désactive au premier clic.
-- **Pour les playtests** ([#14](https://github.com/DavidGiangiacomo/strates/issues/14)), les sauvegardes nommées « surface-juste-avant-le-seuil » et « surface-seuil-atteint » mènent directement au passage.
+- **Pour les essais de développement**, les sauvegardes nommées « surface-juste-avant-le-seuil » et « surface-seuil-atteint » mènent directement au passage. Le test du MVP, lui, se joue en partie complète ([protocole](../playtest-mvp.md), § 4).
 
 ## 10. Pour la suite
 
 - **L'orchestration ([#30](https://github.com/DavidGiangiacomo/strates/issues/30))** a codé la séquence P2 à P6 et l'écran de fouille du § 4 : voir « Dans le code », plus bas.
 - **Les directions artistiques ([#31](https://github.com/DavidGiangiacomo/strates/issues/31), [#33](https://github.com/DavidGiangiacomo/strates/issues/33))** gardent les raccords du § 5. #33 fait finir le sol traversé sur le haut de la coupe des stockages.
-- **Le protocole du test ([#14](https://github.com/DavidGiangiacomo/strates/issues/14))** part de la chronologie de P7. Il doit observer :
+- **Le [protocole du test](../playtest-mvp.md) ([#14](https://github.com/DavidGiangiacomo/strates/issues/14))** part de la chronologie de P7. Il observe :
   - le temps entre le seuil et le premier clic sur « creuser » ;
   - si le joueur lit la conversion, garde la présélection, ou rebouche ;
   - puis les dix premières minutes, du premier achat au premier bilan.
