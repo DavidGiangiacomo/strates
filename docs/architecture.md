@@ -144,10 +144,10 @@ interface ContexteTick {
 }
 
 interface EffetsActifs {
-  /** Multiplicateur total sur un levier ; vaut 1 si aucun artefact n'agit dessus. */
+  /** Multiplicateur total sur un levier, après usure et plafond ; vaut 1 si aucun artefact n'agit dessus. */
   multiplicateur(levier: string): number;
-  /** Un affichage, un raccourci ou un effet unique est-il actif ? La strate ignore les identifiants qu'elle ne connaît pas. */
-  actif(effet: string): boolean;
+  /** Comment agit un objet (« s1-serveur ») : puissant, utile, ou null. C'est ainsi qu'une strate reçoit un affichage, un raccourci ou un effet unique ; elle ignore les objets qu'elle ne connaît pas. */
+  niveau(artefact: string): "puissant" | "utile" | null;
 }
 
 type EvenementStrate =
@@ -162,7 +162,7 @@ interface EtatAlea {
 declare function tirer(alea: EtatAlea): number;
 ```
 
-Le noyau calcule `EffetsActifs` à partir des artefacts possédés, de leur usure (niveau = profondeur − origine) et du plafond ×4. La strate n'a pas à connaître le catalogue.
+Le noyau calcule `EffetsActifs` à partir des artefacts possédés, de leur usure (niveau = profondeur − origine) et du plafond ×4, au démarrage de chaque strate (`effetsActifs`, dans `src/noyau/logique/artefacts.ts`). La strate n'a pas à connaître le catalogue, qui est une donnée du noyau (`src/noyau/logique/catalogue.ts`).
 
 ## 5. La vue
 
@@ -224,10 +224,10 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
 ### La descente
 
 1. `demanderFouille()` : le noyau vérifie que le seuil est atteint (`Noyau.demanderFouille`). En attendant la suite ([#30](https://github.com/DavidGiangiacomo/strates/issues/30)), une fouille acceptée n'affiche qu'un message provisoire.
-2. Points de fouille = `⌊log₁₀(valeurConvertible()) × 1,4⌋` (D-002).
-3. Écran de choix sur le catalogue de la strate quittée, avec la présélection. En descente automatique, la présélection s'applique sans écran.
-4. Le journal reçoit le seuil, l'issue et la fouille (points, objets emportés, objets abandonnés).
-5. Les objets emportés rejoignent `artefacts`, et la Profondeur augmente de 1.
+2. Points de fouille = `⌊log₁₀(valeurConvertible()) × 1,4⌋` (D-002) : `pointsDeFouille`.
+3. Écran de choix sur le catalogue de la strate quittée, avec la présélection (`preselection`). En descente automatique, la présélection s'applique sans écran.
+4. Le journal reçoit le seuil, l'issue et la fouille (points, objets emportés, objets abandonnés) : `fouiller` vérifie le choix et note la fouille.
+5. Les objets emportés rejoignent `artefacts` (`fouiller`), et la Profondeur augmente de 1.
 6. L'état de la strate quittée est gelé et gardé dans la sauvegarde.
 7. La strate suivante est chargée, `etatInitial()` est appelé avec une nouvelle graine et le journal, puis sa vue est montée. Le jeu sauvegarde.
 

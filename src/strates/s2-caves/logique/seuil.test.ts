@@ -6,7 +6,7 @@ import { etatInitial, type EtatCaves } from "./etat";
 import { dureeHiver, finSoudure, saisonChaude } from "./regles";
 
 const CTX: ContexteTick = {
-  effets: { multiplicateur: () => 1, actif: () => false },
+  effets: { multiplicateur: () => 1, niveau: () => null },
   emettre: () => {},
 };
 

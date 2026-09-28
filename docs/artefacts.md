@@ -48,7 +48,7 @@ interface FouilleJournal {
 }
 ```
 
-Le catalogue est une donnée du noyau (la « table des artefacts » du §12), pas du code des modules.
+Le catalogue est une donnée du noyau (la « table des artefacts » du §12), pas du code des modules : `src/noyau/logique/catalogue.ts`. La conversion (points, usure, plafond, présélection, fouille) est dans `src/noyau/logique/artefacts.ts`. Une strate lit les effets par `EffetsActifs` : `multiplicateur(levier)`, et `niveau(id)` pour les autres familles.
 
 ## 3. Usure
 
@@ -165,6 +165,6 @@ Dans les caves, les **multiplicateurs ne s'éveillent qu'au bilan du premier hiv
   Éveillés au premier bilan, les multiplicateurs laissent le premier hiver se jouer comme sans artefact, puis aident à s'en relever.
 
 **Pour la suite.**
-- **La conversion** ([#21](https://github.com/DavidGiangiacomo/strates/issues/21)) : la table porte ces six objets. Une strate doit savoir si un effet autre qu'un multiplicateur est puissant ou utile : `EffetsActifs.actif` devra le dire, par exemple en renvoyant le niveau d'usure.
+- **La conversion** ([#21](https://github.com/DavidGiangiacomo/strates/issues/21)) : la table porte ces six objets, et `EffetsActifs.niveau` dit si un effet autre qu'un multiplicateur est puissant ou utile.
 - **La réception dans les caves** ([#34](https://github.com/DavidGiangiacomo/strates/issues/34)) : l'éveil au premier bilan, et les trois effets propres (les deux fenêtres, l'armoire, la feuille).
 - **Le catalogue des caves** ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : avec ces objets, un jeu correct descend des caves avec 9 points plutôt que 8. Le catalogue des caves doit en tenir compte, et l'équilibrage des caves ([#36](https://github.com/DavidGiangiacomo/strates/issues/36)) le mesurer avec et sans artefacts.
