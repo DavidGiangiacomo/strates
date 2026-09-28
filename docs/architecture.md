@@ -223,13 +223,19 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
 
 ### La descente
 
+La séquence vue par le joueur, plan par plan, est dans le [storyboard du passage 1 → 2](strates/descente-1-2.md) ([#11](https://github.com/DavidGiangiacomo/strates/issues/11)).
+
 1. `demanderFouille()` : le noyau vérifie que le seuil est atteint (`Noyau.demanderFouille`). En attendant la suite ([#30](https://github.com/DavidGiangiacomo/strates/issues/30)), une fouille acceptée n'affiche qu'un message provisoire.
-2. Points de fouille = `⌊log₁₀(valeurConvertible()) × 1,4⌋` (D-002) : `pointsDeFouille`.
-3. Écran de choix sur le catalogue de la strate quittée, avec la présélection (`preselection`). En descente automatique, la présélection s'applique sans écran.
-4. Le journal reçoit le seuil, l'issue et la fouille (points, objets emportés, objets abandonnés) : `fouiller` vérifie le choix et note la fouille.
+2. La fouille s'ouvre, et la strate se fige : ni tick ni absence tant qu'elle est ouverte. Points de fouille = `⌊log₁₀(valeurConvertible()) × 1,4⌋` (D-002) : `pointsDeFouille`, lus à l'ouverture.
+3. Écran de choix sur le catalogue de la strate quittée, avec la présélection (`preselection`).
+   - Il écrit la valeur convertible et le prix d'un point de plus dans la notation de la strate quittée. Seule la strate la connaît (I1) : le contrat doit la laisser fournir un libellé et un formateur (à trancher par #30).
+   - Jusqu'à « descendre », le joueur peut **reboucher** : rien n'est noté, et la strate reprend.
+   - En descente automatique, la présélection s'applique sans écran.
+4. « descendre » engage tout d'un coup, avant l'animation. Le journal reçoit le seuil, l'issue et la fouille (points, objets emportés, objets abandonnés) : `fouiller` vérifie le choix et note la fouille.
 5. Les objets emportés rejoignent `artefacts` (`fouiller`), et la Profondeur augmente de 1.
 6. L'état de la strate quittée est gelé et gardé dans la sauvegarde.
 7. La strate suivante est chargée, `etatInitial()` est appelé avec une nouvelle graine et le journal, puis sa vue est montée. Le jeu sauvegarde.
+8. La transition (4 s, puis 1 s d'arrivée) ne fait que représenter ce qui est déjà fait. Le temps de la nouvelle strate part à la fin de la transition.
 
 ### Les fins
 

@@ -89,6 +89,9 @@ Les effets uniques ne doivent pas contourner le plafond. Toute strate reste term
 - Il est générique et appartient au noyau : même écran à chaque descente, sous le bandeau.
 - Il affiche le catalogue de la strate quittée, sous les **noms d'en haut**, avec leur coût et leur famille d'effet (une icône), mais pas leur effet exact. On emporte « la turbine » et on découvre en bas « la roue chaude ». Le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)) pourra dévoiler davantage à partir d'un certain κ.
 - Le noyau propose une présélection (les objets les moins chers d'abord), que le joueur modifie librement. Emporter rien du tout est permis ; c'est aussi un moyen de viser l'acte de compréhension « réussir une strate sans artefact ».
+- Au-dessus du catalogue, la conversion est affichée franchement : la valeur convertible, les points, puis le prix d'un point de plus.
+- Seul « descendre » engage. Jusque-là, le joueur peut reboucher et retrouver sa strate telle qu'il l'a laissée.
+- Le détail de l'écran, plan par plan, est dans le [storyboard du passage 1 → 2](strates/descente-1-2.md), § 3 et § 4.
 - La descente 7 → 8 est automatique (§6) : le noyau applique la présélection sans afficher l'écran. Le joueur découvre après coup ce qui a été emporté.
 
 ## 7. Calibrage (indicatif)
@@ -147,7 +150,14 @@ Six objets, 17 points au total. Les noms d'en bas sont ceux des caves : une vall
 | la roue chaude | récolte × 1,5 | levier principal × 1,25 |
 | la feuille qui annonce | au seuil, le registre écrit une ligne de plus, d'une autre main : une ligne de l'atelier, avant d'y descendre. Proposition : « Il reste soixante-trois cases. » | au seuil de l'atelier, la moitié d'une ligne du réseau (strate 4), coupée au milieu |
 
-Dans les caves, les **multiplicateurs ne s'éveillent qu'au bilan du premier hiver**. Le registre le note, un objet par ligne : « Les familles ont compris la roue chaude. » C'est ainsi que le joueur apprend le nom d'en bas de ses objets. Les affichages et les raccourcis agissent dès l'arrivée ; l'effet unique, au seuil.
+Dans les caves, les **multiplicateurs ne s'éveillent qu'au bilan du premier hiver**. Les affichages et les raccourcis agissent dès l'arrivée ; l'effet unique, au seuil.
+
+**Un objet prend son nom d'en bas la première fois qu'il agit**, et le registre le note, un objet par ligne : « Les familles ont compris la roue chaude. » C'est ainsi que le joueur apprend le nom d'en bas de ses objets.
+- L'armoire et les deux fenêtres sont nommées sur la première page du registre.
+- Les multiplicateurs sont nommés au premier bilan.
+- La feuille est nommée au seuil, juste avant sa ligne.
+
+À l'arrivée, une ligne compte aussi les objets qui n'agissent pas encore ([storyboard](strates/descente-1-2.md), § 6).
 
 **Les budgets** (fiche de la [strate 1](strates/strate-1.md), § 9) :
 - **12 points, jeu correct** : la présélection prend les cinq objets les moins chers (1 + 2 + 2 + 3 + 4). La feuille qui annonce reste en haut.
