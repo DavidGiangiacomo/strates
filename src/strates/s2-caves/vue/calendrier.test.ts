@@ -63,6 +63,15 @@ describe("l'anneau du grand cycle", () => {
     ]);
   });
 
+  it("dessine d'avance les années à venir, pour l'armoire qui compte les hivers", () => {
+    const cases = casesCycle({ annee: 3, hivers: [] }, true);
+    expect(cases.map((c) => c.annee)).toEqual(Array.from({ length: 20 }, (_, i) => i + 1));
+    expect(cases.filter((c) => c.future).map((c) => c.annee)[0]).toBe(4);
+    expect(cases.every((c) => !c.future || c.rupture === null)).toBe(true);
+    // Passé l'an 20, l'anneau est plein des années vécues : il n'y a plus de place pour l'avenir.
+    expect(casesCycle({ annee: 25, hivers: [] }, true).some((c) => c.future)).toBe(false);
+  });
+
   it("garde les 20 dernières années, chacune toujours à la même place", () => {
     const cases = casesCycle({ annee: 25, hivers: [] });
     expect(cases).toHaveLength(CASES);

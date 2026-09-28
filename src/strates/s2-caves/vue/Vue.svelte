@@ -1,10 +1,11 @@
 <script lang="ts">
   // Interface minimale des caves : tout est jouable. La direction artistique viendra avec #33.
+  import { artefact } from "../../../noyau/logique/artefacts";
   import { avanceeFissure } from "../../../noyau/logique/filet";
   import type { ProprietesVue } from "../../../noyau/logique/types";
   import Fissure from "../../../noyau/ui/Fissure.svelte";
   import type { ActionCaves, EtatCaves } from "../logique";
-  import { PERIODE_HISTORIQUE, TAILLE_HISTORIQUE } from "../logique/etat";
+  import { PERIODE_HISTORIQUE, TAILLE_HISTORIQUE, type LigneRegistre } from "../logique/etat";
   import { remplir } from "../logique/notation";
   import {
     capacite,
@@ -20,6 +21,7 @@
     pertes,
     prochainOutil,
     recolte,
+    repartition,
     saison,
     saisonChaude,
     STOCKAGES,
@@ -37,6 +39,18 @@
   const cap = $derived(capacite(etat));
   const marque = $derived(marqueHiver(etat));
   const part = (x: number) => Math.min(100, (x / Math.max(cap, 1)) * 100);
+
+  // L'opacité (fiche, § 7) : la marque d'hiver n'a pas de légende, et les pertes ne s'affichent pas,
+  // jusqu'au premier bilan. Les deux fenêtres, un objet de la surface, les dévoilent dès l'arrivée (§ 8).
+  const devoile = $derived(etat.hivers.length > 0 || etat.objets.fenetres);
+  const grain = $derived(repartition(etat));
+
+  /** Une ligne du registre ; un objet d'en haut y porte son nom d'en bas. */
+  function ligneRegistre(ligne: LigneRegistre): string {
+    const texte = t(ligne.cle, ligne.valeurs);
+    if (ligne.objet === undefined) return texte;
+    return texte.replace("{objet}", artefact(ligne.objet)?.nomDEnBas ?? ligne.objet);
+  }
 
   // Le filet : si le joueur n'a pas creusé après le seuil, une fissure part de la réserve vers le bandeau.
   const fissure = $derived(avanceeFissure(etat.temps, etat.seuilAtteintA));
@@ -69,7 +83,7 @@
   <h2>{o("titre")}</h2>
 
   <div class="temps">
-    <Calendrier {etat} titre={o("calendrier")} />
+    <Calendrier {etat} titre={o("calendrier")} avenir={etat.objets.armoire} />
     <p class="date">
       <strong data-test="date"
         >{t("date", { jour: Math.floor(etat.jour) + 1, annee: etat.annee })}</strong
@@ -97,13 +111,15 @@
       <div class="grain" style:width="{part(etat.reserve)}%"></div>
       <div class="marque" style:left="{part(marque)}%"></div>
     </div>
-    <p>
-      {o("marque-hiver")}
-      <strong data-test="marque">{t("marque-hiver.valeur", { marque })}</strong>
-      {#if marque > cap}
-        <span data-test="marque-au-dessus">({o("marque-hiver.au-dessus")})</span>
-      {/if}
-    </p>
+    {#if devoile}
+      <p>
+        {o("marque-hiver")}
+        <strong data-test="marque">{t("marque-hiver.valeur", { marque })}</strong>
+        {#if marque > cap}
+          <span data-test="marque-au-dessus">({o("marque-hiver.au-dessus")})</span>
+        {/if}
+      </p>
+    {/if}
   </div>
 
   {#if fissure > 0}
@@ -118,9 +134,11 @@
       {o("consommation")} :
       <span data-test="consommation">{t("par-jour", { quantite: consommation(etat) })}</span>
     </li>
-    <li>
-      {o("pertes")} : <span data-test="pertes">{t("par-jour", { quantite: pertes(etat) })}</span>
-    </li>
+    {#if devoile}
+      <li>
+        {o("pertes")} : <span data-test="pertes">{t("par-jour", { quantite: pertes(etat) })}</span>
+      </li>
+    {/if}
   </ul>
 
   <p>
@@ -165,6 +183,11 @@
           nombre: n,
           capacite: s.capacite * etat.multiplicateurs.conservation,
         })}
+        {#if devoile && n > 0}
+          · <span data-test="pertes-{s.id}"
+            >{t("stockage.pertes", { pertes: grain[s.id] * s.pertes })}</span
+          >
+        {/if}
         <button
           disabled={etat.reserve < prix}
           onclick={() => agir({ type: "construire", stockage: s.id })}
@@ -198,7 +221,7 @@
   <h3>{o("registre")}</h3>
   <ol class="registre" data-test="registre">
     {#each registre as ligne, i (etat.registre.length - i)}
-      <li>{t(ligne.cle, ligne.valeurs)}</li>
+      <li class:autre-main={ligne.cle === "registre.feuille"}>{ligneRegistre(ligne)}</li>
     {/each}
   </ol>
 </section>
@@ -238,6 +261,11 @@
   }
   .stockages li {
     margin-block: 0.4rem;
+  }
+  /* La ligne de l'atelier qu'écrit la feuille qui annonce : une autre main. */
+  .autre-main {
+    font-family: ui-monospace, monospace;
+    font-style: italic;
   }
   .glaner {
     font-size: 1.1rem;
