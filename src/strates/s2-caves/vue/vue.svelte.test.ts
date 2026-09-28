@@ -197,6 +197,25 @@ describe("la vue des caves", () => {
     expect(lignes[1]!.textContent).toBe("Les familles ont compris la roue chaude.");
   });
 
+  it("écrit la première page : les objets qui agissent déjà, puis ceux qui attendent", () => {
+    monter((etat) => {
+      etat.registre.push(
+        { cle: "registre.eveil", valeurs: {}, objet: "s1-double-ecran" },
+        { cle: "registre.eveil", valeurs: {}, objet: "s1-serveur" },
+        { cle: "registre.attente", valeurs: { objets: 3 } },
+      );
+    });
+    const lignes = [...document.querySelectorAll("[data-test=registre] li")].map(
+      (l) => l.textContent,
+    );
+    expect(lignes).toEqual([
+      "3 objets venus d'en haut, que personne ne sait employer.",
+      "Les familles ont compris l'armoire qui compte les hivers.",
+      "Les familles ont compris les deux fenêtres.",
+      "An 1. 8 familles, un grenier.",
+    ]);
+  });
+
   it("dit que la vallée est pleine, et qu'elle a tous ses outils", () => {
     monter((etat) => {
       etat.familles = VALLEE;

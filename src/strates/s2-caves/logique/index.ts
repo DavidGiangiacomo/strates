@@ -1,7 +1,13 @@
 // Les caves : la production suit les saisons, elle oscille au lieu de monter, et il faut lisser.
 // Le seuil : trois grands hivers de suite sans rupture (docs/strates/strate-2.md).
 import { TAUX_HORS_LIGNE } from "../../../noyau/logique/horsligne";
-import type { ContexteTick, LogiqueStrate, ResumeAbsence } from "../../../noyau/logique/types";
+import { EFFETS_NEUTRES } from "../../../noyau/logique/effets";
+import type {
+  ContexteTick,
+  EffetsActifs,
+  LogiqueStrate,
+  ResumeAbsence,
+} from "../../../noyau/logique/types";
 import { textes } from "../textes.fr";
 import {
   etatInitial,
@@ -55,14 +61,34 @@ const EPSILON = 1e-9;
  * premier hiver : avant, personne ne sait s'en servir, et le choc d'arrivée reste entier. Les autres
  * objets agissent dès l'arrivée.
  */
-function lireEffets(etat: EtatCaves, ctx: ContexteTick): void {
+function lireEffets(etat: EtatCaves, effets: EffetsActifs): void {
   const eveilles = etat.hivers.length > 0;
-  etat.multiplicateurs.recolte = eveilles ? ctx.effets.multiplicateur("recolte") : 1;
-  etat.multiplicateurs.conservation = eveilles ? ctx.effets.multiplicateur("conservation") : 1;
-  const agit = (id: string) => ctx.effets.niveau(id) !== null;
+  etat.multiplicateurs.recolte = eveilles ? effets.multiplicateur("recolte") : 1;
+  etat.multiplicateurs.conservation = eveilles ? effets.multiplicateur("conservation") : 1;
+  const agit = (id: string) => effets.niveau(id) !== null;
   etat.objets.fenetres = agit(OBJETS.fenetres);
   etat.objets.armoire = agit(OBJETS.armoire);
   etat.objets.feuille = agit(OBJETS.feuille);
+}
+
+/**
+ * L'arrivée (docs/strates/descente-1-2.md, § 6) : un objet d'en haut prend son nom d'en bas la
+ * première fois qu'il agit. Les deux fenêtres et l'armoire agissent dès l'arrivée : la première page
+ * du registre les nomme. Une ligne compte les autres, qui attendent le premier hiver ou le seuil.
+ */
+function accueillir(etat: EtatCaves, effets: EffetsActifs): EtatCaves {
+  lireEffets(etat, effets);
+  const agit = (id: string) => effets.niveau(id) !== null;
+  for (const id of [OBJETS.fenetres, OBJETS.armoire]) {
+    if (agit(id)) ecrire(etat, "registre.eveil", {}, id);
+  }
+  const attendent = [...OBJETS.multiplicateurs, OBJETS.feuille].filter(agit).length;
+  if (attendent > 0) {
+    ecrire(etat, attendent === 1 ? "registre.attente.un" : "registre.attente", {
+      objets: attendent,
+    });
+  }
+  return etat;
 }
 
 function ecrire(
@@ -184,8 +210,11 @@ function faireBilan(etat: EtatCaves, ctx: ContexteTick): void {
       if (etat.serie >= SERIE_SEUIL) {
         etat.seuilAtteintA = etat.temps;
         ecrire(etat, "registre.seuil", {});
-        // La feuille qui annonce : une ligne de l'atelier, d'une autre main.
-        if (ctx.effets.niveau(OBJETS.feuille)) ecrire(etat, "registre.feuille", {});
+        // La feuille qui annonce : nommée quand elle agit, puis une ligne de l'atelier, d'une autre main.
+        if (ctx.effets.niveau(OBJETS.feuille)) {
+          ecrire(etat, "registre.eveil", {}, OBJETS.feuille);
+          ecrire(etat, "registre.feuille", {});
+        }
       }
     }
   }
@@ -288,7 +317,7 @@ function t(cle: string, valeurs: Record<string, number> = {}): string {
  * Aucune rupture ne peut donc arriver pendant l'absence.
  */
 function absence(etat: EtatCaves, duree: number, ctx: ContexteTick): ResumeAbsence {
-  lireEffets(etat, ctx);
+  lireEffets(etat, ctx.effets);
   if (enHiver(etat)) return { lignes: [t("absence.hiver")] };
 
   const cumulAvant = etat.cumul;
@@ -332,15 +361,15 @@ export const logique: LogiqueStrate<EtatCaves, ActionCaves> = {
   leviers: { principal: "recolte", secondaires: ["conservation"] },
   horsLigne: { type: "propre" },
 
-  etatInitial: () => etatInitial(),
+  etatInitial: (ctx) => accueillir(etatInitial(), ctx.effets ?? EFFETS_NEUTRES),
 
   tick(etat, dt, ctx) {
-    lireEffets(etat, ctx);
+    lireEffets(etat, ctx.effets);
     avancer(etat, dt, ctx);
   },
 
   agir(etat, action, ctx) {
-    lireEffets(etat, ctx);
+    lireEffets(etat, ctx.effets);
     switch (action.type) {
       case "glaner": {
         const quantite = valeurGlanage(etat);

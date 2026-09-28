@@ -6,6 +6,8 @@ export const textes: Record<string, string> = {
   production: "Production",
   objectif: "Objectif",
   "objectifs.fini": "Tous les objectifs sont atteints.",
+  // La valeur convertible, nommée à l'écran de fouille (docs/strates/descente-1-2.md, P3).
+  "fouille.valeur": "Crédits gagnés",
   "objectif.1": "Produire 15 cr",
   "objectif.2": "Acheter un poste",
   "objectif.3": "Atteindre 1 cr/s",

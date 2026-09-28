@@ -88,6 +88,11 @@ export interface ContexteArrivee {
   graine: number;
   /** Le parcours jusqu'ici, en lecture seule. */
   journal: Readonly<Journal>;
+  /**
+   * Les effets des artefacts à l'arrivée : de quoi écrire, dès la première page, ce qui agit déjà.
+   * Le noyau les fournit toujours ; absents, aucun objet n'agit (tests, simulateur).
+   */
+  effets?: EffetsActifs;
 }
 
 export interface ContexteTick {
@@ -140,7 +145,13 @@ export interface DefinitionStrate<E, A extends ActionBase> {
   logique: LogiqueStrate<E, A>;
   /** Le composant Svelte racine, typé en `unknown` pour que la logique n'importe pas Svelte. */
   vue: unknown;
+  /** Les textes de la strate. `fouille.valeur` nomme sa valeur convertible à l'écran de fouille. */
   textes: Record<string, string>;
+  /**
+   * Écrit une valeur convertible dans la notation de la strate, pour l'écran de fouille : seule la
+   * strate la connaît (I1). Sans elle, l'écran écrit le nombre entier, sans unité.
+   */
+  formaterValeur?(valeur: number): string;
 }
 
 // ——— Le journal de partie (§ 7)

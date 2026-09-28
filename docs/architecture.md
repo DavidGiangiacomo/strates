@@ -134,6 +134,8 @@ interface ContexteArrivee {
   graine: number;
   /** Le parcours jusqu'ici, en lecture seule (par exemple, l'issue de la strate 6 pour la strate 7). */
   journal: Readonly<Journal>;
+  /** Les effets des artefacts à l'arrivée : de quoi écrire, dès la première page, ce qui agit déjà. */
+  effets?: EffetsActifs;
 }
 
 interface ContexteTick {
@@ -196,7 +198,10 @@ interface DefinitionStrate<E, A extends ActionBase> {
   logique: LogiqueStrate<E, A>;
   /** Le composant Svelte racine. Il est typé en `unknown` ici pour que la logique n'importe pas Svelte. */
   vue: unknown;
+  /** Les textes. `fouille.valeur` nomme la valeur convertible à l'écran de fouille (« Crédits gagnés »). */
   textes: Record<string, string>;
+  /** Écrit une valeur convertible dans la notation de la strate, pour l'écran de fouille (I1). */
+  formaterValeur?(valeur: number): string;
 }
 ```
 
@@ -218,24 +223,26 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
 - **Bandeau** (`noyau/ui/Bandeau.svelte`, §12) : 24 px en haut de l'écran, identique quelle que soit la strate montée, avec la Profondeur, les artefacts et le bouton « creuser ». Le bouton a le même aspect avant et après le seuil ; seule sa réponse change. Avant le seuil, `demanderFouille()` refuse et le bandeau tressaille, sans texte ni pénalité (un bref assombrissement si le joueur préfère moins de mouvement ; le son sourd viendra avec le moteur audio, [#46](https://github.com/DavidGiangiacomo/strates/issues/46)). Le bouton d'une strate qui appellerait `CommandesNoyau.demanderFouille()` a la même réponse.
 - **Résumé au retour** : `noyau/ui/reprise.ts` rédige le résumé d'une absence d'au moins une minute (durée, taux, plafond atteint, ou les lignes de la strate en politique propre). L'interface l'affiche jusqu'à ce que le joueur le ferme.
 - **Actions** : mises en file, appliquées au début du tick suivant dans l'ordre d'arrivée, et journalisées si le journal de session est actif.
-- **Après chaque tick** : le noyau lit `seuil()`. Si le seuil est atteint et `automatique` vaut vrai, il lance la descente sans le joueur. Sinon, il rend le bouton de fouille disponible dans le bandeau.
+- **Après chaque tick** : le noyau lit `seuil()`, et note au journal l'heure où il est atteint (`seuil.le`, avec l'issue). Si le seuil est atteint et `automatique` vaut vrai, `Noyau.descenteAutomatique` le signale, et l'interface lance la descente sans le joueur, à la fin de l'image. Sinon, le bouton de fouille du bandeau cesse de résister.
 - **Sauvegarde** : selon D-005 (toutes les 30 s, en arrière-plan, après chaque descente). Le format, sa validation et les migrations sont dans `noyau/logique/sauvegarde.ts` et `migrations.ts` ; le stockage, la rotation des deux emplacements et la mise de côté des sauvegardes illisibles, dans `noyau/plateforme/sauvegarde.ts`. Les migrations d'une strate s'appliquent à son démarrage. De vraies sauvegardes de chaque version publiée sont archivées dans `tests/sauvegardes/` et doivent toutes se charger.
 
 ### La descente
 
 La séquence vue par le joueur, plan par plan, est dans le [storyboard du passage 1 → 2](strates/descente-1-2.md) ([#11](https://github.com/DavidGiangiacomo/strates/issues/11)).
 
-1. `demanderFouille()` : le noyau vérifie que le seuil est atteint (`Noyau.demanderFouille`). En attendant la suite ([#30](https://github.com/DavidGiangiacomo/strates/issues/30)), une fouille acceptée n'affiche qu'un message provisoire.
-2. La fouille s'ouvre, et la strate se fige : ni tick ni absence tant qu'elle est ouverte. Points de fouille = `⌊log₁₀(valeurConvertible()) × 1,4⌋` (D-002) : `pointsDeFouille`, lus à l'ouverture.
-3. Écran de choix sur le catalogue de la strate quittée, avec la présélection (`preselection`).
-   - Il écrit la valeur convertible et le prix d'un point de plus dans la notation de la strate quittée. Seule la strate la connaît (I1) : le contrat doit la laisser fournir un libellé et un formateur (à trancher par #30).
-   - Jusqu'à « descendre », le joueur peut **reboucher** : rien n'est noté, et la strate reprend.
-   - En descente automatique, la présélection s'applique sans écran.
-4. « descendre » engage tout d'un coup, avant l'animation. Le journal reçoit le seuil, l'issue et la fouille (points, objets emportés, objets abandonnés) : `fouiller` vérifie le choix et note la fouille.
-5. Les objets emportés rejoignent `artefacts` (`fouiller`), et la Profondeur augmente de 1.
-6. L'état de la strate quittée est gelé et gardé dans la sauvegarde.
-7. La strate suivante est chargée, `etatInitial()` est appelé avec une nouvelle graine et le journal, puis sa vue est montée. Le jeu sauvegarde.
-8. La transition (4 s, puis 1 s d'arrivée) ne fait que représenter ce qui est déjà fait. Le temps de la nouvelle strate part à la fin de la transition.
+La logique est dans `Noyau` (`ouvrirFouille`, `reboucher`, `descendre`, `reprendre`), testée dans `noyau/logique/descente.test.ts`. Le spectacle et son minutage sont dans `noyau/ui/passage.svelte.ts` ; l'écran de fouille est `noyau/ui/Fouille.svelte`.
+
+1. `demanderFouille()` : le noyau vérifie que le seuil est atteint (`Noyau.demanderFouille`). S'il n'y a pas de strate dessous (`strateSuivante` vaut null, comme sous les caves dans le MVP), l'interface le dit, et rien ne s'ouvre.
+2. `ouvrirFouille()` : les actions en attente sont appliquées, puis la strate se fige (`suspendu`) : ni tick ni absence tant que la fouille est ouverte. Points de fouille = `⌊log₁₀(valeurConvertible()) × 1,4⌋` (D-002) : `pointsDeFouille`, lus à l'ouverture. Rien n'est encore noté.
+3. Écran de choix sur le catalogue de la strate quittée, par coût croissant (`catalogueParCout`), avec la présélection (`preselection`).
+   - Il écrit la valeur convertible et le prix d'un point de plus (`valeurPourPoints`) dans la notation de la strate quittée : `DefinitionStrate.formaterValeur` et la clé de texte `fouille.valeur` (I1).
+   - Jusqu'à « descendre », le joueur peut **reboucher** (`reboucher()`) : rien n'est noté, et la strate reprend là où elle s'était figée.
+   - En descente automatique, `descendre()` sans choix ouvre la fouille et applique la présélection, sans écran.
+4. `descendre(maintenant, emportes)` vérifie le choix et charge la strate suivante. Si le chargement échoue, rien n'a changé : la fouille reste ouverte. Puis tout s'engage d'un coup, avant l'animation : `fouiller` note la fouille au journal (points, objets emportés, objets abandonnés), à côté du seuil et de l'issue.
+5. Les objets emportés rejoignent `artefacts` (`fouiller`), et la Profondeur augmente de 1. Une action restée en file pour la strate quittée est oubliée.
+6. L'état de la strate quittée reste tel quel dans `strates` : gelé, gardé dans la sauvegarde.
+7. La strate suivante s'installe : ses effets sont calculés, puis `etatInitial()` est appelé avec une nouvelle graine, le journal et ces effets, et une entrée de journal s'ouvre. L'interface monte sa vue, puis sauvegarde.
+8. La nouvelle strate reste figée pendant la transition (4 s, puis 1 s d'arrivée), qui ne fait que représenter ce qui est déjà fait. Son temps part à la fin, par `reprendre()`. Un rechargement pendant la transition retrouve la nouvelle strate, et ne rejoue pas la transition.
 
 ### Les fins
 

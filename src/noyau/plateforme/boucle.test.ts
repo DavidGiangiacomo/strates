@@ -50,6 +50,25 @@ describe("la boucle des images", () => {
     ]);
   });
 
+  it("appelle apresImage à la fin de chaque image, après le noyau", () => {
+    const { noyau, avancerJusqua } = noyauFactice();
+    const ordre: string[] = [];
+    avancerJusqua.mockImplementation(() => {
+      ordre.push("noyau");
+      return null;
+    });
+    demarrerBoucle(
+      noyau,
+      undefined,
+      () => 0,
+      undefined,
+      () => ordre.push("après"),
+    );
+    image(1_016);
+    image(1_032);
+    expect(ordre).toEqual(["noyau", "après", "noyau", "après"]);
+  });
+
   it("borne le pas d'une image : au-delà, c'est au noyau de constater l'absence", () => {
     const { noyau, avancerJusqua } = noyauFactice();
     demarrerBoucle(noyau, undefined, () => 0);

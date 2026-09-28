@@ -217,7 +217,7 @@ describe("la fouille", () => {
       abandonnes: ["s1-plan"],
     });
     expect(etat.artefacts).toEqual(choix);
-    // La descente elle-même appartient à l'orchestration (#30).
+    // La descente elle-même appartient au noyau : Noyau.descendre (descente.test.ts).
     expect(etat.profondeur).toBe(1);
   });
 

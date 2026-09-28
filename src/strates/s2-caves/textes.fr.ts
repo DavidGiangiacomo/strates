@@ -70,6 +70,8 @@ export const textes: Record<string, string> = {
   "registre.seuil": "Trois grands hivers sans rupture. La vallée n'a plus rien à craindre.",
   "registre.pertes": "Grain pourri dans les stockages depuis l'arrivée : {pourri:boisseau}.",
   "registre.eveil": "Les familles ont compris {objet}.",
+  "registre.attente": "{objets} objets venus d'en haut, que personne ne sait employer.",
+  "registre.attente.un": "Un objet venu d'en haut, que personne ne sait employer.",
   // La feuille qui annonce : une ligne de l'atelier (strate 3), d'une autre main. Provisoire (#68, #43).
   "registre.feuille": "Il reste soixante-trois cases.",
 
@@ -77,4 +79,7 @@ export const textes: Record<string, string> = {
   "absence.recolte": "La récolte a continué {jours:jour} : {recolte:boisseau}.",
   "absence.premiers-froids": "Les premiers froids sont là. L'hiver vous attend.",
   "absence.rupture": "Le grain allait manquer : le calendrier s'est arrêté.",
+
+  // La valeur convertible, nommée à l'écran de fouille (docs/strates/descente-1-2.md, P3).
+  "fouille.valeur": "Grain récolté",
 };

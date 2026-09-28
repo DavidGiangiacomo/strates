@@ -320,7 +320,7 @@ Seuls les artefacts de la surface peuvent être actifs ici, et ils sont **puissa
 - Les multiplicateurs sont nommés au premier bilan.
 - La feuille est nommée au seuil, juste avant sa ligne.
 
-Ces lignes de l'arrivée et du seuil viendront avec l'orchestration de la descente ([#30](https://github.com/DavidGiangiacomo/strates/issues/30)).
+Ces lignes de l'arrivée et du seuil sont codées avec l'orchestration de la descente ([#30](https://github.com/DavidGiangiacomo/strates/issues/30)) : la strate reçoit les effets des objets dans son contexte d'arrivée.
 
 **Dans le code** ([#34](https://github.com/DavidGiangiacomo/strates/issues/34)) : les caves reconnaissent les objets de la surface par leur identifiant (`OBJETS`, dans `logique/regles.ts`) et les lisent par `EffetsActifs`. Les multiplicateurs restent à 1 tant qu'aucun hiver n'a été jugé ; les autres objets sont notés dans l'état (`objets`), que la vue lit. L'opacité de la marque et des pertes (§ 7) est codée pour que les deux fenêtres aient quelque chose à lever ; le reste de l'opacité viendra avec la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)).
 

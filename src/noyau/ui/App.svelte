@@ -2,6 +2,7 @@
   import { onDestroy, type Component } from "svelte";
   import { creerEtatNoyau, type EtatNoyau } from "../logique/etat";
   import { Noyau } from "../logique/noyau";
+  import type { StrateQuelconque } from "../logique/registre";
   import type { ActionBase, CommandesNoyau, ProprietesVue } from "../logique/types";
   import { demarrerAutosauvegarde } from "../plateforme/autosauvegarde";
   import { demarrerBoucle } from "../plateforme/boucle";
@@ -12,6 +13,10 @@
   import { creerRegistre } from "../../strates/registre";
   import { rendreStrateReactive } from "./reactivite.svelte";
   import Bandeau from "./Bandeau.svelte";
+  import Descente from "./Descente.svelte";
+  import Fouille from "./Fouille.svelte";
+  import { DUREES, DUREES_REDUITES, Passage } from "./passage.svelte";
+  import Pioche from "./Pioche.svelte";
   import { resumerReprise } from "./reprise";
 
   type VueStrate = Component<ProprietesVue<object, ActionBase>>;
@@ -22,16 +27,12 @@
   let bandeau: ReturnType<typeof Bandeau> | undefined = $state();
   /** Multiplie le temps de jeu : réglée par les outils de développement, toujours 1 sinon. */
   let vitesse = $state(1);
+  /** La strate montée et son état réactif : ils changent à la descente. */
+  let courante = $state.raw<{ strate: StrateQuelconque; etat: object } | null>(null);
 
-  /** Le bouton « creuser », du bandeau ou d'une strate : avant le seuil, le sol résiste. */
-  function creuser(noyau: Noyau): void {
-    if (!noyau.demanderFouille()) {
-      bandeau?.resister();
-      return;
-    }
-    // Provisoire, en attendant la descente (#30).
-    avis = "La descente n'existe pas encore dans cette version : la suite arrive bientôt.";
-  }
+  const attendre = (ms: number) => new Promise<void>((fin) => setTimeout(fin, ms));
+  const sansMouvement = () =>
+    typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   async function demarrer() {
     const { stockage, persistant } = ouvrirStockage();
@@ -60,23 +61,39 @@
     await noyau.demarrer(maintenant());
     // Rattrape le temps passé depuis la dernière sauvegarde, avant de rendre l'état réactif.
     resume = resumerReprise(noyau.rattraper(maintenant()));
-    const etatVue = rendreStrateReactive(noyau);
+    const monter = () => (courante = { strate: noyau.strate, etat: rendreStrateReactive(noyau) });
+    monter();
+
+    const sauvegarder = () => sauvegarderPartie(noyau.etat, gestionnaire, maintenant());
+    const passage = new Passage({
+      noyau,
+      maintenant,
+      attendre,
+      sauvegarder,
+      changerStrate: monter,
+      resister: () => bandeau?.resister(),
+      signaler: (message) => (avis = message),
+      durees: sansMouvement() ? DUREES_REDUITES : DUREES,
+    });
+
     arrets.push(
       demarrerBoucle(
         noyau,
         (reprise) => (resume = resumerReprise(reprise) ?? resume),
         maintenant,
         () => vitesse,
+        // La strate 7 descend d'elle-même, sans écran de choix (docs/artefacts.md, § 6).
+        () => {
+          if (noyau.descenteAutomatique) void passage.descendre();
+        },
       ),
     );
-
-    const sauvegarder = () => sauvegarderPartie(noyau.etat, gestionnaire, maintenant());
     await sauvegarder();
     arrets.push(demarrerAutosauvegarde(sauvegarder));
 
     // L'aide et les fins ne sont pas encore branchées.
     const commandes: CommandesNoyau = {
-      demanderFouille: () => creuser(noyau),
+      demanderFouille: () => void passage.creuser(),
       ouvrirAide() {},
       terminer() {},
     };
@@ -91,7 +108,7 @@
     }
 
     const dev = { gestionnaire, profondeurs: registre.numeros(), remplacerPartie };
-    return { noyau, strate: noyau.strate, etat: etatVue, commandes, dev };
+    return { noyau, passage, commandes, dev };
   }
 
   const demarrage = demarrer();
@@ -101,34 +118,70 @@
 
 {#await demarrage}
   <main><p>Chargement…</p></main>
-{:then { noyau, strate, etat, commandes, dev }}
-  {@const Vue = strate.vue as VueStrate}
-  <!-- La Profondeur et les artefacts ne changent qu'à la descente (#30), qui les rendra réactifs. -->
+{:then { noyau, passage, commandes, dev }}
+  {@const phase = passage.phase}
   <Bandeau
     bind:this={bandeau}
-    profondeur={noyau.etat.profondeur}
-    artefacts={noyau.etat.artefacts}
-    oncreuser={() => creuser(noyau)}
+    profondeur={passage.profondeur}
+    artefacts={passage.artefacts}
+    oncreuser={() => passage.creuser()}
   />
-  <main>
-    {#if avis}
-      <p role="status">{avis}</p>
-    {/if}
-    {#if resume}
-      <section role="status" aria-label="Pendant votre absence">
-        {#each resume as ligne, i (i)}
-          <p>{ligne}</p>
-        {/each}
-        <button onclick={() => (resume = null)}>D'accord</button>
-      </section>
-    {/if}
-    <Vue
-      {etat}
-      agir={(action) => noyau.agir(action)}
-      noyau={commandes}
-      o={(cle) => strate.textes[cle] ?? cle}
-      mode="jeu"
+  <!-- La séquence de la descente : docs/strates/descente-1-2.md. -->
+  {#if phase !== "jeu"}
+    <div class="fond" aria-hidden="true"></div>
+  {/if}
+  {#if phase === "pioche"}
+    <Pioche />
+  {:else if phase === "jeu" && passage.cicatrice}
+    <Pioche cicatrice />
+  {/if}
+  {#if passage.ecran && (phase === "fouille" || phase === "rebouchage" || phase === "descente")}
+    <Fouille
+      ecran={passage.ecran}
+      sortie={phase === "descente"}
+      referme={phase === "rebouchage"}
+      occupe={passage.occupe}
+      ondescendre={(emportes) => passage.descendre(emportes)}
+      onreboucher={() => passage.reboucher()}
     />
+  {/if}
+  {#if phase === "descente" || phase === "arrivee"}
+    <Descente {phase} transportes={passage.transportes} />
+  {/if}
+  {#if avis || resume}
+    <!-- Au-dessus de la séquence : une descente refusée doit se lire sur l'écran de fouille. -->
+    <div class="messages">
+      {#if avis}
+        <p role="status">{avis}</p>
+      {/if}
+      {#if resume}
+        <section role="status" aria-label="Pendant votre absence">
+          {#each resume as ligne, i (i)}
+            <p>{ligne}</p>
+          {/each}
+          <button onclick={() => (resume = null)}>D'accord</button>
+        </section>
+      {/if}
+    </div>
+  {/if}
+  <main
+    class="strate {phase}"
+    inert={phase !== "jeu"}
+    aria-hidden={phase === "fouille" ? "true" : undefined}
+  >
+    {#if courante}
+      {@const { strate, etat } = courante}
+      {@const Vue = strate.vue as VueStrate}
+      {#key strate}
+        <Vue
+          {etat}
+          agir={(action) => noyau.agir(action)}
+          noyau={commandes}
+          o={(cle) => strate.textes[cle] ?? cle}
+          mode="jeu"
+        />
+      {/key}
+    {/if}
   </main>
   <!-- Retiré du build de production : import.meta.env.DEV y vaut false. -->
   {#if import.meta.env.DEV}
@@ -160,5 +213,72 @@
     margin-top: 3rem;
     font-size: 0.75rem;
     opacity: 0.6;
+  }
+
+  /* Le sol sous la strate : ce que découvre le coup de pioche, et le fond de toute la séquence. */
+  .fond {
+    position: fixed;
+    inset: 24px 0 0;
+    z-index: 1;
+    background: #1e1e1e;
+  }
+  .messages {
+    position: relative;
+    z-index: 8;
+    padding: 1rem 1rem 0;
+    background: Canvas;
+  }
+  /* Opaque : pendant la séquence, la strate cache le sol, puis le recouvre en montant. */
+  .strate {
+    position: relative;
+    z-index: 3;
+    box-sizing: border-box;
+    min-height: calc(100vh - 24px);
+    background: Canvas;
+  }
+  /* P2 : après la fissure, la strate se fend et tombe. */
+  .strate.pioche {
+    animation: tomber 600ms ease-in 400ms both;
+  }
+  @keyframes tomber {
+    to {
+      transform: translateY(30vh);
+      opacity: 0;
+    }
+  }
+  .strate.fouille {
+    visibility: hidden;
+  }
+  .strate.rebouchage {
+    animation: tomber 500ms ease-out reverse both;
+  }
+  /* P5 : la nouvelle strate monte d'en bas et se met en place, à la fin du travelling. */
+  .strate.descente {
+    z-index: 5;
+    animation: monter 800ms ease-out 3200ms both;
+  }
+  @keyframes monter {
+    from {
+      transform: translateY(100vh);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .strate.pioche,
+    .strate.rebouchage {
+      animation: none;
+      transition: opacity 300ms;
+    }
+    .strate.pioche {
+      opacity: 0;
+    }
+    .strate.descente {
+      animation: fondu 500ms both;
+    }
+    @keyframes fondu {
+      from {
+        opacity: 0;
+      }
+    }
   }
 </style>

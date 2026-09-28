@@ -287,8 +287,8 @@ Ce que P3 et P4 décrivent pour la surface vaut pour toutes les descentes. Voici
   - le reste des points, les deux règles, « descendre » et « reboucher ».
 - **Il ne montre pas** les effets, les noms d'en bas, ni l'usure future des objets déjà portés. Ce dernier point relève de l'inventaire ([#45](https://github.com/DavidGiangiacomo/strates/issues/45)).
 - **La notation appartient à la strate.** Seule la strate quittée sait écrire sa valeur (I1) : « 612 M cr » pour la surface, des boisseaux entiers pour les caves.
-  - Le contrat doit donc la laisser fournir un libellé (« Crédits gagnés ») et un formateur de nombres, par exemple une clé de texte `fouille.valeur` et une fonction `formaterValeur(valeur)` dans `DefinitionStrate`.
-  - C'est à trancher par #30. Le formateur sert aussi au prix d'un point de plus.
+  - Le contrat la laisse donc fournir un libellé (« Crédits gagnés ») et un formateur de nombres : la clé de texte `fouille.valeur` et la fonction `formaterValeur(valeur)` de `DefinitionStrate` ([#30](https://github.com/DavidGiangiacomo/strates/issues/30)).
+  - Le formateur sert aussi au prix d'un point de plus.
   - Le chœur (strate 5), qui n'affiche aucun nombre, pourra y écrire autre chose qu'un nombre (D-003).
 - **La strate est figée tant que la fouille est ouverte** : pas de tick, pas d'absence. Un onglet caché pendant le choix ne fait rien avancer.
 - **« reboucher »** referme sans rien noter au journal de partie. La strate reprend là où elle était.
@@ -363,15 +363,7 @@ Ces durées sont des cibles de départ, réglables au playtest. La descente et l
 
 ## 10. Pour la suite
 
-- **L'orchestration ([#30](https://github.com/DavidGiangiacomo/strates/issues/30))** code la séquence P2 à P6 et l'écran de fouille du § 4 :
-  - la strate figée pendant la fouille, et « reboucher » ;
-  - la valeur formatée par la strate quittée ;
-  - la sauvegarde à « descendre » ;
-  - le temps de la nouvelle strate qui part à la fin de la transition.
-
-  Un test vérifie que l'écran montre le prix du point suivant : c'est le « taux brutal » de l'issue.
-
-  #30 ajoute aussi, dans les caves, la première page du registre du § 6 (les objets nommés à l'arrivée, ceux qui attendent) et le nom de la feuille au seuil. Ce sont de petites règles de la strate 2, qui n'ont de sens qu'avec une vraie descente.
+- **L'orchestration ([#30](https://github.com/DavidGiangiacomo/strates/issues/30))** a codé la séquence P2 à P6 et l'écran de fouille du § 4 : voir « Dans le code », plus bas.
 - **Les directions artistiques ([#31](https://github.com/DavidGiangiacomo/strates/issues/31), [#33](https://github.com/DavidGiangiacomo/strates/issues/33))** gardent les raccords du § 5. #33 fait finir le sol traversé sur le haut de la coupe des stockages.
 - **Le protocole du test ([#14](https://github.com/DavidGiangiacomo/strates/issues/14))** part de la chronologie de P7. Il doit observer :
   - le temps entre le seuil et le premier clic sur « creuser » ;
@@ -380,6 +372,22 @@ Ces durées sont des cibles de départ, réglables au playtest. La descente et l
 - **Le journal de session ([#26](https://github.com/DavidGiangiacomo/strates/issues/26))** enregistre les gestes de la fouille : ouverture (avec les points), cases cochées et décochées, « reboucher », « descendre » (avec les objets emportés).
 - **Les textes ([#16](https://github.com/DavidGiangiacomo/strates/issues/16), [#17](https://github.com/DavidGiangiacomo/strates/issues/17))** : ceux de l'écran de fouille appartiennent au noyau ; les lignes du registre du § 6 appartiennent aux caves.
 - **Le son ([#46](https://github.com/DavidGiangiacomo/strates/issues/46))** : le coup sourd et l'éboulement de P2, le grondement du sol de P5, puis les premiers sons des caves.
+
+### Dans le code (#30)
+
+- **La logique** est dans le noyau (`Noyau.ouvrirFouille`, `reboucher`, `descendre`, `reprendre` ; `noyau/logique/descente.test.ts`) :
+  - la strate est figée pendant la fouille ;
+  - la descente s'engage d'un coup, ou pas du tout si la strate suivante ne se charge pas ;
+  - la nouvelle strate reste figée jusqu'à la fin de la transition ;
+  - le seuil est noté au journal à l'heure où il est atteint.
+- **Le spectacle** est dans `noyau/ui/passage.svelte.ts`, qui en tient le minutage (`DUREES`, `DUREES_REDUITES`), et dans `Pioche.svelte`, `Fouille.svelte` et `Descente.svelte`.
+- **Les caves** écrivent la première page du § 6 et nomment la feuille au seuil. Elles reçoivent pour cela les effets des objets dans le contexte d'arrivée (`ContexteArrivee.effets`).
+- **Simplifications**, à reprendre avec les directions artistiques ([#31](https://github.com/DavidGiangiacomo/strates/issues/31), [#33](https://github.com/DavidGiangiacomo/strates/issues/33)) :
+  - au coup de pioche, le tableau de bord glisse vers le bas d'un seul bloc, au lieu de se fendre en deux moitiés ;
+  - la valeur convertible est écrite dans la notation de la surface, mais dans la police et la couleur du noyau ;
+  - le sol traversé est fait de bandes dans la palette du noyau, et les objets emportés sont des étiquettes aux couleurs du bandeau ;
+  - le sol ne finit pas encore sur le haut de la coupe des stockages, qui n'existe pas encore.
+- **Vérifié dans Chromium**, depuis la sauvegarde nommée « surface-seuil-atteint », avec et sans mouvement : le passage complet, « reboucher », la première page du registre, le sol qui résiste dans les caves, et le rechargement.
 
 ## 11. Questions ouvertes
 
