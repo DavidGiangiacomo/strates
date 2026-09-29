@@ -40,7 +40,7 @@
   import { achatsCourbe, saisonsCourbe } from "./courbe";
   import { VARIABLES } from "./theme";
 
-  let { etat, agir, o }: ProprietesVue<EtatCaves, ActionCaves> = $props();
+  let { etat, agir, noyau, o }: ProprietesVue<EtatCaves, ActionCaves> = $props();
 
   const t = (cle: string, valeurs: Record<string, number> = {}) => remplir(o(cle), valeurs);
 
@@ -79,11 +79,46 @@
   const stockages = $derived(STOCKAGES.filter((s) => stockageVisible(etat, s)));
   const outil = $derived(prochainOutil(etat));
   const registre = $derived(etat.registre.slice(-8).reverse());
+
+  // L'aide (fiche, § 11) : une page du registre, qui décrit la vallée et ne dit rien du bandeau.
+  // L'ouvrir est noté (§ 7).
+  const SECTIONS_AIDE = ["calendrier", "reserve", "stockages", "familles", "achats"] as const;
+  let aideOuverte = $state(false);
+  let lienAide: HTMLButtonElement | undefined = $state();
+  let pageAide: HTMLElement | undefined = $state();
+
+  function ouvrirAide(): void {
+    aideOuverte = true;
+    noyau.ouvrirAide();
+  }
+  function refermerAide(): void {
+    aideOuverte = false;
+    lienAide?.focus();
+  }
+  // À l'ouverture, le focus va à la page : la lecture commence par son titre.
+  $effect(() => {
+    if (aideOuverte) pageAide?.focus();
+  });
 </script>
+
+<svelte:window
+  onkeydown={(e) => {
+    if (aideOuverte && e.key === "Escape") refermerAide();
+  }}
+/>
 
 <section class="caves" style="{VARIABLES}; --froid: {froid}" data-test="vallee">
   <div class="page">
-    <h2>{o("titre")}</h2>
+    <div class="titre">
+      <h2>{o("titre")}</h2>
+      <button
+        class="lien-aide"
+        bind:this={lienAide}
+        aria-expanded={aideOuverte}
+        aria-controls="aide-caves"
+        onclick={() => (aideOuverte ? refermerAide() : ouvrirAide())}>{o("aide")}</button
+      >
+    </div>
 
     <!-- En tête : là où étaient les crédits, la production et l'objectif. -->
     <header class="entete">
@@ -160,12 +195,13 @@
       <article class="registre">
         <h3>{o("registre")}</h3>
         <ul class="ecritures">
-          <li>
+          <li class="avec-note">
             {#if valleePleine(etat)}
               <p class="ecriture pleine">{o("vallee.pleine")}</p>
             {:else}
               <button
                 class="ecriture"
+                aria-describedby="note-installer"
                 disabled={etat.reserve < coutFamille(etat)}
                 onclick={() => agir({ type: "installer" })}
               >
@@ -179,17 +215,19 @@
                 >{t("familles.nombre", { familles: Math.round(etat.familles) })}</span
               >
             </p>
+            <span class="note" role="tooltip" id="note-installer">{o("installer.note")}</span>
           </li>
           {#each stockages as s (s.id)}
             {@const n = etat.stockages[s.id]}
             {@const prix = coutStockage(s, n)}
-            <li data-test="stockage-{s.id}">
+            <li class="avec-note" data-test="stockage-{s.id}">
               <button
                 class="ecriture"
+                aria-describedby="note-{s.id}"
                 disabled={etat.reserve < prix}
                 onclick={() => agir({ type: "construire", stockage: s.id })}
               >
-                <span class="quoi">{o("construire")} : {o(`stockage.${s.id}`)}</span>
+                <span class="quoi">{o(`construire.${s.id}`)}</span>
                 <span class="points" aria-hidden="true"></span>
                 <span class="prix">{t("prix", { prix })}</span>
               </button>
@@ -204,16 +242,18 @@
                   >
                 {/if}
               </p>
+              <span class="note" role="tooltip" id="note-{s.id}">{o(`stockage.${s.id}.note`)}</span>
             </li>
           {/each}
-          <li>
+          <li class="avec-note">
             {#if outil && outilVisible(etat)}
               <button
                 class="ecriture"
+                aria-describedby="note-{outil.id}"
                 disabled={etat.reserve < outil.cout}
                 onclick={() => agir({ type: "outil" })}
               >
-                <span class="quoi">{o("acheter")} : {o(`outil.${outil.id}`)}</span>
+                <span class="quoi">{o(`outil.${outil.id}.acheter`)}</span>
                 <span class="points" aria-hidden="true"></span>
                 <span class="prix">{t("prix", { prix: outil.cout })}</span>
               </button>
@@ -230,6 +270,11 @@
                   .join(", ")}.
               {/if}
             </p>
+            {#if outil && outilVisible(etat)}
+              <span class="note" role="tooltip" id="note-{outil.id}"
+                >{o(`outil.${outil.id}.note`)}</span
+              >
+            {/if}
           </li>
         </ul>
 
@@ -253,6 +298,25 @@
       />
     </div>
   </div>
+
+  {#if aideOuverte}
+    <div
+      class="aide"
+      id="aide-caves"
+      bind:this={pageAide}
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="aide-titre"
+      data-test="aide"
+    >
+      <h3 id="aide-titre">{o("aide.titre")}</h3>
+      {#each SECTIONS_AIDE as section (section)}
+        <h4>{o(`aide.${section}.titre`)}</h4>
+        <p>{o(`aide.${section}`)}</p>
+      {/each}
+      <button class="refermer" onclick={refermerAide}>{o("aide.fermer")}</button>
+    </div>
+  {/if}
 
   {#if fissure > 0}
     <Fissure depart={fondCoupe} avancee={fissure} />
@@ -300,12 +364,37 @@
     max-width: 1240px;
     margin: 0 auto;
   }
-  h2 {
+  .titre {
+    display: flex;
     grid-area: titre;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  h2 {
     margin: 0;
     font-size: 22px;
     font-weight: 400;
     font-style: italic;
+  }
+  /* Le lien vers l'aide : un mot à l'encre du bois, sans bouton. */
+  .lien-aide {
+    padding: 2px 4px;
+    font: inherit;
+    font-style: italic;
+    color: var(--sur-bois-doux);
+    cursor: pointer;
+    background: none;
+    border: none;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+  .lien-aide:hover {
+    color: var(--sur-bois);
+  }
+  .lien-aide:focus-visible {
+    outline: 1px solid var(--sur-bois);
+    outline-offset: 2px;
   }
   p {
     margin: 0;
@@ -541,6 +630,86 @@
     grid-area: bas;
   }
 
+  /* Une note en marge : un billet de papier glissé au-dessus de l'écriture, au survol ou au clavier. */
+  .avec-note {
+    position: relative;
+  }
+  .note {
+    position: absolute;
+    right: 100%;
+    top: 0;
+    z-index: 2;
+    width: 14rem;
+    margin-right: 14px;
+    padding: 6px 10px;
+    font-size: 14px;
+    font-style: italic;
+    line-height: 1.4;
+    color: var(--encre);
+    pointer-events: none;
+    visibility: hidden;
+    background: var(--papier-sombre);
+    box-shadow: 0 2px 0 var(--bois-sombre);
+    opacity: 0;
+    transform: rotate(-1deg);
+    transition:
+      opacity 200ms,
+      visibility 200ms;
+  }
+  .avec-note:hover .note,
+  .avec-note:focus-within .note {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 350ms;
+  }
+
+  /* L'aide : une page du registre, posée sur la table, qu'on referme. La vallée continue. */
+  .aide {
+    position: fixed;
+    top: 40px;
+    right: 16px;
+    z-index: 4;
+    box-sizing: border-box;
+    width: min(28rem, calc(100vw - 32px));
+    max-height: calc(100vh - 56px);
+    padding: 18px 22px 20px 34px;
+    overflow: auto;
+    color: var(--encre);
+    background-color: var(--papier);
+    background-image: linear-gradient(
+      90deg,
+      transparent 22px,
+      rgb(154 58 40 / 35%) 22px 23px,
+      transparent 23px
+    );
+    border-radius: 2px;
+    box-shadow: 0 6px 18px rgb(0 0 0 / 35%);
+  }
+  .aide:focus {
+    outline: none;
+  }
+  .aide h4 {
+    margin: 14px 0 2px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .aide p {
+    font-variant-numeric: oldstyle-nums;
+    color: var(--encre-douce);
+  }
+  .refermer {
+    margin-top: 16px;
+    padding: 0;
+    font: inherit;
+    font-style: italic;
+    color: var(--encre);
+    cursor: pointer;
+    background: none;
+    border: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
   /* Moins large : le calendrier au-dessus de la coupe, et le registre toujours à droite. */
   @media (max-width: 1180px) {
     .page {
@@ -554,6 +723,14 @@
     }
   }
   @media (max-width: 760px) {
+    /* Pas de marge à gauche du registre : la note se pose au-dessus de l'écriture. */
+    .note {
+      right: auto;
+      bottom: 100%;
+      top: auto;
+      left: 0;
+      margin: 0 0 4px;
+    }
     .page {
       grid-template-areas: "titre" "entete" "temps" "coupe" "droite" "bas";
       grid-template-columns: minmax(0, 1fr);
