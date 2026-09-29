@@ -8,7 +8,12 @@ import { etatInitial, type LigneRegistre } from "../logique/etat";
 import { VALLEE } from "../logique/regles";
 import Vue from "./Vue.svelte";
 
-const commandes: CommandesNoyau = { demanderFouille() {}, ouvrirAide() {}, terminer() {} };
+let aides = 0;
+const commandes: CommandesNoyau = {
+  demanderFouille() {},
+  ouvrirAide: () => aides++,
+  terminer() {},
+};
 
 let composant: ReturnType<typeof mount> | null = null;
 afterEach(() => {
@@ -111,7 +116,7 @@ describe("la vue des caves", () => {
       });
       expect(document.body.textContent).not.toContain("?");
       expect(document.body.textContent).not.toContain("{");
-      expect(bouton("Acheter : Charrue")).toBeDefined();
+      expect(bouton("Acheter une charrue")).toBeDefined();
       if (composant) unmount(composant);
       composant = null;
     }
@@ -281,11 +286,45 @@ describe("la vue des caves", () => {
     );
     expect(ecritures).toEqual([
       ["Installer une famille", "25\u00a0boisseaux"],
-      ["Construire : Grenier", "92\u00a0boisseaux"],
+      ["Construire un grenier", "92\u00a0boisseaux"],
     ]);
     expect(texte("[data-test=stockage-grenier] .detail")).toBe(
       "1\u00a0construit · 400\u00a0boisseaux chacun",
     );
+  });
+
+  it("écrit une note en marge de chaque écriture : la famille, le stockage, l'outil", () => {
+    monter((etat) => (etat.cumul = 200));
+    const note = (bouton: HTMLElement) =>
+      document.getElementById(bouton.getAttribute("aria-describedby")!)?.textContent?.trim();
+    expect(note(bouton("Installer une famille")!)).toBe(
+      "Une famille de plus aux champs. Elle récolte l'été, et mange toute l'année.",
+    );
+    expect(note(bouton("Construire un grenier")!)).toMatch(/^Un bâtiment de bois sur le champ/);
+    expect(note(bouton("Acheter une faucille")!)).toBe("On coupe plus vite, et plus près du sol.");
+  });
+
+  it("ouvre l'aide, une page du registre que le noyau note, et la referme", () => {
+    aides = 0;
+    monter();
+    const lien = bouton("Aide")!;
+    lien.click();
+    flushSync();
+    const aide = document.querySelector<HTMLElement>("[data-test=aide]")!;
+    expect(aide.getAttribute("role")).toBe("dialog");
+    expect([...aide.querySelectorAll("h4")].map((h) => h.textContent)).toEqual([
+      "Le calendrier",
+      "La réserve",
+      "Les stockages",
+      "Les familles",
+      "Les écritures",
+    ]);
+    expect(document.activeElement).toBe(aide);
+    expect(aides).toBe(1);
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    flushSync();
+    expect(document.querySelector("[data-test=aide]")).toBeNull();
+    expect(document.activeElement).toBe(lien);
   });
 
   it("dit que la vallée est pleine, et qu'elle a tous ses outils", () => {

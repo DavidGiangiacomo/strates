@@ -393,7 +393,7 @@ Ces lignes de l'arrivée et du seuil sont codées avec l'orchestration de la des
 
 ## 11. Textes
 
-- **Budget** : environ 600 mots. La rédaction est l'objet de [#17](https://github.com/DavidGiangiacomo/strates/issues/17), d'après la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)).
+- **Budget** : environ 600 mots. La rédaction est l'objet de [#17](https://github.com/DavidGiangiacomo/strates/issues/17). Ces textes sont provisoires : ils seront révisés d'après la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43), [#60](https://github.com/DavidGiangiacomo/strates/issues/60)).
 - **Ton** : celui d'un registre de village. Des phrases courtes, datées, constatées plutôt que racontées, sans émotion affichée : « Hiver de l'an 3 : passé sans rupture. 6 familles sont nées. » Le registre ne s'adresse jamais au joueur.
 - **À écrire** :
   - les noms et une ligne de description des 4 stockages et des 4 outils ;
@@ -407,6 +407,15 @@ Ces lignes de l'arrivée et du seuil sont codées avec l'orchestration de la des
   - l'aide de la strate : une page courte, écrite comme une page du registre, qui décrit le calendrier, la réserve et les stockages, et ne dit rien du bandeau.
 - **Traces laissées au fond** (strate 8) : trois lignes du registre au plus. Par exemple la dernière ligne écrite, le nombre d'hivers passés sans rupture, et la profondeur de la cave la plus basse.
 - **Aucun texte ne mentionne « creuser »**, bien que la civilisation n'ait fait que ça.
+
+### Dans le code ([#17](https://github.com/DavidGiangiacomo/strates/issues/17))
+
+Tous les textes sont dans `textes.fr.ts` : 614 mots, dont 163 pour l'aide, 99 pour les notes en marge et 153 pour la chronique. Un test vérifie le budget, l'absence de « creuser » et de point d'exclamation, que le registre ne s'adresse jamais au joueur et que l'aide ne parle ni du bandeau, ni de la profondeur, ni des objets.
+- **Les écritures** disent ce qu'on fait : « Installer une famille », « Construire un grenier », « Aménager une cave », « Acheter une charrue », « Adopter l'assolement ». Aucune ne dit « creuser ».
+- **Les notes en marge** : au survol d'une écriture, ou au clavier, un billet de papier glissé à gauche du registre en donne le sens (« Une tour de terre, à moitié enterrée. Le grain s'y garde mieux. »). Sur un téléphone, il se pose au-dessus de l'écriture. Il est lié au bouton (`aria-describedby`).
+- **L'aide** : un lien « Aide », en haut à droite de la vallée, ouvre une page du registre, « Comment tient la vallée », qu'on referme par « Refermer » ou Échap. Elle décrit le calendrier, la réserve, les stockages, les familles et les écritures. Elle ne nomme pas la marque d'hiver, qui ne prend son nom qu'au premier bilan (§ 7), et ne dit pas quand acheter : c'est la leçon du premier hiver (§ 5). Chaque ouverture est notée, comme à la surface.
+- **Les traces pour le fond** (`trace.hivers`, `trace.profondeur.*`) attendent la strate 8 ([#109](https://github.com/DavidGiangiacomo/strates/issues/109)).
+- **Les noms d'en bas** des objets de la surface restent dans le catalogue du noyau (`src/noyau/logique/catalogue.ts` ; [`artefacts.md`](../artefacts.md), § 8), comme le veut le modèle des artefacts : le registre les lit de là.
 
 ## 12. Critère R5
 
