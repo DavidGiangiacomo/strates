@@ -1,6 +1,10 @@
 <script lang="ts">
   import { onDestroy, type Component } from "svelte";
+  import type { JournalSession } from "../../playtest/journal";
+  import Journal from "../../playtest/Journal.svelte";
+  import { demarrerGardeJournal, metaNavigateur, ouvrirJournal } from "../../playtest/plateforme";
   import { creerEtatNoyau, type EtatNoyau } from "../logique/etat";
+  import type { Reprise } from "../logique/horsligne";
   import { Noyau } from "../logique/noyau";
   import type { StrateQuelconque } from "../logique/registre";
   import type { ActionBase, CommandesNoyau, ProprietesVue } from "../logique/types";
@@ -31,6 +35,25 @@
   let courante = $state.raw<{ strate: StrateQuelconque; etat: object } | null>(null);
 
   const attendre = (ms: number) => new Promise<void>((fin) => setTimeout(fin, ms));
+
+  /**
+   * Le journal de session des playtests (#26), s'il est demandé : l'adresse du jeu suivie de
+   * « ?journal=T3 » (docs/playtest-mvp.md, § 3). Sans stockage, pas de journal.
+   */
+  function ouvrirJournalSession(): { journal: JournalSession; zone: Storage } | null {
+    try {
+      const zone = window.localStorage;
+      const journal = ouvrirJournal({
+        url: new URL(location.href),
+        zone,
+        horloge: maintenant,
+        meta: () => metaNavigateur(VERSION_JEU, BUILD),
+      });
+      return journal ? { journal, zone } : null;
+    } catch {
+      return null;
+    }
+  }
   const sansMouvement = () =>
     typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -59,8 +82,22 @@
     const registre = creerRegistre();
     const noyau = new Noyau(registre, etat);
     await noyau.demarrer(maintenant());
+    const session = ouvrirJournalSession();
+    session?.journal.brancher(noyau);
+    const reprendre = (reprise: Reprise) => {
+      if (reprise.type === "absence") {
+        session?.journal.noter({
+          type: "absence",
+          duree: reprise.duree,
+          comptee: reprise.comptee,
+          politique: reprise.politique,
+          releve: session.journal.releve(),
+        });
+      }
+      resume = resumerReprise(reprise) ?? resume;
+    };
     // Rattrape le temps passé depuis la dernière sauvegarde, avant de rendre l'état réactif.
-    resume = resumerReprise(noyau.rattraper(maintenant()));
+    reprendre(noyau.rattraper(maintenant()));
     const monter = () => (courante = { strate: noyau.strate, etat: rendreStrateReactive(noyau) });
     monter();
 
@@ -73,23 +110,26 @@
       changerStrate: monter,
       resister: () => bandeau?.resister(),
       signaler: (message) => (avis = message),
+      surEvenement: (evenement) => session?.journal.noter(evenement),
       durees: sansMouvement() ? DUREES_REDUITES : DUREES,
     });
 
     arrets.push(
       demarrerBoucle(
         noyau,
-        (reprise) => (resume = resumerReprise(reprise) ?? resume),
+        reprendre,
         maintenant,
         () => vitesse,
-        // La strate 7 descend d'elle-même, sans écran de choix (docs/artefacts.md, § 6).
         () => {
+          session?.journal.suivre();
+          // La strate 7 descend d'elle-même, sans écran de choix (docs/artefacts.md, § 6).
           if (noyau.descenteAutomatique) void passage.descendre();
         },
       ),
     );
     await sauvegarder();
     arrets.push(demarrerAutosauvegarde(sauvegarder));
+    if (session) arrets.push(demarrerGardeJournal(session.journal, session.zone));
 
     // L'aide et les fins ne sont pas encore branchées.
     const commandes: CommandesNoyau = {
@@ -108,7 +148,7 @@
     }
 
     const dev = { gestionnaire, profondeurs: registre.numeros(), remplacerPartie };
-    return { noyau, passage, commandes, dev };
+    return { noyau, passage, commandes, dev, session };
   }
 
   const demarrage = demarrer();
@@ -118,7 +158,7 @@
 
 {#await demarrage}
   <main><p>Chargement…</p></main>
-{:then { noyau, passage, commandes, dev }}
+{:then { noyau, passage, commandes, dev, session }}
   {@const phase = passage.phase}
   <Bandeau
     bind:this={bandeau}
@@ -143,6 +183,7 @@
       occupe={passage.occupe}
       ondescendre={(emportes) => passage.descendre(emportes)}
       onreboucher={() => passage.reboucher()}
+      onbasculer={(objet, coche) => session?.journal.noter({ type: "case", objet, coche })}
     />
   {/if}
   {#if phase === "descente" || phase === "arrivee"}
@@ -183,6 +224,9 @@
       {/key}
     {/if}
   </main>
+  {#if session}
+    <Journal journal={session.journal} zone={session.zone} />
+  {/if}
   <!-- Retiré du build de production : import.meta.env.DEV y vaut false. -->
   {#if import.meta.env.DEV}
     {#await import("../../dev/OutilsDev.svelte") then { default: OutilsDev }}

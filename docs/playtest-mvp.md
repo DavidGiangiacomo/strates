@@ -41,6 +41,9 @@ Le test ne juge ni la qualité de la surface, ni l'équilibrage de la fin des ca
   - Le réglage « réduire les animations » du système du testeur est laissé tel quel, et noté.
   - Le MVP est muet.
 - **Le journal de session** ([#26](https://github.com/DavidGiangiacomo/strates/issues/26)), activé avant la première seconde de jeu, puis exporté à la fin (§ 9).
+  - Pour l'activer, l'observateur ouvre le jeu à l'adresse suivie du code du testeur : <https://davidgiangiacomo.github.io/strates/?journal=T3>. Le journal reprend seul après un rechargement.
+  - Un petit bouton « journal T3 », en bas à gauche, ouvre son panneau : « Exporter », « Analyser » (les lignes de la fiche, § 8) et « Arrêter le journal ».
+  - L'adresse suivie de `?journal=non` l'arrête aussi.
 - **La fiche d'observation** (§ 8) et **le guide d'entretien** (§ 7).
 - **L'enregistrement de l'écran et de la voix**, seulement avec l'accord écrit du testeur. Sinon, les notes suffisent.
 - **En présence ou à distance**, en partage d'écran. L'observateur voit l'écran du testeur, mais le testeur ne le voit pas prendre des notes.
@@ -79,22 +82,29 @@ Trois gestes, lus dans le journal de session sur la première année des caves, 
 
 | Geste | Définition | Ce qu'il montre |
 |---|---|---|
-| **G1** · dépenser l'automne | Un achat pendant l'automne de l'an 1, tel que l'affiche le calendrier, laisse la réserve sous la marque d'hiver. | « Acheter dès qu'on peut », au pire moment (fiche 2, § 5). |
+| **G1** · dépenser l'automne | Au moins un achat pendant l'automne de l'an 1, tel que l'affiche le calendrier, et la réserve sous la marque d'hiver au premier jour de l'hiver. | « Acheter dès qu'on peut », au pire moment (fiche 2, § 5). |
 | **G2** · installer au rendement | Au moins 10 familles installées pendant la première minute. | Le « poste » de la surface, acheté en série. |
 | **G3** · cliquer l'hiver | Au moins 3 clics sur « Glaner » pendant le premier hiver. | Le réflexe du clic, sur un bouton qui ne donne rien. |
 
 **Un testeur joue comme en strate 1 s'il fait au moins deux des trois gestes.**
 
-**Calibrage**, mesuré dans le code du jeu, avec les joueurs automatiques de l'équilibrage ([#36](https://github.com/DavidGiangiacomo/strates/issues/36)) et les objets d'un jeu correct :
-- le joueur réflexe fait G1 (deux achats d'automne sous la marque) et G2 (17 familles la première minute) ;
-- le joueur correct, le prudent et le distrait n'en font aucun : de 0 à 2 familles la première minute, et aucun achat d'automne sous la marque.
+**Calibrage.** Il est mesuré avec les joueurs automatiques de l'équilibrage ([#36](https://github.com/DavidGiangiacomo/strates/issues/36)) et les objets d'un jeu correct. Leurs journaux passent par l'analyse du § 9 (`tests/journal-joueurs.test.ts`) :
 
-G3 n'est pas simulé, puisque les joueurs automatiques ne cliquent pas en hiver.
+| Joueur | G1 : achats d'automne ; réserve / marque au premier jour de l'hiver | G2 : familles la première minute | G3 : clics d'hiver | Comme en strate 1 |
+|---|---|---|---|---|
+| réflexe | oui : 6 ; 0 / 3 370 | oui : 17 | oui : 280 | oui |
+| apprend | oui : 6 ; 0 / 3 370 | oui : 17 | oui : 280 | oui |
+| correct | non : 0 ; 3 313 / 2 372 | non : 2 | oui : 210 | non |
+| prudent | non : 0 ; 1 675 / 792 | non : 0 | oui : 40 | non |
+| distrait | non : 1 ; 3 024 / 2 182 | non : 2 | oui : 40 | non |
+
+- **Les joueurs automatiques cliquent sur « Glaner » quelle que soit la saison** : ils font tous G3. G3 seul ne distingue donc personne, et c'est pourquoi il faut deux gestes.
+- **G1 a été corrigé avant le test**, par cette vérification que demandait le § 9. Sa première définition (« un achat d'automne laisse la réserve sous la marque ») comptait à tort, en l'an 2, le joueur correct et le joueur distrait. En automne, la récolte n'est pas finie : une réserve sous la marque peut encore la rattraper avant l'hiver. Le geste juge donc l'entrée dans l'hiver.
 
 ### 5.2 Comprendre
 
 **Un testeur a compris** avant la fin du deuxième hiver, soit environ 13 minutes après l'arrivée, s'il remplit deux conditions :
-- **dans ses actes**, il ne refait pas G1 à l'automne de l'an 2 : aucun achat d'automne ne laisse la réserve sous la marque ;
+- **dans ses actes**, il ne refait pas G1 en l'an 2 : il n'entre pas dans le deuxième hiver sous la marque après un achat d'automne ;
 - **dans ses mots**, à l'entretien, il formule la règle sans qu'on la lui souffle : il faut garder du grain pour l'hiver, l'hiver ne produit rien, ou la marque dit ce qu'il faut garder (questions 5 et 6 du § 7).
 
 **Passer le deuxième hiver ne suffit pas.** Une fois les objets éveillés, même le joueur réflexe automatique y entre largement au-dessus de la marque (13 703 boisseaux pour une marque de 3 899) : ce n'est pas une preuve de compréhension.
@@ -207,14 +217,14 @@ CAVES (minutes depuis l'arrivée)
 ENTRETIEN
   Note (question 9) : _   Règle formulée (questions 5 et 6) : oui / non
   Mots exacts : _____________________________________________________
-DEPUIS LE JOURNAL
+DEPUIS LE JOURNAL (panneau du journal, « Analyser »)
   G1 _  G2 _  G3 _  → joue comme en strate 1 : oui / non
-  G1 à l'automne de l'an 2 : oui / non   → a compris : oui / non
+  G1 en l'an 2 : oui / non   → a compris : oui / non
 ```
 
 ## 9. Ce que doit enregistrer le journal de session
 
-Pour [#26](https://github.com/DavidGiangiacomo/strates/issues/26). Tout est horodaté en millisecondes depuis le début de la séance, avec le temps de jeu de la strate courante.
+Fait par [#26](https://github.com/DavidGiangiacomo/strates/issues/26), dans `src/playtest/`. Tout est horodaté en millisecondes depuis le début de la séance, avec le temps de jeu de la strate courante.
 
 - **Les métadonnées** : le code du testeur (saisi par l'observateur), la version et le commit du build, la date, le navigateur, la taille de la fenêtre et le réglage des animations.
 - **Les actions** de la strate, avec leurs paramètres :
@@ -228,14 +238,20 @@ Pour [#26](https://github.com/DavidGiangiacomo/strates/issues/26). Tout est horo
   - « descendre » (objets emportés et abandonnés).
 - **Les phases du passage** : pioche, fouille, rebouchage, descente, arrivée, jeu.
 - **Les absences et les rechargements** : onglet caché, durée, part comptée.
-- **Ce que le jeu écrit** : les objectifs atteints à la surface, les lignes du registre des caves (clé et valeurs), et l'apparition de la fissure.
-- **Un instantané toutes les 5 secondes de jeu** :
-  - surface : crédits, cumul, production ;
-  - caves : année, jour, saison, réserve, marque d'hiver, capacité, familles, outils, stockages.
+- **Ce que le jeu écrit** : les objectifs atteints à la surface, les lignes du registre des caves (clé et valeurs), et le premier jour de chaque hiver, avec la réserve et la marque.
+- **Le seuil** de chaque strate, au moment où il est atteint.
+- **Un relevé** toutes les 5 secondes de jeu, et après chaque action :
+  - surface : crédits, cumul, production, objectif, fissure ;
+  - caves : année, jour, saison, réserve, marque d'hiver, disette en cours, capacité, familles, familles installées, outils, stockages, hivers jugés, fissure.
+- **Une même action répétée dans la même seconde** n'est notée qu'une fois, avec son nombre : quatre clics par seconde ne font pas quatre lignes. Une séance de 13 minutes de caves tient en quelques centaines d'événements.
 
 **Rien de personnel** : ni nom, ni adresse, ni mouvements de souris. Le stockage est local, l'export se fait en JSON, d'un clic, et le journal peut être désactivé (#26).
 
-**Un script d'analyse** lit l'export et calcule les gestes G1 à G3, G1 à l'automne de l'an 2, et les temps de la descente. Il est à écrire avec #26, et à vérifier sur les exports des joueurs automatiques avant le test : le joueur réflexe doit jouer comme en strate 1, le joueur correct non.
+**L'analyse** lit le journal et calcule les gestes G1 à G3, G1 en l'an 2, et les temps de la descente :
+- pendant la séance, le bouton « Analyser » du panneau donne les lignes de la fiche (§ 8) ;
+- après, `npm run analyse -- strates-journal-T1-….json …` fait la même chose pour chaque export, puis un tableau de tous, pour le compte rendu (§ 11). La commande demande Node 22.18 ou plus.
+
+Elle est vérifiée sur les journaux des joueurs automatiques (§ 5.1) : le joueur réflexe et celui qui apprend jouent comme en strate 1 ; le correct, le prudent et le distrait non.
 
 ## 10. Avant le test
 

@@ -268,3 +268,29 @@ describe("la remontée finale", () => {
     expect(sauvegarde).toMatchObject({ credits: 5, cumul: 50, temps: 0 });
   });
 });
+
+describe("le journal de session", () => {
+  it("laisse une trace de chaque objectif atteint, même en cascade", () => {
+    const traces: unknown[] = [];
+    const etat = etatNeuf({ credits: 1000, cumul: 1000 });
+    etat.generateurs.poste = 4;
+    logique.agir(etat, { type: "produire" }, { ...ctx(), emettre: (e) => traces.push(e) });
+    // Produire 15 cr, acheter un poste, atteindre 1 cr/s : trois objectifs d'un coup.
+    expect(traces).toEqual([
+      { type: "trace", cle: "objectif", valeurs: { numero: 1 } },
+      { type: "trace", cle: "objectif", valeurs: { numero: 2 } },
+      { type: "trace", cle: "objectif", valeurs: { numero: 3 } },
+    ]);
+  });
+
+  it("donne un relevé du tableau de bord", () => {
+    const etat = avec({ poste: 4 }, { credits: 12, cumul: 40, objectif: 3 });
+    expect(logique.releve?.(etat)).toEqual({
+      credits: 12,
+      cumul: 40,
+      production: 1,
+      objectif: 3,
+      fissure: 0,
+    });
+  });
+});

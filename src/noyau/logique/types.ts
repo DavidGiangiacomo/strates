@@ -46,7 +46,16 @@ export interface LogiqueStrate<E, A extends ActionBase> {
   /** Accroches de la Compréhension, pour les affichages débloqués par κ (phases 2 et 3). */
   graphe?(etat: E): GrapheDependances;
   formules?(): Formule[];
+
+  /**
+   * Un relevé de l'état, pour le journal de session des playtests (#26) : quelques grandeurs à plat,
+   * celles que le protocole observe (docs/playtest-mvp.md, § 9). Le noyau ne les lit pas.
+   */
+  releve?(etat: E): Releve;
 }
+
+/** Un relevé : des valeurs simples, sérialisables en JSON. */
+export type Releve = Record<string, number | string | boolean | null>;
 
 export interface EtatSeuil {
   atteint: boolean;
@@ -113,8 +122,15 @@ export interface EffetsActifs {
   niveau(artefact: string): "puissant" | "utile" | null;
 }
 
-/** Acte de compréhension : la strate le signale, le barème est appliqué par le noyau. */
-export type EvenementStrate = { type: "acte"; acte: string };
+/**
+ * Ce que la strate signale au noyau :
+ * - un acte de compréhension, dont le barème est appliqué par le noyau ;
+ * - une trace, pour le journal de session des playtests (#26) : ce qu'elle écrit au joueur (un
+ *   objectif atteint, une ligne de registre), ou un moment qu'il faut dater (le premier jour d'un hiver).
+ */
+export type EvenementStrate =
+  | { type: "acte"; acte: string }
+  | { type: "trace"; cle: string; valeurs?: Record<string, number>; objet?: string };
 
 // ——— La vue (§ 5)
 

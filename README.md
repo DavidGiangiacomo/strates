@@ -31,7 +31,7 @@ Réglage unique du dépôt, déjà nécessaire au premier déploiement : *Settin
 
 ## Développement
 
-Prérequis : Node 22 (voir `.nvmrc`). La stack est décrite dans la décision D-004.
+Prérequis : Node 22.18 ou plus (voir `.nvmrc`). La stack est décrite dans la décision D-004.
 
 ```sh
 npm install          # dépendances
@@ -43,6 +43,7 @@ npm run check        # types : application, puis logique sans DOM
 npm run format       # Prettier
 npm run sauvegardes  # régénère les sauvegardes nommées (sauvegardes-nommees/)
 npm run mesures      # régénère les mesures d'équilibrage (docs/strates/strate-1-mesures.md et strate-2-mesures.md)
+npm run analyse -- journal.json …  # analyse des journaux de session exportés (docs/playtest-mvp.md, § 9)
 ```
 
 ### Outils de développement
@@ -55,6 +56,13 @@ Avec `npm run dev`, un bouton « dev » en bas à droite ouvre le panneau des ou
 - **État** : l'état de la strate courante en JSON, les artefacts et κ, à modifier à la main.
 
 Tout ce qui change la partie passe par une sauvegarde, puis un rechargement : le vrai chemin de chargement, migrations comprises. La partie repart alors de l'heure courante.
+
+### Journal de session
+
+Pour les playtests (#26 ; [protocole](docs/playtest-mvp.md), § 3 et § 9). L'observateur ouvre le jeu avec le code du testeur dans l'adresse : `…/strates/?journal=T3`.
+- Le journal note ce que fait le testeur, horodaté, sans rien de personnel. Il reste dans le navigateur et reprend seul après un rechargement.
+- Un bouton « journal T3 », en bas à gauche, ouvre son panneau : « Exporter » (un fichier JSON), « Analyser » (les gestes du protocole) et « Arrêter le journal ».
+- `?journal=non` l'arrête. `npm run analyse` lit les fichiers exportés.
 
 La CI (GitHub Actions) lance le lint, le formatage, les types, les tests et le build à chaque push et à chaque pull request. Sur `main`, elle publie ensuite la version de playtest.
 

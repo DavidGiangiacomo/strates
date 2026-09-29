@@ -4,6 +4,7 @@ import { etatInitial, PERIODE_HISTORIQUE, TAILLE_HISTORIQUE, type EtatSurface } 
 import {
   amelioration,
   ameliorationDisponible,
+  avanceeFissure,
   coutAchat,
   generateur,
   OBJECTIFS,
@@ -40,9 +41,12 @@ function avancerTemps(etat: EtatSurface, dt: number, p: number): void {
   }
 }
 
-/** Valide les objectifs atteints, en cascade, et note le seuil. */
-function verifier(etat: EtatSurface): void {
-  while (etat.objectif < OBJECTIFS.length && OBJECTIFS[etat.objectif]?.(etat)) etat.objectif++;
+/** Valide les objectifs atteints, en cascade, et note le seuil. Chaque objectif laisse une trace. */
+function verifier(etat: EtatSurface, ctx: ContexteTick): void {
+  while (etat.objectif < OBJECTIFS.length && OBJECTIFS[etat.objectif]?.(etat)) {
+    etat.objectif++;
+    ctx.emettre({ type: "trace", cle: "objectif", valeurs: { numero: etat.objectif } });
+  }
   if (etat.seuilAtteintA === null && production(etat) >= SEUIL_PRODUCTION) {
     etat.seuilAtteintA = etat.temps;
   }
@@ -89,7 +93,7 @@ export const logique: LogiqueStrate<EtatSurface, ActionSurface> = {
     const p = production(etat);
     gagner(etat, p * dt);
     avancerTemps(etat, dt, p);
-    verifier(etat);
+    verifier(etat, ctx);
   },
 
   agir(etat, action, ctx) {
@@ -105,11 +109,20 @@ export const logique: LogiqueStrate<EtatSurface, ActionSurface> = {
         ameliorer(etat, action.amelioration);
         break;
     }
-    verifier(etat);
+    verifier(etat, ctx);
   },
 
   seuil: (etat) => ({ atteint: etat.seuilAtteintA !== null }),
   valeurConvertible: (etat) => etat.cumul,
+
+  /** Pour le journal de session : ce que montre le tableau de bord, et la fissure du filet. */
+  releve: (etat) => ({
+    credits: etat.credits,
+    cumul: etat.cumul,
+    production: production(etat),
+    objectif: etat.objectif,
+    fissure: avanceeFissure(etat),
+  }),
 
   /** La surface telle qu'on l'a laissée, avec sa production qui a tourné pendant toute la partie (§11). */
   remontee(etatSauvegarde, duree) {

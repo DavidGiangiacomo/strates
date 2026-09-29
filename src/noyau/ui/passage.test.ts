@@ -9,7 +9,7 @@ import { creerEtatNoyau } from "../logique/etat";
 import { Noyau } from "../logique/noyau";
 import { Registre, type StrateQuelconque } from "../logique/registre";
 import type { LogiqueStrate } from "../logique/types";
-import { DUREES, PAS_DE_SUITE, Passage, type Phase } from "./passage.svelte";
+import { DUREES, PAS_DE_SUITE, Passage, type EvenementPassage, type Phase } from "./passage.svelte";
 
 type LogiqueFactice = LogiqueStrate<EtatFactice, ActionFactice>;
 
@@ -35,7 +35,13 @@ async function partie(
   const noyau = new Noyau(registre, creerEtatNoyau(1, DEBUT));
   await noyau.demarrer(DEBUT);
 
-  const appels = { resister: 0, changer: 0, sauvegarder: 0, messages: [] as string[] };
+  const appels = {
+    resister: 0,
+    changer: 0,
+    sauvegarder: 0,
+    messages: [] as string[],
+    evenements: [] as EvenementPassage[],
+  };
   const passage = new Passage({
     noyau,
     maintenant: () => DEBUT + Date.now(),
@@ -49,6 +55,7 @@ async function partie(
     changerStrate: () => appels.changer++,
     resister: () => appels.resister++,
     signaler: (m) => appels.messages.push(m),
+    surEvenement: (e) => appels.evenements.push(e),
   });
   return { noyau, passage, appels };
 }
@@ -220,5 +227,51 @@ describe("la descente", () => {
     await descend;
     expect(noyau.etat.profondeur).toBe(2);
     expect(noyau.etat.artefacts).toEqual(noyau.etat.meta.journal.strates[0]?.fouille?.emportes);
+  });
+});
+
+describe("le journal de session", () => {
+  it("reçoit les réponses de « creuser », la fouille, le choix et chaque phase", async () => {
+    const { noyau, passage, appels } = await partie();
+    await passage.creuser();
+    auSeuil(noyau);
+    void passage.creuser();
+    await vi.advanceTimersByTimeAsync(DUREES.pioche);
+    void passage.reboucher();
+    await vi.advanceTimersByTimeAsync(DUREES.reboucher);
+    void passage.creuser();
+    await vi.advanceTimersByTimeAsync(DUREES.pioche);
+    void passage.descendre(["s1-equipe"]);
+    await vi.runAllTimersAsync();
+
+    const resume = appels.evenements.map((e) =>
+      e.type === "phase" ? e.phase : e.type === "creuser" ? `creuser:${e.reponse}` : e.type,
+    );
+    expect(resume).toEqual([
+      "creuser:resiste",
+      "creuser:fouille",
+      "fouille",
+      "pioche",
+      "fouille",
+      "reboucher",
+      "rebouchage",
+      "jeu",
+      "creuser:fouille",
+      "fouille",
+      "pioche",
+      "fouille",
+      "descendre",
+      "descente",
+      "arrivee",
+      "jeu",
+    ]);
+    expect(appels.evenements).toContainEqual({
+      type: "descendre",
+      emportes: ["s1-equipe"],
+      abandonnes: ["s1-double-ecran", "s1-serveur", "s1-filiale", "s1-turbine", "s1-plan"],
+    });
+    expect(appels.evenements).toContainEqual(
+      expect.objectContaining({ type: "fouille", points: 12 }),
+    );
   });
 });

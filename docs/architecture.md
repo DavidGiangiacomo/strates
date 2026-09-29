@@ -90,6 +90,12 @@ interface LogiqueStrate<E, A extends ActionBase> {
   /** Accroches de la Compréhension, pour les affichages débloqués par κ (phases 2 et 3). */
   graphe?(etat: E): GrapheDependances;
   formules?(): Formule[];
+
+  /**
+   * Un relevé de l'état, pour le journal de session des playtests (#26) : quelques grandeurs à plat,
+   * celles que le protocole observe. Le noyau ne les lit pas.
+   */
+  releve?(etat: E): Record<string, number | string | boolean | null>;
 }
 
 interface EtatSeuil {
@@ -154,7 +160,12 @@ interface EffetsActifs {
 
 type EvenementStrate =
   /** Acte de compréhension : la strate le signale, le barème est appliqué par le noyau. */
-  { type: "acte"; acte: string };
+  | { type: "acte"; acte: string }
+  /**
+   * Trace pour le journal de session (#26) : ce que la strate écrit au joueur (un objectif, une
+   * ligne de registre), ou un moment à dater (le premier jour d'un hiver).
+   */
+  | { type: "trace"; cle: string; valeurs?: Record<string, number>; objet?: string };
 
 /** État d'un générateur pseudo-aléatoire, rangé dans l'état de la strate. */
 interface EtatAlea {
@@ -222,7 +233,11 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
 - **Hors-ligne standard** : le noyau simule 80 % de l'absence, plafonnée à 12 h, par ticks de `pasMax` au plus. En politique propre, il appelle `absence()`. Le temps rattrapé s'ajoute à `tempsHorsLigne`, pas à `tempsDeJeu`. Le rattrapage du chargement se fait avant l'enveloppe réactive, sur l'objet brut ; en session, il passe par l'enveloppe, comme les ticks (12 h de la strate factice : moins de 0,1 s dans Chromium).
 - **Bandeau** (`noyau/ui/Bandeau.svelte`, §12) : 24 px en haut de l'écran, identique quelle que soit la strate montée, avec la Profondeur, les artefacts et le bouton « creuser ». Le bouton a le même aspect avant et après le seuil ; seule sa réponse change. Avant le seuil, `demanderFouille()` refuse et le bandeau tressaille, sans texte ni pénalité (un bref assombrissement si le joueur préfère moins de mouvement ; le son sourd viendra avec le moteur audio, [#46](https://github.com/DavidGiangiacomo/strates/issues/46)). Le bouton d'une strate qui appellerait `CommandesNoyau.demanderFouille()` a la même réponse.
 - **Résumé au retour** : `noyau/ui/reprise.ts` rédige le résumé d'une absence d'au moins une minute (durée, taux, plafond atteint, ou les lignes de la strate en politique propre). L'interface l'affiche jusqu'à ce que le joueur le ferme.
-- **Actions** : mises en file, appliquées au début du tick suivant dans l'ordre d'arrivée, et journalisées si le journal de session est actif.
+- **Actions** : mises en file, appliquées au début du tick suivant dans l'ordre d'arrivée.
+- **Journal de session** ([#26](https://github.com/DavidGiangiacomo/strates/issues/26), `src/playtest/`) : pour les playtests, et seulement si l'observateur l'a demandé (`?journal=T3` dans l'adresse).
+  - Il observe le noyau (`Noyau.observateur`), qui le prévient de chaque action appliquée et de chaque événement des strates.
+  - Il note le relevé de la strate (`releve`), toutes les 5 secondes de jeu et après chaque action, ainsi que les traces, le seuil, et ce que signale le passage (réponses de « creuser », fouille, phases).
+  - Le noyau n'en dépend pas : sans journal, l'observateur est vide.
 - **Après chaque tick** : le noyau lit `seuil()`, et note au journal l'heure où il est atteint (`seuil.le`, avec l'issue). Si le seuil est atteint et `automatique` vaut vrai, `Noyau.descenteAutomatique` le signale, et l'interface lance la descente sans le joueur, à la fin de l'image. Sinon, le bouton de fouille du bandeau cesse de résister.
 - **Sauvegarde** : selon D-005 (toutes les 30 s, en arrière-plan, après chaque descente). Le format, sa validation et les migrations sont dans `noyau/logique/sauvegarde.ts` et `migrations.ts` ; le stockage, la rotation des deux emplacements et la mise de côté des sauvegardes illisibles, dans `noyau/plateforme/sauvegarde.ts`. Les migrations d'une strate s'appliquent à son démarrage. De vraies sauvegardes de chaque version publiée sont archivées dans `tests/sauvegardes/` et doivent toutes se charger.
 
