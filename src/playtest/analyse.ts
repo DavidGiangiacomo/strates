@@ -32,6 +32,8 @@ export interface AnalyseSession {
     resistances: number;
     /** La fissure du filet a-t-elle paru avant la fouille ? */
     fissure: boolean;
+    /** Les ouvertures de l'aide de la surface. */
+    aide: number;
   };
   fouille: {
     ouvertures: number;
@@ -53,6 +55,8 @@ export interface AnalyseSession {
     premierBilan: number | null;
     /** Le temps joué dans les caves, en secondes de jeu. */
     duree: number;
+    /** Les ouvertures de l'aide des caves. */
+    aide: number;
   } | null;
 }
 
@@ -80,6 +84,7 @@ function analyserSurface(evenements: EvenementJournal[]): AnalyseSession["surfac
     fissure: surface.some(
       (e) => (!ouverture || e.t <= ouverture.t) && (nombre(releveDe(e), "fissure") ?? 0) > 0,
     ),
+    aide: surface.filter((e) => e.type === "aide").length,
   };
 }
 
@@ -167,6 +172,7 @@ function analyserCaves(evenements: EvenementJournal[]): AnalyseSession["caves"] 
     premiereRupture,
     premierBilan: bilan ? bilan.j : null,
     duree: caves.at(-1)!.j,
+    aide: caves.filter((e) => e.type === "aide").length,
   };
 }
 
@@ -200,7 +206,8 @@ export function resumer(a: AnalyseSession): string[] {
   lignes.push(
     `Surface : seuil ${s.seuil === null ? "non atteint" : `à ${s.seuil} min`}` +
       (s.creuserApresSeuil === null ? "" : `, creusé ${s.creuserApresSeuil} s après`) +
-      `, ${s.resistances} clic(s) sur « creuser » avant, fissure : ${ouiNon(s.fissure)}`,
+      `, ${s.resistances} clic(s) sur « creuser » avant, fissure : ${ouiNon(s.fissure)}` +
+      `, aide ouverte ${s.aide} fois`,
   );
   if (a.fouille) {
     const f = a.fouille;
@@ -216,6 +223,7 @@ export function resumer(a: AnalyseSession): string[] {
         ` → joue comme en strate 1 : ${ouiNon(c.commeStrate1)}`,
       `G1 en l'an 2 : ${ouiNon(c.g1An2)}`,
       `Première rupture : ${minutes(c.premiereRupture)} · premier bilan : ${minutes(c.premierBilan)} · caves jouées : ${minutes(c.duree)}`,
+      `Aide des caves ouverte ${c.aide} fois`,
     );
   } else {
     lignes.push("Caves : pas atteintes.");
@@ -237,6 +245,7 @@ export function tableau(analyses: AnalyseSession[]): string {
     "G1 an 2",
     "Première rupture",
     "Premier bilan",
+    "Aide",
   ];
   const lignes = analyses.map((a) => [
     a.testeur,
@@ -252,6 +261,7 @@ export function tableau(analyses: AnalyseSession[]): string {
     a.caves ? ouiNon(a.caves.g1An2) : "—",
     a.caves ? minutes(a.caves.premiereRupture) : "—",
     a.caves ? minutes(a.caves.premierBilan) : "—",
+    `${a.surface.aide} / ${a.caves ? a.caves.aide : "—"}`,
   ]);
   return [
     `| ${entetes.join(" | ")} |`,

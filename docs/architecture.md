@@ -198,7 +198,7 @@ interface ProprietesVue<E, A extends ActionBase> {
 interface CommandesNoyau {
   /** Demande la descente. Le noyau la refuse tant que le seuil n'est pas atteint. */
   demanderFouille(): void;
-  /** Ouvre l'aide de la strate ; le noyau note la consultation (acte « sans aide »). */
+  /** La strate ouvre son aide, qu'elle affiche elle-même ; le noyau note la consultation (acte « sans aide »). */
   ouvrirAide(): void;
   /** Termine la partie. Seulement au fond. */
   terminer(fin: "remonter" | "rester"): void;
@@ -238,7 +238,7 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
 - **Actions** : mises en file, appliquées au début du tick suivant dans l'ordre d'arrivée.
 - **Journal de session** ([#26](https://github.com/DavidGiangiacomo/strates/issues/26), `src/playtest/`) : pour les playtests, et seulement si l'observateur l'a demandé (`?journal=T3` dans l'adresse).
   - Il observe le noyau (`Noyau.observateur`), qui le prévient de chaque action appliquée et de chaque événement des strates.
-  - Il note le relevé de la strate (`releve`), toutes les 5 secondes de jeu et après chaque action, ainsi que les traces, le seuil, et ce que signale le passage (réponses de « creuser », fouille, phases).
+  - Il note le relevé de la strate (`releve`), toutes les 5 secondes de jeu et après chaque action, ainsi que les traces, le seuil, ce que signale le passage (réponses de « creuser », fouille, phases) et les ouvertures de l'aide.
   - Le noyau n'en dépend pas : sans journal, l'observateur est vide.
 - **Après chaque tick** : le noyau lit `seuil()`, et note au journal l'heure où il est atteint (`seuil.le`, avec l'issue). Si le seuil est atteint et `automatique` vaut vrai, `Noyau.descenteAutomatique` le signale, et l'interface lance la descente sans le joueur, à la fin de l'image. Sinon, le bouton de fouille du bandeau cesse de résister.
 - **Sauvegarde** : selon D-005 (toutes les 30 s, en arrière-plan, après chaque descente). Le format, sa validation et les migrations sont dans `noyau/logique/sauvegarde.ts` et `migrations.ts` ; le stockage, la rotation des deux emplacements et la mise de côté des sauvegardes illisibles, dans `noyau/plateforme/sauvegarde.ts`. Les migrations d'une strate s'appliquent à son démarrage. De vraies sauvegardes de chaque version publiée sont archivées dans `tests/sauvegardes/` et doivent toutes se charger.

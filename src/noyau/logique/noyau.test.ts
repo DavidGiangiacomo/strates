@@ -67,6 +67,13 @@ describe("le démarrage", () => {
     ]);
   });
 
+  it("note au journal de la strate que son aide a été ouverte", async () => {
+    const noyau = await noyauDemarre();
+    noyau.noterAide();
+    noyau.noterAide();
+    expect(noyau.etat.meta.journal.strates.at(-1)?.aideConsultee).toBe(true);
+  });
+
   it("reprend l'état existant d'une strate au lieu de le recréer", async () => {
     const noyau = await noyauDemarre();
     noyau.agir({ type: "produire" });

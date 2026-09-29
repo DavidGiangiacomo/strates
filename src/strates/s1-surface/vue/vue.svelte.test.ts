@@ -8,7 +8,12 @@ import type { ActionSurface, EtatSurface } from "../logique";
 import { etatInitial } from "../logique/etat";
 import Vue from "./Vue.svelte";
 
-const commandes: CommandesNoyau = { demanderFouille() {}, ouvrirAide() {}, terminer() {} };
+let aides = 0;
+const commandes: CommandesNoyau = {
+  demanderFouille() {},
+  ouvrirAide: () => aides++,
+  terminer() {},
+};
 
 let composant: ReturnType<typeof mount> | null = null;
 // Sans mouvement : les compteurs sautent à leur valeur, et les transitions durent 0 ms. happy-dom
@@ -146,6 +151,72 @@ describe("la vue de la surface", () => {
     flushSync();
     expect(texte("[data-test=credits]")).toBe(e("2,04 M cr"));
     expect(texte("[data-test=production]")).toBe(e("1,00 cr/s"));
+  });
+
+  it("dit « Objectif atteint. » quand un objectif est atteint, pas à l'ouverture", () => {
+    const { etat } = monter((e) => (e.objectif = 2));
+    expect(texte("[data-test=objectif-atteint]")).toBe("");
+    etat.objectif = 3;
+    flushSync();
+    expect(texte("[data-test=objectif-atteint]")).toBe("Objectif atteint.");
+    expect(document.querySelector("[data-test=objectif-atteint]")?.getAttribute("role")).toBe(
+      "status",
+    );
+  });
+
+  it("décrit chaque moyen de production et chaque amélioration dans une infobulle", () => {
+    monter((etat) => {
+      etat.cumul = 400;
+      etat.credits = 400;
+      etat.generateurs.poste = 10;
+    });
+    const acheter = document.querySelector("[data-test=generateur-poste] .acheter")!;
+    const bulle = document.getElementById(acheter.getAttribute("aria-describedby")!);
+    expect(bulle?.getAttribute("role")).toBe("tooltip");
+    expect(bulle?.textContent?.trim()).toBe("Un poste de travail, occupé à plein temps.");
+
+    const doubleEcran = bouton("Double écran")!;
+    expect(
+      document.getElementById(doubleEcran.getAttribute("aria-describedby")!)?.textContent?.trim(),
+    ).toBe("Deux fois plus de fenêtres ouvertes.");
+    expect(texte("[data-test=generateur-poste] .identite p")).toBe(
+      `10 en service · ${e("2,50 cr/s")}`,
+    );
+  });
+
+  it("ouvre l'aide, que le noyau note, puis la referme au bouton ou par Échap", () => {
+    aides = 0;
+    monter();
+    const lien = bouton("Aide")!;
+    expect(lien.getAttribute("aria-expanded")).toBe("false");
+    lien.click();
+    flushSync();
+    const aide = document.querySelector("[data-test=aide]")!;
+    expect(aide.getAttribute("role")).toBe("dialog");
+    expect([...aide.querySelectorAll("dt")].map((dt) => dt.textContent)).toEqual([
+      "Crédits",
+      "Produire",
+      "Moyens de production",
+      "Améliorations",
+      "Production",
+      "Objectifs",
+      "Absence",
+      "Notation",
+    ]);
+    expect(aides).toBe(1);
+    expect(document.activeElement).toBe(aide);
+
+    bouton("Fermer")!.click();
+    flushSync();
+    expect(document.querySelector("[data-test=aide]")).toBeNull();
+    expect(document.activeElement).toBe(lien);
+
+    lien.click();
+    flushSync();
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    flushSync();
+    expect(document.querySelector("[data-test=aide]")).toBeNull();
+    expect(aides).toBe(2);
   });
 
   it("annonce la fin des objectifs", () => {

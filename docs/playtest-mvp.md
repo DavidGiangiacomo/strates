@@ -220,6 +220,7 @@ ENTRETIEN
 DEPUIS LE JOURNAL (panneau du journal, « Analyser »)
   G1 _  G2 _  G3 _  → joue comme en strate 1 : oui / non
   G1 en l'an 2 : oui / non   → a compris : oui / non
+  Aide ouverte : surface _ fois, caves _ fois
 ```
 
 ## 9. Ce que doit enregistrer le journal de session
@@ -237,6 +238,7 @@ Fait par [#26](https://github.com/DavidGiangiacomo/strates/issues/26), dans `src
   - « reboucher » ;
   - « descendre » (objets emportés et abandonnés).
 - **Les phases du passage** : pioche, fouille, rebouchage, descente, arrivée, jeu.
+- **L'aide** de la strate : chaque ouverture ([#16](https://github.com/DavidGiangiacomo/strates/issues/16)). L'analyse compte les ouvertures dans chaque strate.
 - **Les absences et les rechargements** : onglet caché, durée, part comptée.
 - **Ce que le jeu écrit** : les objectifs atteints à la surface, les lignes du registre des caves (clé et valeurs), et le premier jour de chaque hiver, avec la réserve et la marque.
 - **Le seuil** de chaque strate, au moment où il est atteint.

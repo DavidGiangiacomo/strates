@@ -27,7 +27,7 @@
   import { formaterDebit, formaterMontant, formaterNombre, formaterRepere } from "./notation";
   import { VARIABLES } from "./theme";
 
-  let { etat, agir, o }: ProprietesVue<EtatSurface, ActionSurface> = $props();
+  let { etat, agir, noyau, o }: ProprietesVue<EtatSurface, ActionSurface> = $props();
 
   const p = $derived(production(etat));
   const fissure = $derived(avanceeFissure(etat));
@@ -42,6 +42,48 @@
   const avancee = $derived(avanceeObjectif(etat));
   /** Les numéros des objectifs atteints, dans l'ordre. */
   const atteints = $derived(Array.from({ length: etat.objectif }, (_, i) => i + 1));
+
+  // « Objectif atteint. », quelques secondes, à chaque objectif atteint pendant qu'on regarde.
+  let atteintALInstant = $state(false);
+  // svelte-ignore state_referenced_locally
+  let dernierObjectif = etat.objectif;
+  $effect(() => {
+    const n = etat.objectif;
+    const nouveau = n > dernierObjectif;
+    dernierObjectif = n;
+    if (!nouveau) return;
+    atteintALInstant = true;
+    const minuterie = setTimeout(() => (atteintALInstant = false), 3000);
+    return () => clearTimeout(minuterie);
+  });
+
+  // L'aide du tableau de bord (fiche, § 11) : elle ne dit rien du bandeau. L'ouvrir est noté (§ 7).
+  const SECTIONS_AIDE = [
+    "credits",
+    "produire",
+    "generateurs",
+    "ameliorations",
+    "production",
+    "objectifs",
+    "absence",
+    "notation",
+  ] as const;
+  let aideOuverte = $state(false);
+  let lienAide: HTMLButtonElement | undefined = $state();
+  let panneauAide: HTMLElement | undefined = $state();
+
+  function ouvrirAide(): void {
+    aideOuverte = true;
+    noyau.ouvrirAide();
+  }
+  function refermerAide(): void {
+    aideOuverte = false;
+    lienAide?.focus();
+  }
+  // À l'ouverture, le focus va au panneau : la lecture commence par son titre.
+  $effect(() => {
+    if (aideOuverte) panneauAide?.focus();
+  });
 
   // Des transitions courtes et douces (fiche, § 6) : ce qui apparaît glisse de quelques pixels.
   const mouvement =
@@ -72,9 +114,24 @@
   }
 </script>
 
+<svelte:window
+  onkeydown={(e) => {
+    if (aideOuverte && e.key === "Escape") refermerAide();
+  }}
+/>
+
 <section class="surface" style={VARIABLES}>
   <div class="page">
-    <h2>{o("titre")}</h2>
+    <header class="entete">
+      <h2>{o("titre")}</h2>
+      <button
+        class="lien-aide"
+        bind:this={lienAide}
+        aria-expanded={aideOuverte}
+        aria-controls="aide-surface"
+        onclick={() => (aideOuverte ? refermerAide() : ouvrirAide())}>{o("aide")}</button
+      >
+    </header>
 
     <div class="indicateurs">
       <article class="carte indicateur">
@@ -96,6 +153,9 @@
             {objectif ?? o("objectifs.fini")}
           </p>
         {/key}
+        <p class="atteint" role="status" data-test="objectif-atteint">
+          {atteintALInstant ? o("objectif.atteint") : ""}
+        </p>
         {#if avancee !== null}
           <div class="jauge" aria-hidden="true">
             <div class="rempli" style:width="{avancee * 100}%"></div>
@@ -149,34 +209,42 @@
         <ul class="generateurs">
           {#each generateurs as g (g.id)}
             {@const n = etat.generateurs[g.id]}
-            <li data-test="generateur-{g.id}" in:apparaitre>
+            <li class="avec-infobulle" data-test="generateur-{g.id}" in:apparaitre>
               <div class="identite">
                 <h4>{o(`generateur.${g.id}`)}</h4>
                 <p>
-                  {o("possedes")} : {n} · {formaterDebit(productionGenerateur(etat, g))}
+                  {remplir(o("en-service"), { n: String(n) })} · {formaterDebit(
+                    productionGenerateur(etat, g),
+                  )}
                 </p>
               </div>
               <div class="achats">
                 <button
                   class="acheter"
+                  aria-describedby="infobulle-{g.id}"
                   disabled={etat.credits < coutAchat(g, n)}
                   onclick={() => agir({ type: "acheter", generateur: g.id, quantite: 1 })}
                 >
                   {o("acheter.1")} <span class="prix">{formaterMontant(coutAchat(g, n))}</span>
                 </button>
                 <button
+                  aria-label={o("acheter.10.nom")}
                   disabled={etat.credits < coutAchat(g, n, 10)}
                   onclick={() => agir({ type: "acheter", generateur: g.id, quantite: 10 })}
                 >
                   {o("acheter.10")}
                 </button>
                 <button
+                  aria-label={o("acheter.max.nom")}
                   disabled={quantiteAbordable(g, n, etat.credits) < 1}
                   onclick={() => agir({ type: "acheter", generateur: g.id, quantite: "max" })}
                 >
                   {o("acheter.max")}
                 </button>
               </div>
+              <span class="infobulle" role="tooltip" id="infobulle-{g.id}">
+                {o(`generateur.${g.id}.description`)}
+              </span>
             </li>
           {/each}
         </ul>
@@ -189,8 +257,9 @@
         {:else}
           <ul class="ameliorations">
             {#each ameliorations as a (a.id)}
-              <li in:apparaitre>
+              <li class="avec-infobulle" in:apparaitre>
                 <button
+                  aria-describedby="infobulle-{a.id}"
                   disabled={etat.credits < a.cout}
                   onclick={() => agir({ type: "ameliorer", amelioration: a.id })}
                 >
@@ -198,6 +267,9 @@
                   <span class="effet">{effet(a)}</span>
                   <span class="prix">{formaterMontant(a.cout)}</span>
                 </button>
+                <span class="infobulle" role="tooltip" id="infobulle-{a.id}">
+                  {o(`amelioration.${a.id}.description`)}
+                </span>
               </li>
             {/each}
           </ul>
@@ -205,6 +277,30 @@
       </article>
     </div>
   </div>
+
+  {#if aideOuverte}
+    <div
+      class="aide"
+      id="aide-surface"
+      bind:this={panneauAide}
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="aide-titre"
+      data-test="aide"
+      in:apparaitre
+    >
+      <h3 id="aide-titre">{o("aide.titre")}</h3>
+      <dl>
+        {#each SECTIONS_AIDE as section (section)}
+          <dt>{o(`aide.${section}.titre`)}</dt>
+          <dd>{o(`aide.${section}`)}</dd>
+        {/each}
+      </dl>
+      <button class="fermer" onclick={refermerAide}>
+        {o("aide.fermer")}
+      </button>
+    </div>
+  {/if}
 
   <!-- Le filet : si le joueur n'a pas creusé après le seuil, une fissure le mène au bandeau. -->
   {#if fissure > 0}
@@ -239,11 +335,29 @@
     max-width: 1180px;
     margin: 0 auto;
   }
-  h2 {
+  .entete {
+    display: flex;
     grid-column: 1 / -1;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  h2 {
     margin: 0;
     font-size: 18px;
     font-weight: 600;
+  }
+  /* Le lien vers l'aide : discret, comme dans un logiciel. */
+  .lien-aide {
+    padding: 2px 4px;
+    color: var(--doux);
+    background: none;
+    text-decoration: underline;
+    text-decoration-color: var(--trait);
+    text-underline-offset: 3px;
+  }
+  .lien-aide:hover:not(:disabled) {
+    color: var(--texte);
+    background: none;
   }
   .indicateurs {
     display: grid;
@@ -309,6 +423,12 @@
   .objectif.fini {
     font-weight: 400;
     color: var(--doux);
+  }
+  /* « Objectif atteint. » : quelques secondes, dans le vert des objectifs atteints. */
+  .atteint {
+    min-height: 1.2em;
+    font-size: 12px;
+    color: var(--vert);
   }
   .jauge {
     height: 6px;
@@ -467,6 +587,70 @@
     align-self: center;
   }
 
+  /* Les infobulles : la description d'un moyen ou d'une amélioration, au survol ou au clavier. */
+  .avec-infobulle {
+    position: relative;
+  }
+  .infobulle {
+    position: absolute;
+    bottom: calc(100% - 4px);
+    left: 0;
+    z-index: 2;
+    max-width: 18rem;
+    padding: 6px 10px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--carte);
+    pointer-events: none;
+    visibility: hidden;
+    background: var(--texte);
+    border-radius: 6px;
+    opacity: 0;
+    transition:
+      opacity 150ms,
+      visibility 150ms;
+  }
+  .avec-infobulle:hover .infobulle,
+  .avec-infobulle:focus-within .infobulle {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 350ms;
+  }
+
+  /* L'aide : un panneau à droite, sous le bandeau, qu'on referme ; le tableau de bord continue. */
+  .aide {
+    position: fixed;
+    top: 40px;
+    right: 16px;
+    z-index: 4;
+    box-sizing: border-box;
+    width: min(28rem, calc(100vw - 32px));
+    max-height: calc(100vh - 56px);
+    padding: 18px 20px;
+    overflow: auto;
+    background: var(--carte);
+    border: 1px solid var(--trait);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgb(60 50 40 / 16%);
+  }
+  .aide:focus {
+    outline: none;
+  }
+  .aide h3 {
+    font-size: 13px;
+  }
+  .aide dl {
+    margin: 0 0 16px;
+  }
+  .aide dt {
+    margin-top: 10px;
+    font-weight: 600;
+  }
+  .aide dd {
+    margin: 2px 0 0;
+    color: var(--doux);
+  }
+
   @media (max-width: 900px) {
     .page {
       grid-template-columns: minmax(0, 1fr);
@@ -482,7 +666,8 @@
   }
   @media (prefers-reduced-motion: reduce) {
     button,
-    .rempli {
+    .rempli,
+    .infobulle {
       transition: none;
     }
   }

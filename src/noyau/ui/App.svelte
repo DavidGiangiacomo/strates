@@ -134,10 +134,13 @@
     arrets.push(demarrerAutosauvegarde(sauvegarder));
     if (session) arrets.push(demarrerGardeJournal(session.journal, session.zone));
 
-    // L'aide et les fins ne sont pas encore branchées.
+    // Les fins ne sont pas encore branchées.
     const commandes: CommandesNoyau = {
       demanderFouille: () => void passage.creuser(),
-      ouvrirAide() {},
+      ouvrirAide() {
+        noyau.noterAide();
+        session?.journal.noter({ type: "aide" });
+      },
       terminer() {},
     };
     /** Outils de développement : écrit `nouvel` état comme sauvegarde courante, puis recharge. */

@@ -40,7 +40,8 @@ export type DonneesJournal =
   | { type: "reboucher" }
   | { type: "descendre"; emportes: string[]; abandonnes: string[] }
   | { type: "phase"; phase: string }
-  | { type: "absence"; duree: number; comptee: number; politique: string; releve: Releve | null };
+  | { type: "absence"; duree: number; comptee: number; politique: string; releve: Releve | null }
+  | { type: "aide" };
 
 /**
  * Un événement : ce qui s'est passé, quand (`t`, en millisecondes depuis le début de la séance),

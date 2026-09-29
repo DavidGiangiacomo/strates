@@ -114,6 +114,7 @@ describe("l'analyse des journaux, sur les joueurs automatiques", () => {
       creuserApresSeuil: null,
       resistances: 0,
       fissure: false,
+      aide: 0,
     });
     expect(ANALYSES.correct!.fouille).toBeNull();
   });
