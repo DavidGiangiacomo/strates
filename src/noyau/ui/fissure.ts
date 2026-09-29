@@ -90,3 +90,33 @@ export function ramificationsFissure(depart: Point, arrivee: Point): { a: number
     return { a: TRACE[sommet]![0], d: chemin([origine, coude, bout]) };
   });
 }
+
+// ——— Le coup de pioche (docs/strates/descente-1-2.md, P2)
+
+/** Hauteur du bandeau commun (§12) : la fissure part juste en dessous. */
+export const BANDEAU = 24;
+/** Distance du bouton « creuser » au bord droit de la fenêtre, à peu près en son milieu. */
+export const BOUTON_DEPUIS_LA_DROITE = 40;
+
+/** Le trait du coup de pioche : du bouton « creuser » jusqu'au bas de la fenêtre, un peu à droite du milieu. */
+export function traitPioche(largeur: number, hauteur: number): { depart: Point; arrivee: Point } {
+  return {
+    depart: { x: largeur - BOUTON_DEPUIS_LA_DROITE, y: BANDEAU },
+    arrivee: { x: largeur * 0.6, y: hauteur },
+  };
+}
+
+/**
+ * Les deux moitiés de la strate, de part et d'autre du trait du coup de pioche : deux polygones pour
+ * `clip-path`, en pixels de la fenêtre. Leur bord commun suit exactement le tracé de la fissure.
+ */
+export function moitiesFente(largeur: number, hauteur: number): { gauche: string; droite: string } {
+  const { depart, arrivee } = traitPioche(largeur, hauteur);
+  const bord = sommetsFissure(depart, arrivee);
+  const polygone = (points: readonly Point[]) =>
+    `polygon(${points.map(({ x, y }) => `${x.toFixed(1)}px ${y.toFixed(1)}px`).join(", ")})`;
+  return {
+    gauche: polygone([{ x: 0, y: BANDEAU }, ...bord, { x: 0, y: hauteur }]),
+    droite: polygone([{ x: largeur, y: BANDEAU }, ...bord, { x: largeur, y: hauteur }]),
+  };
+}

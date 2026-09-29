@@ -229,6 +229,7 @@
 <style>
   .caves {
     max-width: 48rem;
+    padding: 1rem;
     font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
     font-variant-numeric: tabular-nums;
   }

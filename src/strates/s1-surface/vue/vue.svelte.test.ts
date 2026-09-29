@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
 import { flushSync, mount, unmount } from "svelte";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { strate } from "..";
+import type { Window as FenetreSimulee } from "happy-dom";
 import type { CommandesNoyau } from "../../../noyau/logique/types";
 import type { ActionSurface, EtatSurface } from "../logique";
 import { etatInitial } from "../logique/etat";
@@ -10,7 +11,13 @@ import Vue from "./Vue.svelte";
 const commandes: CommandesNoyau = { demanderFouille() {}, ouvrirAide() {}, terminer() {} };
 
 let composant: ReturnType<typeof mount> | null = null;
-afterEach(() => {
+// Sans mouvement : les compteurs sautent à leur valeur, et les transitions durent 0 ms. happy-dom
+// rejette la promesse d'une animation interrompue : on laisse les transitions finir avant de démonter.
+beforeAll(() => {
+  (window as unknown as FenetreSimulee).happyDOM.settings.device.prefersReducedMotion = "reduce";
+});
+afterEach(async () => {
+  await new Promise((fin) => setTimeout(fin, 20));
   if (composant) unmount(composant);
   composant = null;
   document.body.innerHTML = "";
@@ -34,6 +41,8 @@ function monter(modifs: (etat: EtatSurface) => void = () => {}) {
   return { etat, actions };
 }
 
+/** Espaces insécables de la notation : entre le nombre et son unité. */
+const e = (t: string) => t.replaceAll(" ", "\u00a0");
 const texte = (selecteur: string) => document.querySelector(selecteur)?.textContent?.trim() ?? "";
 const boutons = () => [...document.querySelectorAll("button")];
 const bouton = (debut: string) => boutons().find((b) => b.textContent?.trim().startsWith(debut));
@@ -95,6 +104,50 @@ describe("la vue de la surface", () => {
     expect(bouton("Souris ergonomique")!.textContent).toContain("Produire ×2");
   });
 
+  it("liste les objectifs atteints, et montre l'avancée de l'objectif courant", () => {
+    const { etat } = monter();
+    expect(texte("[data-test=objectifs-atteints]")).toBe("");
+    expect(document.body.textContent).toContain("Aucun objectif atteint pour l'instant.");
+    etat.cumul = 6;
+    flushSync();
+    expect(document.querySelector<HTMLElement>(".rempli")!.style.width).toBe("40%");
+
+    etat.objectif = 3;
+    flushSync();
+    const atteints = [...document.querySelectorAll("[data-test=objectifs-atteints] li")];
+    expect(atteints.map((li) => li.textContent?.trim())).toEqual([
+      "Produire 15 cr",
+      "Acheter un poste",
+      "Atteindre 1 cr/s",
+    ]);
+    // Acheter une amélioration : rien à mesurer, pas de barre.
+    expect(texte("[data-test=objectif]")).toBe("Acheter une amélioration");
+    expect(document.querySelector(".jauge")).toBeNull();
+
+    etat.objectif = 5;
+    etat.generateurs.equipe = 25;
+    flushSync();
+    expect(texte("[data-test=objectif]")).toBe("Atteindre 100 cr/s");
+    expect(document.querySelector<HTMLElement>(".rempli")!.style.width).toBe("45%");
+  });
+
+  it("dit ce que rapporte un clic sur « Produire »", () => {
+    const { etat } = monter();
+    expect(document.body.textContent).toContain(`${e("+1 cr")} par clic`);
+    etat.ameliorations.push("clic-1");
+    flushSync();
+    expect(document.body.textContent).toContain(`${e("+2 cr")} par clic`);
+  });
+
+  it("suit les crédits et la production (sans mouvement, les compteurs sautent)", () => {
+    const { etat } = monter();
+    etat.credits = 2_040_000;
+    etat.generateurs.poste = 4;
+    flushSync();
+    expect(texte("[data-test=credits]")).toBe(e("2,04 M cr"));
+    expect(texte("[data-test=production]")).toBe(e("1,00 cr/s"));
+  });
+
   it("annonce la fin des objectifs", () => {
     monter((etat) => {
       etat.objectif = 10;
@@ -127,5 +180,16 @@ describe("la vue de la surface", () => {
     etat.historique.push(1, 2, 4);
     flushSync();
     expect(document.querySelector("polyline")?.getAttribute("points")?.split(" ")).toHaveLength(3);
+  });
+
+  it("pose sous la courbe des repères ronds, dans la notation de la surface", () => {
+    const { etat } = monter();
+    expect(document.querySelectorAll(".repere")).toHaveLength(0);
+    etat.historique.push(12_000, 76_600);
+    flushSync();
+    const reperes = [...document.querySelectorAll(".repere")].map((r) => r.textContent);
+    expect(reperes).toEqual(["20 k", "40 k", "60 k", "80 k"].map(e));
+    // La courbe finit en haut à droite, un peu sous le bord.
+    expect(document.querySelector("polyline")?.getAttribute("points")).toMatch(/ 100\.00,9\.09$/);
   });
 });

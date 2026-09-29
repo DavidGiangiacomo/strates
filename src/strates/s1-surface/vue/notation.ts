@@ -52,6 +52,13 @@ export function formaterDebit(x: number): string {
   return `${formater(x, troisChiffres)}${INSECABLE}cr/s`;
 }
 
+/** Un repère du graphique, sans unité et sans zéro inutile : « 250 », « 20 k », « 2,5 M ». */
+export function formaterRepere(x: number): string {
+  const unite = SUFFIXES.find(({ valeur }) => x >= valeur);
+  const nombre = formaterNombre(Math.round((unite ? x / unite.valeur : x) * 100) / 100);
+  return unite ? `${nombre}${INSECABLE}${unite.suffixe}` : nombre;
+}
+
 /** Un facteur ou une part : « 1,5 », « 2 ». */
 export function formaterNombre(x: number): string {
   return String(x).replace(".", ",");

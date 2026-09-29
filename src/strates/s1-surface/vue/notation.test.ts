@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formaterDebit, formaterMontant, formaterNombre } from "./notation";
+import { formaterDebit, formaterMontant, formaterNombre, formaterRepere } from "./notation";
 
 // Espaces insécables : entre le nombre et l'unité, et entre les milliers.
 const e = (texte: string) => texte.replaceAll(" ", " ").replaceAll("_", " ");
@@ -41,6 +41,14 @@ describe("la notation de tableau de bord", () => {
   it("ne montre rien d'absurde pour une valeur invalide", () => {
     expect(formaterMontant(NaN)).toBe(e("— cr"));
     expect(formaterDebit(-1)).toBe(e("— cr/s"));
+  });
+
+  it("écrit les repères du graphique sans unité ni zéro inutile", () => {
+    expect(formaterRepere(0.5)).toBe("0,5");
+    expect(formaterRepere(250)).toBe("250");
+    expect(formaterRepere(20_000)).toBe(e("20 k"));
+    expect(formaterRepere(2_500_000)).toBe(e("2,5 M"));
+    expect(formaterRepere(1e9)).toBe(e("1 Md"));
   });
 
   it("écrit les facteurs avec une virgule", () => {

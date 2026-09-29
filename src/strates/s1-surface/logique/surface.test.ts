@@ -7,6 +7,7 @@ import {
   AMELIORATIONS,
   ameliorationDisponible,
   avanceeFissure,
+  avanceeObjectif,
   DELAI_FISSURE,
   DUREE_FISSURE,
   coutAchat,
@@ -59,6 +60,19 @@ describe("le catalogue", () => {
     expect(OBJECTIFS).toHaveLength(10);
     expect(OBJECTIFS[9]!(avec({ filiale: 20 }))).toBe(true); // 20 × 50 k = 1 M cr/s
     expect(OBJECTIFS[9]!(avec({ filiale: 19 }))).toBe(false);
+  });
+
+  it("mesure l'avancée de l'objectif courant, pour la barre du tableau de bord", () => {
+    expect(avanceeObjectif(etatNeuf({ cumul: 6 }))).toBeCloseTo(0.4, 10); // Produire 15 cr
+    // Atteindre 100 cr/s, avec 25 équipes : 45 cr/s.
+    expect(avanceeObjectif(avec({ equipe: 25 }, { objectif: 5 }))).toBeCloseTo(0.45, 10);
+    expect(avanceeObjectif(avec({ filiale: 30 }, { objectif: 9 }))).toBe(1);
+  });
+
+  it("n'a pas de barre pour un achat à faire, ni quand tout est atteint", () => {
+    expect(avanceeObjectif(etatNeuf({ objectif: 1 }))).toBeNull(); // Acheter un poste
+    expect(avanceeObjectif(etatNeuf({ objectif: 3 }))).toBeNull(); // Acheter une amélioration
+    expect(avanceeObjectif(etatNeuf({ objectif: 10 }))).toBeNull();
   });
 });
 

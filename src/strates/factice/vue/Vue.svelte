@@ -30,3 +30,9 @@
     <p>{o("seuil")}</p>
   {/if}
 </section>
+
+<style>
+  section {
+    padding: 1rem;
+  }
+</style>

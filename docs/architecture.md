@@ -179,7 +179,7 @@ Le noyau calcule `EffetsActifs` à partir des artefacts possédés, de leur usur
 
 ## 5. La vue
 
-Chaque strate fournit un composant Svelte racine. Le noyau le monte sous le bandeau.
+Chaque strate fournit un composant Svelte racine. Le noyau le monte sous le bandeau, dans une zone sans marge, haute d'au moins un écran et disposée en colonne. La vue y pose son propre fond et ses propres marges ; pour couvrir toute la zone, sa racine prend `flex: 1 0 auto`.
 
 ```ts
 interface ProprietesVue<E, A extends ActionBase> {
@@ -213,6 +213,8 @@ interface DefinitionStrate<E, A extends ActionBase> {
   textes: Record<string, string>;
   /** Écrit une valeur convertible dans la notation de la strate, pour l'écran de fouille (I1). */
   formaterValeur?(valeur: number): string;
+  /** La police et les couleurs de la valeur convertible à l'écran de fouille : le dernier fragment de la strate quittée. */
+  apparenceValeur?: { police: string; couleur: string; fond: string };
 }
 ```
 
@@ -232,7 +234,7 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
 - **Onglet caché ou fermé, ordinateur en veille** : c'est une absence. À chaque image, la boucle lit aussi l'horloge système (`Noyau.avancerJusqua`) : un écart de plus de 2 s avec la référence déclenche le rattrapage (`Noyau.rattraper`), selon les règles d'horloge de D-005. Au chargement, le rattrapage part de la référence de la sauvegarde. Un recul d'horloge compte pour zéro ; au-delà de 5 minutes, il est noté une fois par épisode dans les perturbations du journal.
 - **Hors-ligne standard** : le noyau simule 80 % de l'absence, plafonnée à 12 h, par ticks de `pasMax` au plus. En politique propre, il appelle `absence()`. Le temps rattrapé s'ajoute à `tempsHorsLigne`, pas à `tempsDeJeu`. Le rattrapage du chargement se fait avant l'enveloppe réactive, sur l'objet brut ; en session, il passe par l'enveloppe, comme les ticks (12 h de la strate factice : moins de 0,1 s dans Chromium).
 - **Bandeau** (`noyau/ui/Bandeau.svelte`, §12) : 24 px en haut de l'écran, identique quelle que soit la strate montée, avec la Profondeur, les artefacts et le bouton « creuser ». Le bouton a le même aspect avant et après le seuil ; seule sa réponse change. Avant le seuil, `demanderFouille()` refuse et le bandeau tressaille, sans texte ni pénalité (un bref assombrissement si le joueur préfère moins de mouvement ; le son sourd viendra avec le moteur audio, [#46](https://github.com/DavidGiangiacomo/strates/issues/46)). Le bouton d'une strate qui appellerait `CommandesNoyau.demanderFouille()` a la même réponse.
-- **Résumé au retour** : `noyau/ui/reprise.ts` rédige le résumé d'une absence d'au moins une minute (durée, taux, plafond atteint, ou les lignes de la strate en politique propre). L'interface l'affiche jusqu'à ce que le joueur le ferme.
+- **Résumé au retour** : `noyau/ui/reprise.ts` rédige le résumé d'une absence d'au moins une minute (durée, taux, plafond atteint, ou les lignes de la strate en politique propre). L'interface l'affiche sous le bandeau, dans sa palette, jusqu'à ce que le joueur le ferme.
 - **Actions** : mises en file, appliquées au début du tick suivant dans l'ordre d'arrivée.
 - **Journal de session** ([#26](https://github.com/DavidGiangiacomo/strates/issues/26), `src/playtest/`) : pour les playtests, et seulement si l'observateur l'a demandé (`?journal=T3` dans l'adresse).
   - Il observe le noyau (`Noyau.observateur`), qui le prévient de chaque action appliquée et de chaque événement des strates.
@@ -245,12 +247,12 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
 
 La séquence vue par le joueur, plan par plan, est dans le [storyboard du passage 1 → 2](strates/descente-1-2.md) ([#11](https://github.com/DavidGiangiacomo/strates/issues/11)).
 
-La logique est dans `Noyau` (`ouvrirFouille`, `reboucher`, `descendre`, `reprendre`), testée dans `noyau/logique/descente.test.ts`. Le spectacle et son minutage sont dans `noyau/ui/passage.svelte.ts` ; l'écran de fouille est `noyau/ui/Fouille.svelte`.
+La logique est dans `Noyau` (`ouvrirFouille`, `reboucher`, `descendre`, `reprendre`), testée dans `noyau/logique/descente.test.ts`. Le spectacle et son minutage sont dans `noyau/ui/passage.svelte.ts` ; l'écran de fouille est `noyau/ui/Fouille.svelte`. Au coup de pioche, la strate se fend : `noyau/ui/Fente.svelte` montre deux copies de sa vue, découpées de part et d'autre de la fissure (`moitiesFente`), qui glissent et s'effacent, puis remontent au rebouchage. La strate étant figée, une copie de son DOM suffit.
 
 1. `demanderFouille()` : le noyau vérifie que le seuil est atteint (`Noyau.demanderFouille`). S'il n'y a pas de strate dessous (`strateSuivante` vaut null, comme sous les caves dans le MVP), l'interface le dit, et rien ne s'ouvre.
 2. `ouvrirFouille()` : les actions en attente sont appliquées, puis la strate se fige (`suspendu`) : ni tick ni absence tant que la fouille est ouverte. Points de fouille = `⌊log₁₀(valeurConvertible()) × 1,4⌋` (D-002) : `pointsDeFouille`, lus à l'ouverture. Rien n'est encore noté.
 3. Écran de choix sur le catalogue de la strate quittée, par coût croissant (`catalogueParCout`), avec la présélection (`preselection`).
-   - Il écrit la valeur convertible et le prix d'un point de plus (`valeurPourPoints`) dans la notation de la strate quittée : `DefinitionStrate.formaterValeur` et la clé de texte `fouille.valeur` (I1).
+   - Il écrit la valeur convertible et le prix d'un point de plus (`valeurPourPoints`) dans la notation de la strate quittée : `DefinitionStrate.formaterValeur` et la clé de texte `fouille.valeur` (I1). La valeur prend aussi la police et les couleurs de la strate (`apparenceValeur`).
    - Jusqu'à « descendre », le joueur peut **reboucher** (`reboucher()`) : rien n'est noté, et la strate reprend là où elle s'était figée.
    - En descente automatique, `descendre()` sans choix ouvre la fouille et applique la présélection, sans écran.
 4. `descendre(maintenant, emportes)` vérifie le choix et charge la strate suivante. Si le chargement échoue, rien n'a changé : la fouille reste ouverte. Puis tout s'engage d'un coup, avant l'animation : `fouiller` note la fouille au journal (points, objets emportés, objets abandonnés), à côté du seuil et de l'issue.

@@ -73,7 +73,15 @@
     <dl class="conversion" role="status">
       <div class="texte">
         <dt>{ecran.libelle}</dt>
-        <dd data-test="valeur">{ecran.formater(fouille.valeur)}</dd>
+        <dd
+          data-test="valeur"
+          class:fragment={ecran.apparence}
+          style:font-family={ecran.apparence?.police}
+          style:color={ecran.apparence?.couleur}
+          style:background={ecran.apparence?.fond}
+        >
+          {ecran.formater(fouille.valeur)}
+        </dd>
       </div>
       <div class="texte points">
         <dt>{T.points}</dt>
@@ -161,6 +169,13 @@
   dd {
     margin: 0;
     color: #f2f2f2;
+  }
+  /* La valeur dans l'apparence de la strate quittée : un éclat de son écran, posé sur le sol. */
+  .fragment {
+    margin-block: -0.1rem;
+    padding: 0.1rem 0.5rem;
+    font-weight: 600;
+    border-radius: 4px;
   }
   /* Trois temps : la valeur, puis les points d'un coup, puis le prix d'un point de plus (P3). */
   .points {
