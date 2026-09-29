@@ -168,6 +168,19 @@ export interface DefinitionStrate<E, A extends ActionBase> {
    * strate la connaît (I1). Sans elle, l'écran écrit le nombre entier, sans unité.
    */
   formaterValeur?(valeur: number): string;
+  /**
+   * L'apparence de la valeur convertible à l'écran de fouille : écrite dans la police et les
+   * couleurs de la strate, elle en est le dernier fragment (docs/strates/descente-1-2.md, P3). Sans
+   * elle, la valeur prend la police du noyau.
+   */
+  apparenceValeur?: ApparenceValeur;
+}
+
+/** Des valeurs CSS, prises dans la palette de la strate. */
+export interface ApparenceValeur {
+  police: string;
+  couleur: string;
+  fond: string;
 }
 
 // ——— Le journal de partie (§ 7)

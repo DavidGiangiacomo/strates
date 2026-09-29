@@ -168,6 +168,37 @@ Un tableau de bord moderne, propre, tiède. C'est la référence : toutes les st
 - **Sons** : un clic feutré, une note discrète à chaque objectif atteint, aucun fond sonore. Le moteur audio n'arrive qu'en phase 2 ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)) : la surface du MVP peut être muette.
 - **Ce qui la distingue** : c'est la seule strate qui ressemble à un logiciel.
 
+### Dans le code ([#31](https://github.com/DavidGiangiacomo/strates/issues/31))
+
+- **La palette** est dans `vue/theme.ts`, et la vue la pose en variables CSS :
+  - le fond `#f4f3f0`, les cartes `#fdfcfa` et leurs filets `#e4e1db` ;
+  - le texte `#2c2a27`, les libellés `#6f6a63` (5,2:1 sur les cartes) ;
+  - l'accent bleu-vert : `#4f8687` pour la courbe et la barre d'objectif, `#e0ebe9` pour le fond des boutons et `#2a5d5e` pour leur texte (6,1:1) ;
+  - le vert des objectifs atteints, `#557f50`, et le gris de ce qu'on ne peut pas encore payer, `#a19b93`.
+- **La disposition** :
+  - les trois indicateurs sur toute la largeur ;
+  - dessous, à gauche, le graphique, puis les objectifs atteints ;
+  - à droite, « Produire », les moyens de production et les améliorations.
+  
+  Sous 900 px de large, tout passe en une colonne, dans le même ordre. Le graphique occupe la place que le calendrier des caves reprendra (les raccords du [storyboard](descente-1-2.md), § 5).
+- **Les indicateurs** :
+  - les crédits et la production, en grands chiffres ;
+  - l'objectif courant, avec une barre d'avancée quand il se mesure (`avanceeObjectif`, en échelle linéaire comme le graphique). « Acheter un poste » et « Acheter une amélioration » n'en ont pas.
+- **Les objectifs atteints** : la liste du § 3, chacun avec une coche verte.
+- **Le graphique** (`vue/graphique.ts`) :
+  - l'aire sous la courbe, avec un point au bout ;
+  - des repères ronds en pointillé, écrits sans unité (« 20 k ») ; l'unité est dans le titre ;
+  - le haut suit le maximum de la fenêtre. La courbe finit donc toujours en haut à droite, et ce sont les repères qui descendent à mesure que la production grandit.
+- **« Produire »** dit ce que rapporte un clic : « +4 cr par clic ».
+- **Le mouvement** :
+  - les compteurs défilent vers leur valeur (`Compteur.svelte`, avec une inertie de 0,08 s) ;
+  - un générateur, une amélioration ou un objectif qui apparaît glisse de 6 px en 0,22 s ;
+  - sans mouvement, tout saute.
+- **Le passage** :
+  - au coup de pioche, le tableau de bord se fend en deux moitiés le long de la fissure (`noyau/ui/Fente.svelte`, commun aux strates) ;
+  - à l'écran de fouille, les crédits gagnés s'écrivent dans la police et les couleurs de la surface (`apparenceValeur`). Ce fragment du tableau de bord est la dernière chose que le joueur voit de la surface.
+- **Vérifié dans Chromium**, à 1280 × 800, 1024 × 768 et 390 × 844, avec et sans mouvement : du début de partie au seuil (sauvegardes nommées), puis le coup de pioche, l'écran de fouille et « reboucher ».
+
 ## 7. Opacité et Compréhension
 
 - **Opacité** : aucune. La surface parle notre langue. C'est la seule strate entièrement lisible dès l'arrivée, et le tutoriel de toutes les autres. La seule chose qu'elle n'explique pas est le bouton « creuser », qui ne lui appartient pas. Ce choix est à confirmer par le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)), qui prévoit une interface partiellement opaque dans chaque strate.
@@ -207,7 +238,7 @@ Sans objet : aucun artefact n'arrive jamais à la surface, puisqu'aucune strate 
 - **À écrire** :
   - le nom et une ligne de description de chaque générateur (7) et de chaque amélioration (29) ;
   - les 10 objectifs et le message final, « Tous les objectifs sont atteints. » ;
-  - les libellés du tableau de bord : crédits, production, objectif, « Produire », « Acheter » (×1, ×10, max) ;
+  - les libellés du tableau de bord : crédits, production, objectif, objectifs atteints, le titre et les bords du graphique, « Produire » et ce que rapporte un clic, « Acheter » (×1, ×10, max) ;
   - l'aide de la strate : une page courte, qui décrit tout le tableau de bord et ne dit rien du bandeau ;
   - les traces laissées au fond (strate 8) : trois lignes au plus, par exemple le dernier objectif et le message final.
 - **Aucun texte ne mentionne « creuser ».**

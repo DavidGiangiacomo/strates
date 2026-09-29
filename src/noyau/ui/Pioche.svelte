@@ -3,21 +3,18 @@
   // traverse la strate jusqu'au bas de l'écran, en 0,4 s. Même tracé que le filet (fissure.ts), qu'elle
   // prolonge quand il avait paru : il s'arrêtait au bouton. Un calque qui ne capte aucun clic.
   // Après « reboucher », elle reste dessinée, sans animation : le sol a été ouvert une fois.
-  import { cheminFissure, ramificationsFissure } from "./fissure";
+  import { cheminFissure, ramificationsFissure, traitPioche } from "./fissure";
 
   let { cicatrice = false }: { cicatrice?: boolean } = $props();
-
-  /** Hauteur du bandeau commun et position du bouton « creuser », comme pour le filet. */
-  const BANDEAU = 24;
-  const BOUTON_DEPUIS_LA_DROITE = 40;
 
   let largeur = $state(0);
   let hauteur = $state(0);
 
-  const depart = $derived({ x: largeur - BOUTON_DEPUIS_LA_DROITE, y: BANDEAU });
-  const arrivee = $derived({ x: largeur * 0.6, y: hauteur });
-  const chemin = $derived(largeur > 0 ? cheminFissure(depart, arrivee) : "");
-  const ramifications = $derived(largeur > 0 ? ramificationsFissure(depart, arrivee) : []);
+  const trait = $derived(traitPioche(largeur, hauteur));
+  const chemin = $derived(largeur > 0 ? cheminFissure(trait.depart, trait.arrivee) : "");
+  const ramifications = $derived(
+    largeur > 0 ? ramificationsFissure(trait.depart, trait.arrivee) : [],
+  );
 </script>
 
 <svelte:window bind:innerWidth={largeur} bind:innerHeight={hauteur} />
@@ -45,6 +42,15 @@
     z-index: 7;
     pointer-events: none;
     color: #5a5a5a;
+  }
+  /* Quand les deux moitiés se séparent (Fente.svelte), le trait s'efface avec elles. */
+  .pioche:not(.cicatrice) {
+    animation: effacer 300ms ease-in 450ms both;
+  }
+  @keyframes effacer {
+    to {
+      opacity: 0;
+    }
   }
   .trait {
     fill: none;
@@ -80,6 +86,9 @@
     .trait {
       animation: none;
       stroke-dashoffset: 0;
+    }
+    .pioche:not(.cicatrice) {
+      animation: effacer 300ms both;
     }
   }
 </style>

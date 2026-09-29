@@ -4,7 +4,7 @@
 // de la nouvelle strate commence.
 import { artefact, type FouilleOuverte } from "../logique/artefacts";
 import type { Noyau } from "../logique/noyau";
-import type { NumeroStrate } from "../logique/types";
+import type { ApparenceValeur, NumeroStrate } from "../logique/types";
 import { formaterBrut, NOMS_STRATES, TEXTES_FOUILLE } from "./fouille";
 
 /**
@@ -64,6 +64,8 @@ export interface EcranFouille {
   libelle: string;
   /** Sa notation (I1). */
   formater: (valeur: number) => string;
+  /** Sa police et ses couleurs, pour la valeur : le dernier fragment de la strate quittée. */
+  apparence?: ApparenceValeur;
 }
 
 /** Ce que le passage signale : au journal de session des playtests (#26), s'il est tenu. */
@@ -156,6 +158,7 @@ export class Passage {
       nom: NOMS_STRATES[fouille.strate],
       libelle: strate.textes["fouille.valeur"] ?? TEXTES_FOUILLE.valeur,
       formater: strate.formaterValeur ?? formaterBrut,
+      apparence: strate.apparenceValeur,
     };
     this.#passer("pioche");
     await this.#d.attendre(this.#durees.pioche);

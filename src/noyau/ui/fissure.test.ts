@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { AMPLITUDE_FISSURE, cheminFissure, ramificationsFissure, sommetsFissure } from "./fissure";
+import {
+  AMPLITUDE_FISSURE,
+  BANDEAU,
+  cheminFissure,
+  moitiesFente,
+  ramificationsFissure,
+  sommetsFissure,
+  traitPioche,
+} from "./fissure";
 
 describe("le tracé de la fissure", () => {
   const depart = { x: 300, y: 400 };
@@ -44,5 +52,32 @@ describe("le tracé de la fissure", () => {
         true,
       );
     }
+  });
+});
+
+describe("le coup de pioche", () => {
+  it("part du bouton « creuser » et descend jusqu'au bas de la fenêtre", () => {
+    expect(traitPioche(1280, 800)).toEqual({
+      depart: { x: 1240, y: BANDEAU },
+      arrivee: { x: 768, y: 800 },
+    });
+  });
+
+  it("fend la strate en deux moitiés dont le bord commun suit la fissure", () => {
+    const { gauche, droite } = moitiesFente(1280, 800);
+    const points = (polygone: string) =>
+      polygone
+        .slice("polygon(".length, -1)
+        .split(", ")
+        .map((p) => p.replaceAll("px", ""));
+    const { depart, arrivee } = traitPioche(1280, 800);
+    const bord = sommetsFissure(depart, arrivee).map(
+      ({ x, y }) => `${x.toFixed(1)} ${y.toFixed(1)}`,
+    );
+
+    // À gauche : le coin haut gauche sous le bandeau, la fissure, puis le coin bas gauche.
+    expect(points(gauche)).toEqual([`0.0 ${BANDEAU}.0`, ...bord, "0.0 800.0"]);
+    // À droite : le coin haut droit, la même fissure, puis le coin bas droit.
+    expect(points(droite)).toEqual([`1280.0 ${BANDEAU}.0`, ...bord, "1280.0 800.0"]);
   });
 });

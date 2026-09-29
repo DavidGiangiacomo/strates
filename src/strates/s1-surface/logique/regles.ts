@@ -75,19 +75,42 @@ export function generateur(id: string): DefGenerateur | undefined {
   return GENERATEURS.find((g) => g.id === id);
 }
 
-/** Les objectifs du tableau de bord, dans l'ordre ; le dernier est le seuil de fouille. */
-export const OBJECTIFS: readonly ((etat: EtatSurface) => boolean)[] = [
-  (etat) => etat.cumul >= 15,
-  (etat) => etat.generateurs.poste >= 1,
-  (etat) => production(etat) >= 1,
-  (etat) => etat.ameliorations.length >= 1,
-  (etat) => production(etat) >= 10,
-  (etat) => production(etat) >= 100,
-  (etat) => production(etat) >= 1_000,
-  (etat) => production(etat) >= 10_000,
-  (etat) => production(etat) >= 100_000,
-  (etat) => production(etat) >= SEUIL_PRODUCTION,
+/**
+ * Les objectifs du tableau de bord, dans l'ordre ; le dernier est le seuil de fouille. Chacun mesure
+ * une grandeur de l'état et l'atteint à sa cible. `jauge` : son avancée s'affiche en barre.
+ */
+const DEFINITIONS_OBJECTIFS: readonly {
+  mesure: (etat: EtatSurface) => number;
+  cible: number;
+  jauge: boolean;
+}[] = [
+  { mesure: (etat) => etat.cumul, cible: 15, jauge: true },
+  { mesure: (etat) => etat.generateurs.poste, cible: 1, jauge: false },
+  { mesure: production, cible: 1, jauge: true },
+  { mesure: (etat) => etat.ameliorations.length, cible: 1, jauge: false },
+  ...[10, 100, 1_000, 10_000, 100_000, SEUIL_PRODUCTION].map((cible) => ({
+    mesure: production,
+    cible,
+    jauge: true,
+  })),
 ];
+
+export const OBJECTIFS: readonly ((etat: EtatSurface) => boolean)[] = DEFINITIONS_OBJECTIFS.map(
+  ({ mesure, cible }) =>
+    (etat) =>
+      mesure(etat) >= cible,
+);
+
+/**
+ * L'avancée de l'objectif courant, de 0 à 1 : sa mesure rapportée à sa cible, en échelle linéaire
+ * comme le graphique. null pour un objectif qui ne se mesure pas (acheter un poste, une
+ * amélioration), ou quand tout est atteint.
+ */
+export function avanceeObjectif(etat: EtatSurface): number | null {
+  const objectif = DEFINITIONS_OBJECTIFS[etat.objectif];
+  if (!objectif?.jauge) return null;
+  return Math.min(1, objectif.mesure(etat) / objectif.cible);
+}
 
 // ——— Formules
 

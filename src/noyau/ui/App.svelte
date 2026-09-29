@@ -18,6 +18,7 @@
   import { rendreStrateReactive } from "./reactivite.svelte";
   import Bandeau from "./Bandeau.svelte";
   import Descente from "./Descente.svelte";
+  import Fente from "./Fente.svelte";
   import Fouille from "./Fouille.svelte";
   import { DUREES, DUREES_REDUITES, Passage } from "./passage.svelte";
   import Pioche from "./Pioche.svelte";
@@ -33,6 +34,8 @@
   let vitesse = $state(1);
   /** La strate montée et son état réactif : ils changent à la descente. */
   let courante = $state.raw<{ strate: StrateQuelconque; etat: object } | null>(null);
+  /** L'élément de la strate à l'écran : la fente en prend une copie. */
+  let elementStrate: HTMLElement | undefined = $state();
 
   const attendre = (ms: number) => new Promise<void>((fin) => setTimeout(fin, ms));
 
@@ -170,6 +173,9 @@
   {#if phase !== "jeu"}
     <div class="fond" aria-hidden="true"></div>
   {/if}
+  {#if phase === "pioche" || phase === "rebouchage"}
+    <Fente source={elementStrate} sens={phase === "pioche" ? "ouvrir" : "refermer"} />
+  {/if}
   {#if phase === "pioche"}
     <Pioche />
   {:else if phase === "jeu" && passage.cicatrice}
@@ -206,6 +212,7 @@
     </div>
   {/if}
   <main
+    bind:this={elementStrate}
     class="strate {phase}"
     inert={phase !== "jeu"}
     aria-hidden={phase === "fouille" ? "true" : undefined}
@@ -246,17 +253,23 @@
 <footer data-test="version">Strates {VERSION_JEU} · {BUILD}</footer>
 
 <style>
+  /* Sous la strate, le sol, dans la palette du bandeau : on le voit tout en bas de la page. */
   :global(body) {
     margin: 0;
+    background: #1e1e1e;
   }
   main {
+    box-sizing: border-box;
+    min-height: calc(100vh - 24px);
     padding: 1rem;
+    background: Canvas;
   }
   footer {
-    padding: 0 1rem 1rem;
-    margin-top: 3rem;
-    font-size: 0.75rem;
-    opacity: 0.6;
+    padding: 1rem;
+    font:
+      12px/1 system-ui,
+      sans-serif;
+    color: #8c8c8c;
   }
 
   /* Le sol sous la strate : ce que découvre le coup de pioche, et le fond de toute la séquence. */
@@ -266,35 +279,54 @@
     z-index: 1;
     background: #1e1e1e;
   }
+  /* Les messages du noyau, sous le bandeau et dans sa palette : ils n'appartiennent à aucune strate. */
   .messages {
     position: relative;
     z-index: 8;
-    padding: 1rem 1rem 0;
-    background: Canvas;
+    padding: 10px 12px;
+    font:
+      13px/1.45 system-ui,
+      sans-serif;
+    color: #d6d6d6;
+    background: #1e1e1e;
+    border-top: 1px solid #3c3c3c;
   }
-  /* Opaque : pendant la séquence, la strate cache le sol, puis le recouvre en montant. */
+  .messages p {
+    margin: 0 0 4px;
+  }
+  .messages button {
+    margin-top: 4px;
+    padding: 1px 10px;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid #5c5c5c;
+    border-radius: 2px;
+  }
+  .messages button:hover {
+    border-color: #8c8c8c;
+  }
+  .messages button:focus-visible {
+    outline: 1px solid #f2f2f2;
+    outline-offset: 1px;
+  }
+  /*
+   * Opaque : pendant la séquence, la strate cache le sol, puis le recouvre en montant. Sa vue en
+   * occupe toute la surface (flex: 1), avec son propre fond et ses propres marges.
+   */
   .strate {
     position: relative;
     z-index: 3;
-    box-sizing: border-box;
-    min-height: calc(100vh - 24px);
-    background: Canvas;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
   }
-  /* P2 : après la fissure, la strate se fend et tombe. */
-  .strate.pioche {
-    animation: tomber 600ms ease-in 400ms both;
-  }
-  @keyframes tomber {
-    to {
-      transform: translateY(30vh);
-      opacity: 0;
-    }
-  }
-  .strate.fouille {
-    visibility: hidden;
-  }
+  /* P2 et « reboucher » : la fente montre deux copies de la strate, qui reste cachée dessous. */
+  .strate.pioche,
+  .strate.fouille,
   .strate.rebouchage {
-    animation: tomber 500ms ease-out reverse both;
+    visibility: hidden;
   }
   /* P5 : la nouvelle strate monte d'en bas et se met en place, à la fin du travelling. */
   .strate.descente {
@@ -308,14 +340,6 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .strate.pioche,
-    .strate.rebouchage {
-      animation: none;
-      transition: opacity 300ms;
-    }
-    .strate.pioche {
-      opacity: 0;
-    }
     .strate.descente {
       animation: fondu 500ms both;
     }

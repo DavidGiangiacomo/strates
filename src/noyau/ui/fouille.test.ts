@@ -72,12 +72,13 @@ describe("l'écran de fouille", () => {
     document.body.innerHTML = "";
   });
 
-  function monter(props: { occupe?: boolean } = {}) {
+  function monter(props: { occupe?: boolean } = {}, apparence?: EcranFouille["apparence"]) {
     const ecran: EcranFouille = {
       fouille,
       nom: "La surface",
       libelle: "Crédits gagnés",
       formater: (v) => `${(v / 1e6).toFixed(0)} M cr`,
+      apparence,
     };
     const ondescendre = vi.fn();
     const onreboucher = vi.fn();
@@ -103,6 +104,24 @@ describe("l'écran de fouille", () => {
     expect(texte("valeur")).toBe("612 M cr");
     expect(texte("points")).toBe("12");
     expect(texte("point-suivant")).toBe("1931 M cr");
+  });
+
+  it("écrit la valeur dans la police et les couleurs de la strate quittée : son dernier fragment", () => {
+    monter({}, { police: "system-ui", couleur: "rgb(44, 42, 39)", fond: "rgb(253, 252, 250)" });
+    const valeur = document.querySelector<HTMLElement>("[data-test=valeur]")!;
+    expect(valeur.classList.contains("fragment")).toBe(true);
+    expect(valeur.style.fontFamily).toBe("system-ui");
+    expect(valeur.style.color).toBe("rgb(44, 42, 39)");
+    expect(valeur.style.background).toBe("rgb(253, 252, 250)");
+    // Le reste de la conversion garde la police du noyau.
+    expect(document.querySelector<HTMLElement>("[data-test=points]")!.style.fontFamily).toBe("");
+  });
+
+  it("garde la police du noyau quand la strate ne donne pas son apparence", () => {
+    monter();
+    const valeur = document.querySelector<HTMLElement>("[data-test=valeur]")!;
+    expect(valeur.classList.contains("fragment")).toBe(false);
+    expect(valeur.getAttribute("style")).toBeNull();
   });
 
   it("montre le catalogue sous les noms d'en haut, présélection cochée, sans les effets", () => {

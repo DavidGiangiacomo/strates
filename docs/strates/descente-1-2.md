@@ -289,6 +289,7 @@ Ce que P3 et P4 décrivent pour la surface vaut pour toutes les descentes. Voici
 - **La notation appartient à la strate.** Seule la strate quittée sait écrire sa valeur (I1) : « 612 M cr » pour la surface, des boisseaux entiers pour les caves.
   - Le contrat la laisse donc fournir un libellé (« Crédits gagnés ») et un formateur de nombres : la clé de texte `fouille.valeur` et la fonction `formaterValeur(valeur)` de `DefinitionStrate` ([#30](https://github.com/DavidGiangiacomo/strates/issues/30)).
   - Le formateur sert aussi au prix d'un point de plus.
+  - La strate donne aussi la police et les couleurs de la valeur : `apparenceValeur` ([#31](https://github.com/DavidGiangiacomo/strates/issues/31)). C'est ce qui en fait « le dernier fragment » de la strate quittée (P3).
   - Le chœur (strate 5), qui n'affiche aucun nombre, pourra y écrire autre chose qu'un nombre (D-003).
 - **La strate est figée tant que la fouille est ouverte** : pas de tick, pas d'absence. Un onglet caché pendant le choix ne fait rien avancer.
 - **« reboucher »** referme sans rien noter au journal de partie. La strate reprend là où elle était.
@@ -380,11 +381,12 @@ Ces durées sont des cibles de départ, réglables au playtest. La descente et l
   - la descente s'engage d'un coup, ou pas du tout si la strate suivante ne se charge pas ;
   - la nouvelle strate reste figée jusqu'à la fin de la transition ;
   - le seuil est noté au journal à l'heure où il est atteint.
-- **Le spectacle** est dans `noyau/ui/passage.svelte.ts`, qui en tient le minutage (`DUREES`, `DUREES_REDUITES`), et dans `Pioche.svelte`, `Fouille.svelte` et `Descente.svelte`.
+- **Le spectacle** est dans `noyau/ui/passage.svelte.ts`, qui en tient le minutage (`DUREES`, `DUREES_REDUITES`), et dans `Pioche.svelte`, `Fente.svelte`, `Fouille.svelte` et `Descente.svelte`.
 - **Les caves** écrivent la première page du § 6 et nomment la feuille au seuil. Elles reçoivent pour cela les effets des objets dans le contexte d'arrivée (`ContexteArrivee.effets`).
-- **Simplifications**, à reprendre avec les directions artistiques ([#31](https://github.com/DavidGiangiacomo/strates/issues/31), [#33](https://github.com/DavidGiangiacomo/strates/issues/33)) :
-  - au coup de pioche, le tableau de bord glisse vers le bas d'un seul bloc, au lieu de se fendre en deux moitiés ;
-  - la valeur convertible est écrite dans la notation de la surface, mais dans la police et la couleur du noyau ;
+- **Avec la direction artistique de la surface ([#31](https://github.com/DavidGiangiacomo/strates/issues/31))** :
+  - au coup de pioche, le tableau de bord se fend en deux moitiés le long de la fissure, qui glissent vers le bas en s'écartant et s'effacent ; au rebouchage, elles remontent et se rejoignent (`Fente.svelte`, deux copies de la strate figée) ;
+  - la valeur convertible est écrite dans la police et les couleurs de la surface, sur le fond de ses cartes : un éclat du tableau de bord posé sur le sol (`apparenceValeur`).
+- **Simplifications**, à reprendre avec la direction artistique des caves ([#33](https://github.com/DavidGiangiacomo/strates/issues/33)) :
   - le sol traversé est fait de bandes dans la palette du noyau, et les objets emportés sont des étiquettes aux couleurs du bandeau ;
   - le sol ne finit pas encore sur le haut de la coupe des stockages, qui n'existe pas encore.
 - **Vérifié dans Chromium**, depuis la sauvegarde nommée « surface-seuil-atteint », avec et sans mouvement : le passage complet, « reboucher », la première page du registre, le sol qui résiste dans les caves, et le rechargement.

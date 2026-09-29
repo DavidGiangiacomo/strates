@@ -14,6 +14,7 @@ import { DUREES, PAS_DE_SUITE, Passage, type EvenementPassage, type Phase } from
 type LogiqueFactice = LogiqueStrate<EtatFactice, ActionFactice>;
 
 const DEBUT = 1_000_000;
+const APPARENCE = { police: "serif", couleur: "black", fond: "white" };
 
 async function partie(
   logiques: LogiqueFactice[] = [creerLogiqueFactice(1), creerLogiqueFactice(2)],
@@ -29,6 +30,7 @@ async function partie(
           vue: null,
           textes: { "fouille.valeur": "Unités produites" },
           formaterValeur: (v: number) => `${Math.floor(v)} u`,
+          apparenceValeur: APPARENCE,
         }) as StrateQuelconque,
     );
   }
@@ -99,6 +101,7 @@ describe("le coup de pioche", () => {
       nom: "La surface",
       libelle: "Unités produites",
       fouille: { strate: 1, points: 12 },
+      apparence: APPARENCE,
     });
     expect(passage.ecran?.formater(612.7)).toBe("612 u");
 
