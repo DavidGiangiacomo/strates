@@ -268,6 +268,14 @@ export class Noyau {
     return this.#seuil.atteint;
   }
 
+  /**
+   * Le joueur a ouvert l'aide de la strate courante : le journal le note (l'acte « sans aide » de la
+   * Compréhension, §8). Le noyau n'en fait rien de plus pour l'instant (#56).
+   */
+  noterAide(): void {
+    this.#entreeCourante().aideConsultee = true;
+  }
+
   /** La profondeur sous la strate courante, si une strate l'occupe ; null au fond, ou tant qu'elle n'existe pas. */
   get strateSuivante(): NumeroStrate | null {
     const suivante = this.etat.profondeur + 1;

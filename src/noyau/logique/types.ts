@@ -150,7 +150,10 @@ export interface ProprietesVue<E, A extends ActionBase> {
 export interface CommandesNoyau {
   /** Demande la descente. Le noyau la refuse tant que le seuil n'est pas atteint. */
   demanderFouille(): void;
-  /** Ouvre l'aide de la strate ; le noyau note la consultation (acte « sans aide »). */
+  /**
+   * La strate ouvre son aide, qu'elle affiche elle-même ; le noyau note la consultation (acte
+   * « sans aide »).
+   */
   ouvrirAide(): void;
   /** Termine la partie. Seulement au fond. */
   terminer(fin: "remonter" | "rester"): void;

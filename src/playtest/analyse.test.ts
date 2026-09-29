@@ -48,6 +48,7 @@ const PARTIE = journal([
   [0, 1, 0, { type: "debut", rechargement: false }],
   [1_000, 1, 1, { type: "releve", releve: { fissure: 0 } }],
   [60_000, 1, 60, { type: "creuser", reponse: "resiste" }],
+  [90_000, 1, 90, { type: "aide" }],
   [4_380_000, 1, 4_380, { type: "seuil" }],
   [4_700_000, 1, 4_700, { type: "releve", releve: { fissure: 0.4 } }],
   [4_800_000, 1, 4_800, { type: "creuser", reponse: "fouille" }],
@@ -117,7 +118,13 @@ describe("l'analyse d'un journal", () => {
   const a = analyser(PARTIE);
 
   it("lit la surface : le seuil, le coup de pioche, la fissure", () => {
-    expect(a.surface).toEqual({ seuil: 73, creuserApresSeuil: 420, resistances: 1, fissure: true });
+    expect(a.surface).toEqual({
+      seuil: 73,
+      creuserApresSeuil: 420,
+      resistances: 1,
+      fissure: true,
+      aide: 1,
+    });
   });
 
   it("lit la fouille : le temps à l'écran, les rebouchages, le choix", () => {
@@ -146,6 +153,7 @@ describe("l'analyse d'un journal", () => {
       premiereRupture: 285,
       premierBilan: 373,
       duree: 373,
+      aide: 0,
     });
   });
 
@@ -161,11 +169,12 @@ describe("l'analyse d'un journal", () => {
   it("résume pour la fiche d'observation, et fait un tableau pour le compte rendu", () => {
     expect(resumer(a)).toEqual([
       "Testeur T1 · Strates 0.0.0 · abc1234",
-      "Surface : seuil à 73 min, creusé 420 s après, 1 clic(s) sur « creuser » avant, fissure : oui",
+      "Surface : seuil à 73 min, creusé 420 s après, 1 clic(s) sur « creuser » avant, fissure : oui, aide ouverte 1 fois",
       "Fouille : 50 s à l'écran, 1 rebouchage(s), présélection gardée : non",
       "G1 oui (1 achat(s) d'automne, 12 / 2900)  G2 oui (11 familles)  G3 non (2 clics) → joue comme en strate 1 : oui",
       "G1 en l'an 2 : non",
       "Première rupture : 4 min 45 s · premier bilan : 6 min 13 s · caves jouées : 6 min 13 s",
+      "Aide des caves ouverte 0 fois",
     ]);
     expect(tableau([a]).split("\n")).toHaveLength(3);
   });

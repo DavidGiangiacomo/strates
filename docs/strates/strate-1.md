@@ -233,7 +233,7 @@ Sans objet : aucun artefact n'arrive jamais à la surface, puisqu'aucune strate 
 
 ## 11. Textes
 
-- **Budget** : environ 600 mots, soit un huitième des quelque 5 000 mots du jeu. La rédaction est l'objet de [#16](https://github.com/DavidGiangiacomo/strates/issues/16). Ces textes sont provisoires et seront révisés d'après la bible narrative.
+- **Budget** : environ 600 mots, soit un huitième des quelque 5 000 mots du jeu. La rédaction est l'objet de [#16](https://github.com/DavidGiangiacomo/strates/issues/16). Ces textes sont provisoires et seront révisés d'après la bible narrative ([#60](https://github.com/DavidGiangiacomo/strates/issues/60)).
 - **Ton** : celui d'un logiciel bien fait. Des phrases courtes et polies, sans point d'exclamation ni humour appuyé : « Objectif atteint. » plutôt que « Bravo ! ».
 - **À écrire** :
   - le nom et une ligne de description de chaque générateur (7) et de chaque amélioration (29) ;
@@ -242,6 +242,16 @@ Sans objet : aucun artefact n'arrive jamais à la surface, puisqu'aucune strate 
   - l'aide de la strate : une page courte, qui décrit tout le tableau de bord et ne dit rien du bandeau ;
   - les traces laissées au fond (strate 8) : trois lignes au plus, par exemple le dernier objectif et le message final.
 - **Aucun texte ne mentionne « creuser ».**
+
+### Dans le code ([#16](https://github.com/DavidGiangiacomo/strates/issues/16))
+
+Tous les textes sont dans `textes.fr.ts` : 604 mots, dont 259 pour les descriptions et 182 pour l'aide. Un test vérifie le budget, l'absence de « creuser » et de point d'exclamation, et que l'aide ne parle ni du bandeau, ni de la profondeur, ni des artefacts.
+- **Les infobulles** : au survol d'un moyen de production ou d'une amélioration, ou au clavier, sa description paraît au-dessus de la ligne. Elle est liée au bouton d'achat (`aria-describedby`).
+- **« Objectif atteint. »** s'affiche trois secondes sous l'objectif suivant, dans le vert des objectifs atteints, à chaque objectif atteint pendant qu'on regarde.
+- **L'aide** : un lien « Aide », discret, en haut à droite du tableau de bord, ouvre un panneau qu'on referme par « Fermer » ou Échap. Le tableau de bord continue de tourner. Chaque ouverture est notée au journal de partie (`Noyau.noterAide`, pour l'acte « sans aide » du § 7) et au journal de session des playtests.
+- **Les moyens de production** disent « 32 en service » : « Possédés » ne s'accordait pas avec les usines ou les turbines.
+- **Les traces pour le fond** (`trace.1` à `trace.3`) attendent la strate 8 ([#109](https://github.com/DavidGiangiacomo/strates/issues/109)).
+- Les noms « Double écran » et « Plan stratégique », comme ceux des moyens de production, sont aussi des noms d'en haut du catalogue des objets ([`artefacts.md`](../artefacts.md), § 8) : les deux listes doivent rester d'accord.
 
 ## 12. Critère R5
 
