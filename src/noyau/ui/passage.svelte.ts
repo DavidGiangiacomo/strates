@@ -66,6 +66,14 @@ export interface EcranFouille {
   formater: (valeur: number) => string;
 }
 
+/** Ce que le passage signale : au journal de session des playtests (#26), s'il est tenu. */
+export type EvenementPassage =
+  | { type: "creuser"; reponse: "resiste" | "fouille" | "pas-de-suite" }
+  | { type: "fouille"; valeur: number; points: number; preselection: string[] }
+  | { type: "reboucher" }
+  | { type: "descendre"; emportes: string[]; abandonnes: string[] }
+  | { type: "phase"; phase: Phase };
+
 export interface DependancesPassage {
   noyau: Noyau;
   /** L'horloge système (ms), pour l'arrivée notée au journal. */
@@ -80,6 +88,8 @@ export interface DependancesPassage {
   resister: () => void;
   /** Un message au joueur. */
   signaler: (message: string) => void;
+  /** Ce qui se passe, pour le journal de session. */
+  surEvenement?: (evenement: EvenementPassage) => void;
   durees?: Durees;
 }
 
@@ -106,6 +116,15 @@ export class Passage {
     this.artefacts = [...dependances.noyau.etat.artefacts];
   }
 
+  #signaler(evenement: EvenementPassage): void {
+    this.#d.surEvenement?.(evenement);
+  }
+
+  #passer(phase: Phase): void {
+    this.phase = phase;
+    this.#signaler({ type: "phase", phase });
+  }
+
   /**
    * Le bouton « creuser », du bandeau ou d'une strate. Avant le seuil, le sol résiste. Au seuil, la
    * fouille s'ouvre, sans confirmation (P2). Pendant la séquence, le bouton ne répond pas.
@@ -114,14 +133,23 @@ export class Passage {
     const { noyau } = this.#d;
     if (this.phase !== "jeu") return;
     if (!noyau.demanderFouille()) {
+      this.#signaler({ type: "creuser", reponse: "resiste" });
       this.#d.resister();
       return;
     }
     if (noyau.strateSuivante === null) {
+      this.#signaler({ type: "creuser", reponse: "pas-de-suite" });
       this.#d.signaler(PAS_DE_SUITE);
       return;
     }
     const fouille = noyau.ouvrirFouille();
+    this.#signaler({ type: "creuser", reponse: "fouille" });
+    this.#signaler({
+      type: "fouille",
+      valeur: fouille.valeur,
+      points: fouille.points,
+      preselection: [...fouille.preselection],
+    });
     const strate = noyau.strate;
     this.ecran = {
       fouille,
@@ -129,20 +157,21 @@ export class Passage {
       libelle: strate.textes["fouille.valeur"] ?? TEXTES_FOUILLE.valeur,
       formater: strate.formaterValeur ?? formaterBrut,
     };
-    this.phase = "pioche";
+    this.#passer("pioche");
     await this.#d.attendre(this.#durees.pioche);
-    this.phase = "fouille";
+    this.#passer("fouille");
   }
 
   /** Referme la fouille : la strate reprend là où elle s'était figée. */
   async reboucher(): Promise<void> {
     if (this.phase !== "fouille" || this.occupe) return;
-    this.phase = "rebouchage";
+    this.#signaler({ type: "reboucher" });
+    this.#passer("rebouchage");
     await this.#d.attendre(this.#durees.reboucher);
     this.#d.noyau.reboucher();
     this.ecran = null;
     this.cicatrice = true;
-    this.phase = "jeu";
+    this.#passer("jeu");
   }
 
   /**
@@ -158,6 +187,11 @@ export class Passage {
     try {
       const fouille = await noyau.descendre(this.#d.maintenant(), emportes);
       this.transportes = fouille.emportes.map((id) => artefact(id)?.nomDHaut ?? id);
+      this.#signaler({
+        type: "descendre",
+        emportes: [...fouille.emportes],
+        abandonnes: [...fouille.abandonnes],
+      });
     } catch (erreur) {
       this.occupe = false;
       this.#d.signaler(erreur instanceof Error ? erreur.message : String(erreur));
@@ -169,12 +203,12 @@ export class Passage {
     const sauvegarde = this.#d.sauvegarder().catch(() => false);
 
     const d = this.#durees;
-    this.phase = "descente";
+    this.#passer("descente");
     await this.#d.attendre(d.miCourse);
     this.profondeur = noyau.etat.profondeur;
     await this.#d.attendre(d.descente - d.miCourse);
 
-    this.phase = "arrivee";
+    this.#passer("arrivee");
     let ecoule = 0;
     for (const id of noyau.etat.artefacts.slice(this.artefacts.length)) {
       this.artefacts = [...this.artefacts, id];
@@ -188,7 +222,7 @@ export class Passage {
     noyau.reprendre();
     this.ecran = null;
     this.transportes = [];
-    this.phase = "jeu";
+    this.#passer("jeu");
     this.occupe = false;
   }
 }

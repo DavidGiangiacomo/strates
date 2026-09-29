@@ -245,3 +245,48 @@ describe("à travers le noyau, avec les six objets de la surface", () => {
     ]);
   });
 });
+
+describe("le journal de session", () => {
+  it("laisse une trace de chaque ligne écrite au registre, sauf à l'arrivée", () => {
+    const traces: unknown[] = [];
+    const etat = logique.etatInitial({ graine: 1, journal: { strates: [] }, effets: TOUT.effets });
+    const ctx = { ...TOUT, emettre: (e: unknown) => traces.push(e) };
+    jusquauBilan(etat, 1, ctx);
+    // Le premier bilan : le jugement de l'hiver, les pertes, puis l'éveil des trois multiplicateurs.
+    const ecrites = etat.registre.slice(4).map((l) => ({ type: "trace", ...l }));
+    const lignes = traces.filter((t) => (t as { cle: string }).cle.startsWith("registre."));
+    expect(lignes).toEqual(ecrites);
+    expect(lignes.map((t) => (t as { cle: string }).cle)).toContain("registre.pertes");
+  });
+
+  it("date le premier jour de chaque hiver, avec la réserve et la marque", () => {
+    const traces: { cle: string; valeurs?: Record<string, number> }[] = [];
+    const etat = vallee();
+    const ctx = { ...NEUTRE, emettre: (e: never) => traces.push(e) };
+    jusquauBilan(etat, 1, ctx);
+    const hivers = traces.filter((t) => t.cle === "hiver");
+    expect(hivers).toHaveLength(1);
+    expect(hivers[0]?.valeurs).toMatchObject({ annee: 1 });
+    expect(hivers[0]?.valeurs?.marque).toBeGreaterThan(0);
+  });
+
+  it("donne un relevé : calendrier, réserve et marque, possessions, fissure", () => {
+    const releve = logique.releve?.(etatInitial());
+    expect(releve).toMatchObject({
+      annee: 1,
+      jour: 70,
+      saison: "printemps",
+      reserve: 250,
+      rupture: false,
+      capacite: 400,
+      familles: 8,
+      installees: 0,
+      outils: 0,
+      greniers: 1,
+      silos: 0,
+      hivers: 0,
+      fissure: 0,
+    });
+    expect(releve?.marque).toBeCloseTo(775.4, 1);
+  });
+});

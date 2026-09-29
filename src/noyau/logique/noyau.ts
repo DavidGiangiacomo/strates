@@ -26,6 +26,7 @@ import type {
   EtatSeuil,
   EvenementStrate,
   NumeroStrate,
+  Releve,
 } from "./types";
 
 /** Pas fixe de la boucle, en secondes : 10 ticks par seconde (docs/architecture.md § 6). */
@@ -35,11 +36,24 @@ export const PAS = 0.1;
 const EPSILON = 1e-9;
 
 /**
+ * Ce que le noyau signale à qui l'observe : le journal de session des playtests (#26). L'observateur
+ * ne modifie rien ; il est prévenu après coup.
+ */
+export interface ObservateurNoyau {
+  /** Une action du joueur vient d'être appliquée à la strate courante. */
+  action?(action: ActionBase): void;
+  /** La strate vient de signaler un événement. */
+  evenement?(evenement: EvenementStrate): void;
+}
+
+/**
  * Le noyau : l'état global, la strate courante et la boucle de tick.
  * Déterministe : le temps lui est fourni, il ne le lit jamais.
  */
 export class Noyau {
   readonly etat: EtatNoyau;
+  /** Qui observe le noyau, s'il y a quelqu'un : le journal de session. */
+  observateur: ObservateurNoyau | null = null;
   #registre: Registre;
   #strate: StrateQuelconque | null = null;
   #actions: ActionBase[] = [];
@@ -63,6 +77,7 @@ export class Noyau {
       effets: EFFETS_NEUTRES,
       emettre: (evenement) => {
         this.#evenements.push(evenement);
+        this.observateur?.evenement?.(evenement);
       },
     };
   }
@@ -350,6 +365,11 @@ export class Noyau {
     return resultat;
   }
 
+  /** Un relevé de la strate courante, pour le journal de session ; null si elle n'en donne pas. */
+  releve(): Releve | null {
+    return this.strate.logique.releve?.(this.etatStrate) ?? null;
+  }
+
   /** Renvoie les événements émis par la strate depuis le dernier appel, et les oublie. */
   viderEvenements(): EvenementStrate[] {
     return this.#evenements.splice(0);
@@ -369,6 +389,7 @@ export class Noyau {
     const etat = this.etatStrate;
     for (const action of this.#actions.splice(0)) {
       logique.agir(etat, action, this.#contexte);
+      this.observateur?.action?.(action);
     }
   }
 

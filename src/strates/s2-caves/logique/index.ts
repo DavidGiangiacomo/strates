@@ -2,6 +2,7 @@
 // Le seuil : trois grands hivers de suite sans rupture (docs/strates/strate-2.md).
 import { TAUX_HORS_LIGNE } from "../../../noyau/logique/horsligne";
 import { EFFETS_NEUTRES } from "../../../noyau/logique/effets";
+import { avanceeFissure } from "../../../noyau/logique/filet";
 import type {
   ContexteTick,
   EffetsActifs,
@@ -31,11 +32,13 @@ import {
   HIVER_COURT,
   finSoudure,
   JOURS_PAR_AN,
+  marqueHiver,
   NAISSANCES,
   OBJETS,
   pertes,
   prochainOutil,
   recolteEntre,
+  saison,
   saisonChaude,
   SERIE_SEUIL,
   stockage,
@@ -80,19 +83,24 @@ function accueillir(etat: EtatCaves, effets: EffetsActifs): EtatCaves {
   lireEffets(etat, effets);
   const agit = (id: string) => effets.niveau(id) !== null;
   for (const id of [OBJETS.fenetres, OBJETS.armoire]) {
-    if (agit(id)) ecrire(etat, "registre.eveil", {}, id);
+    if (agit(id)) ecrire(etat, null, "registre.eveil", {}, id);
   }
   const attendent = [...OBJETS.multiplicateurs, OBJETS.feuille].filter(agit).length;
   if (attendent > 0) {
-    ecrire(etat, attendent === 1 ? "registre.attente.un" : "registre.attente", {
+    ecrire(etat, null, attendent === 1 ? "registre.attente.un" : "registre.attente", {
       objets: attendent,
     });
   }
   return etat;
 }
 
+/**
+ * Écrit une ligne au registre. Avec un contexte, elle laisse aussi une trace pour le journal de
+ * session (#26) ; sans, à l'arrivée, elle se déduit des objets emportés.
+ */
 function ecrire(
   etat: EtatCaves,
+  ctx: ContexteTick | null,
   cle: string,
   valeurs: Record<string, number>,
   objet?: string,
@@ -101,6 +109,9 @@ function ecrire(
   if (etat.registre.length > TAILLE_REGISTRE) {
     etat.registre.splice(0, etat.registre.length - TAILLE_REGISTRE);
   }
+  ctx?.emettre(
+    objet === undefined ? { type: "trace", cle, valeurs } : { type: "trace", cle, valeurs, objet },
+  );
 }
 
 /** Au-delà de la capacité des stockages, le grain déborde : il est perdu. */
@@ -187,62 +198,71 @@ function faireBilan(etat: EtatCaves, ctx: ContexteTick): void {
   if (rupture) {
     const serieRompue = etat.serie > 0;
     etat.serie = 0;
-    ecrire(etat, grand ? "registre.grand-hiver-rupture" : "registre.rupture", {
+    ecrire(etat, ctx, grand ? "registre.grand-hiver-rupture" : "registre.rupture", {
       annee: hiver,
       jours: Math.max(1, Math.round(joursDeRupture)),
       departs: Math.round(departs),
     });
-    if (serieRompue && avantSeuil) ecrire(etat, "registre.serie-rompue", {});
+    if (serieRompue && avantSeuil) ecrire(etat, ctx, "registre.serie-rompue", {});
   } else {
     const avant = etat.familles;
     etat.familles = Math.max(avant, Math.min(VALLEE, avant * (1 + NAISSANCES)));
     const naissances = Math.round(etat.familles - avant);
     if (grand) etat.serie += 1;
     if (avantSeuil) {
-      if (grand) ecrire(etat, "registre.grand-hiver", { annee: hiver, serie: etat.serie });
+      if (grand) ecrire(etat, ctx, "registre.grand-hiver", { annee: hiver, serie: etat.serie });
       else {
         ecrire(
           etat,
+          ctx,
           naissances > 0 ? "registre.sans-rupture" : "registre.sans-rupture-vallee-pleine",
           { annee: hiver, naissances },
         );
       }
       if (etat.serie >= SERIE_SEUIL) {
         etat.seuilAtteintA = etat.temps;
-        ecrire(etat, "registre.seuil", {});
+        ecrire(etat, ctx, "registre.seuil", {});
         // La feuille qui annonce : nommée quand elle agit, puis une ligne de l'atelier, d'une autre main.
         if (ctx.effets.niveau(OBJETS.feuille)) {
-          ecrire(etat, "registre.eveil", {}, OBJETS.feuille);
-          ecrire(etat, "registre.feuille", {});
+          ecrire(etat, ctx, "registre.eveil", {}, OBJETS.feuille);
+          ecrire(etat, ctx, "registre.feuille", {});
         }
       }
     }
   }
   if (premier) {
-    ecrire(etat, "registre.pertes", { pourri: etat.pertes.pourri });
+    ecrire(etat, ctx, "registre.pertes", { pourri: etat.pertes.pourri });
     for (const id of OBJETS.multiplicateurs) {
-      if (ctx.effets.niveau(id)) ecrire(etat, "registre.eveil", {}, id);
+      if (ctx.effets.niveau(id)) ecrire(etat, ctx, "registre.eveil", {}, id);
     }
   }
   etat.soudure = false;
   etat.bilan = { rupture: false, joursDeRupture: 0, departs: 0 };
 }
 
-/** Le premier jour de l'hiver : le registre note le premier hiver plus long, puis le premier grand hiver. */
-function debutHiver(etat: EtatCaves): void {
+/**
+ * Le premier jour de l'hiver : le registre note le premier hiver plus long, puis le premier grand
+ * hiver. Le journal de session reçoit la réserve et la marque du jour (docs/playtest-mvp.md, § 5.1).
+ */
+function debutHiver(etat: EtatCaves, ctx: ContexteTick): void {
   const { annee } = etat;
+  ctx.emettre({
+    type: "trace",
+    cle: "hiver",
+    valeurs: { annee, reserve: etat.reserve, marque: marqueHiver(etat) },
+  });
   if (dureeHiver(annee) > HIVER_COURT && dureeHiver(annee - 1) === HIVER_COURT) {
-    ecrire(etat, "registre.hivers-allongent", { annee, duree: dureeHiver(annee) });
+    ecrire(etat, ctx, "registre.hivers-allongent", { annee, duree: dureeHiver(annee) });
   }
   if (estGrandHiver(annee) && !estGrandHiver(annee - 1)) {
-    ecrire(etat, "registre.grand-hiver-arrive", { annee });
+    ecrire(etat, ctx, "registre.grand-hiver-arrive", { annee });
   }
 }
 
 /** Le calendrier atteint une borne ; le premier jour de l'hiver a ses lignes au registre. */
-function atteindre(etat: EtatCaves, borne: number): void {
+function atteindre(etat: EtatCaves, borne: number, ctx: ContexteTick): void {
   etat.jour = borne;
-  if (borne === saisonChaude(etat.annee)) debutHiver(etat);
+  if (borne === saisonChaude(etat.annee)) debutHiver(etat, ctx);
 }
 
 /** Le changement d'année, puis la fin de la soudure, quand le calendrier les atteint. */
@@ -280,7 +300,7 @@ function avancer(etat: EtatCaves, duree: number, ctx: ContexteTick): void {
     const borne = prochaineBorne(etat);
     // Une borne à un cheveu est atteinte : sans cela, un pas plus court que la tolérance n'avancerait plus.
     if (borne - jour <= EPSILON) {
-      atteindre(etat, borne);
+      atteindre(etat, borne, ctx);
       continue;
     }
     if (reste <= EPSILON) return;
@@ -290,7 +310,7 @@ function avancer(etat: EtatCaves, duree: number, ctx: ContexteTick): void {
     etat.temps += pas;
     reste -= pas;
     // Une borne atteinte l'est exactement, pour que le changement de saison ne dépende pas des arrondis.
-    if (pas === borne - jour) atteindre(etat, borne);
+    if (pas === borne - jour) atteindre(etat, borne, ctx);
     else etat.jour = jour + pas;
     echantillonner(etat, tempsAvant);
   }
@@ -399,4 +419,28 @@ export const logique: LogiqueStrate<EtatCaves, ActionCaves> = {
   seuil: (etat) => ({ atteint: etat.seuilAtteintA !== null }),
   valeurConvertible: (etat) => etat.cumul,
   absence,
+
+  /**
+   * Pour le journal de session : le calendrier, la réserve et sa marque, ce que la vallée possède, et
+   * la fissure du filet. Les gestes du protocole s'y lisent (docs/playtest-mvp.md, § 5.1).
+   */
+  releve: (etat) => ({
+    annee: etat.annee,
+    jour: etat.jour,
+    saison: saison(etat),
+    reserve: etat.reserve,
+    marque: marqueHiver(etat),
+    // La disette de l'hiver en cours de jugement : la réserve a été vide sans que la récolte suffise.
+    rupture: etat.bilan.rupture,
+    capacite: capacite(etat),
+    familles: etat.familles,
+    installees: etat.installees,
+    outils: etat.outils,
+    greniers: etat.stockages.grenier,
+    silos: etat.stockages.silo,
+    caves: etat.stockages.cave,
+    cavesProfondes: etat.stockages.caveProfonde,
+    hivers: etat.hivers.length,
+    fissure: avanceeFissure(etat.temps, etat.seuilAtteintA),
+  }),
 };

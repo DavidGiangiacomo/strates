@@ -21,6 +21,7 @@
     occupe = false,
     ondescendre,
     onreboucher,
+    onbasculer,
   }: {
     ecran: EcranFouille;
     /** La descente a commencé : l'écran monte et sort (P5). */
@@ -31,6 +32,8 @@
     occupe?: boolean;
     ondescendre: (emportes: string[]) => void;
     onreboucher: () => void;
+    /** Une case vient d'être cochée ou décochée : pour le journal de session. */
+    onbasculer?: (objet: string, coche: boolean) => void;
   } = $props();
 
   const fouille = $derived(ecran.fouille);
@@ -43,6 +46,12 @@
   // À l'ouverture, le focus va sur la première case (§ 3, « Accessibilité »).
   const cases: HTMLInputElement[] = [];
   onMount(() => cases[0]?.focus());
+
+  function changer(id: string): void {
+    const avant = choix.has(id);
+    choix = basculer(fouille, choix, id);
+    if (choix.has(id) !== avant) onbasculer?.(id, !avant);
+  }
 
   function touche(evenement: KeyboardEvent): void {
     if (evenement.key === "Escape" && !inerte) onreboucher();
@@ -91,7 +100,7 @@
                 bind:this={cases[i]}
                 checked={pris}
                 disabled={inerte || !prenable(fouille, choix, a)}
-                onchange={() => (choix = basculer(fouille, choix, a.id))}
+                onchange={() => changer(a.id)}
               />
               <span class="nom">{a.nomDHaut}</span>
               <span class="cout">{a.cout}</span>

@@ -81,12 +81,13 @@ describe("l'écran de fouille", () => {
     };
     const ondescendre = vi.fn();
     const onreboucher = vi.fn();
+    const onbasculer = vi.fn();
     composant = mount(Fouille, {
       target: document.body,
-      props: { ecran, ondescendre, onreboucher, ...props },
+      props: { ecran, ondescendre, onreboucher, onbasculer, ...props },
     });
     flushSync();
-    return { ondescendre, onreboucher };
+    return { ondescendre, onreboucher, onbasculer };
   }
 
   const texte = (test: string) =>
@@ -143,6 +144,20 @@ describe("l'écran de fouille", () => {
       "s1-double-ecran",
       "s1-serveur",
       "s1-plan",
+    ]);
+  });
+
+  it("signale au journal chaque case cochée ou décochée", () => {
+    const { onbasculer } = monter();
+    caseDe("s1-turbine").click();
+    flushSync();
+    caseDe("s1-turbine").click();
+    flushSync();
+    caseDe("s1-plan").click(); // trop cher : rien ne change, rien n'est signalé
+    flushSync();
+    expect(onbasculer.mock.calls).toEqual([
+      ["s1-turbine", false],
+      ["s1-turbine", true],
     ]);
   });
 
