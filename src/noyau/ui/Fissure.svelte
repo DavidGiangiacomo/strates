@@ -1,7 +1,7 @@
 <script lang="ts">
   // La fissure, le filet commun aux strates : un calque sur toute la fenêtre, qui ne capte aucun clic.
-  // Elle part d'un élément de la strate (le graphique de la surface, la réserve des caves) et s'allonge
-  // jusqu'au bouton « creuser », à droite du bandeau commun de 24 px (§12). Aucun texte.
+  // Elle part d'un élément de la strate (le graphique de la surface, le fond de la coupe des caves) et
+  // s'allonge jusqu'au bouton « creuser », à droite du bandeau commun de 24 px (§12). Aucun texte.
   import {
     BANDEAU,
     BOUTON_DEPUIS_LA_DROITE,
@@ -10,7 +10,7 @@
     type Point,
   } from "./fissure";
 
-  let { depart, avancee }: { depart: HTMLElement | undefined; avancee: number } = $props();
+  let { depart, avancee }: { depart: Element | undefined; avancee: number } = $props();
 
   let largeur = $state(0);
   let hauteur = $state(0);

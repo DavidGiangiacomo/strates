@@ -216,6 +216,78 @@ describe("la vue des caves", () => {
     ]);
   });
 
+  it("dessine la coupe : le grenier seul à l'arrivée, puis chaque couche construite, plus profond", () => {
+    const { etat } = monter();
+    const couches = () =>
+      [...document.querySelectorAll("[data-test^=couche-]")].map((c) =>
+        c.getAttribute("data-test"),
+      );
+    expect(couches()).toEqual(["couche-grenier"]);
+    // Le grenier est rempli aux 250 / 400 de la réserve.
+    const grain = document.querySelector<SVGElement>("[data-test=couche-grenier] .grain")!;
+    expect(grain.style.transform).toBe("scaleY(0.625)");
+
+    etat.stockages.silo = 1;
+    etat.stockages.caveProfonde = 1;
+    flushSync();
+    expect(couches()).toEqual(["couche-caveProfonde", "couche-silo", "couche-grenier"]);
+    // Le grain descend au fond : la cave profonde d'abord.
+    expect(grain.isConnected).toBe(true);
+    expect(grain.style.transform).toBe("scaleY(0)");
+  });
+
+  it("fait flotter la marque d'hiver au-dessus du grenier, sans légende avant le premier bilan", () => {
+    const { etat } = monter();
+    const trait = document.querySelector<SVGElement>("[data-test=trait-marque]")!;
+    // 775 boisseaux pour un grenier de 400 : au-dessus du grenier, sous le haut de la coupe.
+    const y = Number(/translateY\(([\d.]+)px\)/.exec(trait.style.transform)![1]);
+    expect(y).toBeGreaterThan(14);
+    expect(y).toBeLessThan(70);
+    expect(trait.querySelector(".legende")).toBeNull();
+
+    etat.hivers = [{ annee: 1, rupture: true }];
+    flushSync();
+    expect(trait.querySelector(".legende")?.textContent).toBe("Marque d'hiver");
+  });
+
+  it("refroidit l'écran en hiver, et le réchauffe au printemps", () => {
+    const { etat } = monter();
+    const froid = () =>
+      document.querySelector<HTMLElement>("[data-test=vallee]")!.style.getPropertyValue("--froid");
+    expect(froid()).toBe("0");
+    etat.jour = 353;
+    flushSync();
+    expect(froid()).toBe("0.5");
+    etat.jour = 380;
+    flushSync();
+    expect(froid()).toBe("1");
+  });
+
+  it("montre les hivers et les années sous la courbe de la réserve", () => {
+    monter((etat) => {
+      etat.annee = 2;
+      etat.jour = 100;
+      etat.temps = 450;
+      etat.historique.reserve = Array.from({ length: 91 }, (_, i) => 100 + i);
+    });
+    expect(document.querySelectorAll(".courbe rect.hiver")).toHaveLength(1);
+    expect(texte(".libelle-annee")).toBe("an 2");
+  });
+
+  it("tient les achats comme des écritures : ce qu'on achète, puis le prix", () => {
+    monter();
+    const ecritures = [...document.querySelectorAll(".ecriture")].map((e) =>
+      [...e.querySelectorAll(".quoi, .prix")].map((s) => s.textContent?.trim()),
+    );
+    expect(ecritures).toEqual([
+      ["Installer une famille", "25\u00a0boisseaux"],
+      ["Construire : Grenier", "92\u00a0boisseaux"],
+    ]);
+    expect(texte("[data-test=stockage-grenier] .detail")).toBe(
+      "1\u00a0construit · 400\u00a0boisseaux chacun",
+    );
+  });
+
   it("dit que la vallée est pleine, et qu'elle a tous ses outils", () => {
     monter((etat) => {
       etat.familles = VALLEE;

@@ -365,7 +365,7 @@ Ces durées sont des cibles de départ, réglables au playtest. La descente et l
 ## 10. Pour la suite
 
 - **L'orchestration ([#30](https://github.com/DavidGiangiacomo/strates/issues/30))** a codé la séquence P2 à P6 et l'écran de fouille du § 4 : voir « Dans le code », plus bas.
-- **Les directions artistiques ([#31](https://github.com/DavidGiangiacomo/strates/issues/31), [#33](https://github.com/DavidGiangiacomo/strates/issues/33))** gardent les raccords du § 5. #33 fait finir le sol traversé sur le haut de la coupe des stockages.
+- **Les directions artistiques ([#31](https://github.com/DavidGiangiacomo/strates/issues/31), [#33](https://github.com/DavidGiangiacomo/strates/issues/33))** gardent les raccords du § 5, et la coupe des stockages prend la suite du sol traversé : voir « Dans le code », plus bas, et le « Dans le code » des fiches 1 et 2 (§ 6).
 - **Le [protocole du test](../playtest-mvp.md) ([#14](https://github.com/DavidGiangiacomo/strates/issues/14))** part de la chronologie de P7. Il observe :
   - le temps entre le seuil et le premier clic sur « creuser » ;
   - si le joueur lit la conversion, garde la présélection, ou rebouche ;
@@ -386,9 +386,10 @@ Ces durées sont des cibles de départ, réglables au playtest. La descente et l
 - **Avec la direction artistique de la surface ([#31](https://github.com/DavidGiangiacomo/strates/issues/31))** :
   - au coup de pioche, le tableau de bord se fend en deux moitiés le long de la fissure, qui glissent vers le bas en s'écartant et s'effacent ; au rebouchage, elles remontent et se rejoignent (`Fente.svelte`, deux copies de la strate figée) ;
   - la valeur convertible est écrite dans la police et les couleurs de la surface, sur le fond de ses cartes : un éclat du tableau de bord posé sur le sol (`apparenceValeur`).
-- **Simplifications**, à reprendre avec la direction artistique des caves ([#33](https://github.com/DavidGiangiacomo/strates/issues/33)) :
-  - le sol traversé est fait de bandes dans la palette du noyau, et les objets emportés sont des étiquettes aux couleurs du bandeau ;
-  - le sol ne finit pas encore sur le haut de la coupe des stockages, qui n'existe pas encore.
+- **Avec la direction artistique des caves ([#33](https://github.com/DavidGiangiacomo/strates/issues/33))** :
+  - l'écran des caves monte sur le sol traversé, et sa coupe des stockages en prend la suite : un sol sombre, le grenier posé sur le champ, et rien dessous. La marque d'hiver flotte au-dessus du grenier (P6) ;
+  - les quatre choses que le joueur doit voir d'abord (P6) sont là où ses yeux et sa main allaient en haut : le calendrier à la place du graphique, la réserve à la place des crédits, « Glaner » à la place de « Produire », et les achats du registre à la place des générateurs.
+- **Restent pour la coupe du jeu ([#47](https://github.com/DavidGiangiacomo/strates/issues/47))** : le sol traversé est fait de bandes dans la palette du noyau, et les objets emportés sont des étiquettes aux couleurs du bandeau.
 - **Vérifié dans Chromium**, depuis la sauvegarde nommée « surface-seuil-atteint », avec et sans mouvement : le passage complet, « reboucher », la première page du registre, le sol qui résiste dans les caves, et le rechargement.
 
 ## 11. Questions ouvertes

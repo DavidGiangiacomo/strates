@@ -2,8 +2,8 @@
   // Le calendrier circulaire (fiche, § 6) : le temps tourne au lieu d'avancer. Au centre, l'année et
   // son aiguille ; la soudure prolonge l'hiver sur le printemps. Autour, le grand cycle : une case par
   // année vécue, dont l'hiver s'allonge ; un hiver manqué y est barré. Les années futures ne sont pas
-  // dessinées, sauf par l'armoire qui compte les hivers (`avenir`). Minimal : la direction artistique
-  // viendra avec #33.
+  // dessinées, sauf par l'armoire qui compte les hivers (`avenir`). Il est posé sur le bois, et
+  // l'aiguille tourne d'un jour par seconde, sans à-coup.
   import type { EtatCaves } from "../logique";
   import { finSoudure } from "../logique/regles";
   import { angleJour, casesCycle, point, saisonsAnnee, secteur, TAILLE } from "./calendrier";
@@ -59,6 +59,7 @@
     <path class="saison {s.saison}" d={secteur(0, ANNEE, angleJour(s.debut), angleJour(s.fin))} />
   {/each}
   <path class="soudure" d={secteur(SOUDURE, ANNEE, 0, soudure)} />
+  <circle class="bord" cx={TAILLE / 2} cy={TAILLE / 2} r={ANNEE} />
 
   <line class="aiguille" x1={TAILLE / 2} y1={TAILLE / 2} x2={aiguille.x} y2={aiguille.y} />
   <circle class="axe" cx={TAILLE / 2} cy={TAILLE / 2} r="3" />
@@ -67,13 +68,15 @@
 <style>
   .calendrier {
     display: block;
-    width: 11rem;
-    height: 11rem;
-    flex: none;
+    width: 100%;
+    max-width: 17rem;
+    height: auto;
+    aspect-ratio: 1;
   }
+  /* Les saisons gardent leurs couleurs en hiver : c'est le reste de l'écran qui se refroidit. */
   .saison {
-    stroke: #fffaf0;
-    stroke-width: 1;
+    stroke: var(--bois);
+    stroke-width: 1.5;
   }
   .printemps {
     fill: #b5c48f;
@@ -91,8 +94,13 @@
     fill: #93a6ba;
     opacity: 0.55;
   }
+  .bord {
+    fill: none;
+    stroke: var(--bois-sombre);
+    stroke-width: 2;
+  }
   .case .chaude {
-    fill: #e6d9b8;
+    fill: var(--papier-sombre);
   }
   .case.grand .hiver {
     fill: #56708c;
@@ -101,19 +109,19 @@
     opacity: 0.35;
   }
   .case.courante path {
-    stroke: #3b2f22;
-    stroke-width: 1;
+    stroke: var(--papier);
+    stroke-width: 1.5;
   }
   .trait {
-    stroke: #8a3324;
+    stroke: var(--marque);
     stroke-width: 2.5;
   }
   .aiguille {
-    stroke: #3b2f22;
-    stroke-width: 2;
+    stroke: var(--encre);
+    stroke-width: 2.5;
     stroke-linecap: round;
   }
   .axe {
-    fill: #3b2f22;
+    fill: var(--encre);
   }
 </style>

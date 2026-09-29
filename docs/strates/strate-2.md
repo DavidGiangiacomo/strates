@@ -198,7 +198,7 @@ Le seuil ne peut pas tomber avant 1 h 51, quelle que soit l'habileté du joueur 
 ### Le bouton « creuser »
 
 - C'est le bouton de fouille du bandeau commun, comme partout. Avant le seuil, le sol résiste, et rien dans la strate ne le mentionne.
-- **Filet** : si le joueur n'a pas creusé 5 minutes après le seuil (en temps de strate), une fissure apparaît dans la coupe des stockages (§ 6). Elle part du fond de la cave la plus profonde et monte en 2 minutes vers le bouton du bandeau, sans texte ni blocage. En attendant la coupe ([#33](https://github.com/DavidGiangiacomo/strates/issues/33)), elle part de la jauge de la réserve. Le délai, la durée et le tracé sont communs aux strates : `src/noyau/logique/filet.ts` et `src/noyau/ui/fissure.ts`.
+- **Filet** : si le joueur n'a pas creusé 5 minutes après le seuil (en temps de strate), une fissure apparaît dans la coupe des stockages (§ 6). Elle part du fond de la coupe, sous la couche la plus profonde, et monte en 2 minutes vers le bouton du bandeau, sans texte ni blocage. Le délai, la durée et le tracé sont communs aux strates : `src/noyau/logique/filet.ts` et `src/noyau/ui/fissure.ts`.
 - C'est le même principe qu'à la surface, dans le décor des caves ; les constantes sont les mêmes, à régler au playtest.
 
 ### En simulation
@@ -278,6 +278,41 @@ Bois, registres, calendrier circulaire (§5). Tout ce que la surface n'était pa
 - **Mouvement** : lent. L'aiguille tourne en continu et le grain coule dans la coupe. Rien ne défile par à-coups.
 - **Sons** (phase 2, [#46](https://github.com/DavidGiangiacomo/strates/issues/46)) : du grain versé, du bois, et le vent en hiver. Le MVP peut être muet.
 - **Ce qui la distingue** : c'est la seule strate où le temps est un cercle visible. C'est aussi la première où l'écran n'est pas un logiciel.
+
+### Dans le code ([#33](https://github.com/DavidGiangiacomo/strates/issues/33))
+
+- **La palette** est dans `vue/theme.ts`. Chaque couleur y a deux teintes, celle de la saison chaude et celle de l'hiver :
+  - le bois de la table, `#4a3727`, qui devient un gris d'ardoise, `#383f47` ;
+  - le papier du registre et de la courbe, `#efe2c6`, et son encre, `#2b2118` (12:1) ;
+  - l'ocre du blé, `#c9a13f`, pour le grain de la coupe ;
+  - un brun-rouge, `#9a3a28`, pour la marque d'hiver et le trait d'un hiver manqué.
+  
+  La vue mélange les deux teintes selon le froid de l'écran (`froidEcran`). Il monte en 6 jours à partir du premier jour de l'hiver, et retombe en 6 jours au printemps. Un jour dure une seconde : on voit l'écran se refroidir, sans à-coup. Seules les couleurs des saisons, sur le calendrier, ne changent pas.
+- **La typographie** : une serif humaniste de système (Iowan Old Style, Palatino, puis Charter ou Georgia). La chronique du registre est en chiffres elzéviriens ; la réserve, les flux et les prix en chiffres alignés. Rien n'est en capitales, et il n'y a pas d'icône.
+- **La disposition** :
+  - en tête, la réserve, les flux du jour et la date, là où la surface avait les crédits, la production et l'objectif ;
+  - dessous, le calendrier à gauche, la coupe des stockages au centre, et à droite « Glaner » au-dessus du registre ;
+  - en bas, la courbe de la réserve.
+  
+  Sous 1 180 px de large, le calendrier passe au-dessus de la coupe et le registre reste à droite, avec « Glaner » ; sous 760 px, tout passe en une colonne.
+- **La coupe des stockages** (`vue/coupe.ts`, `Coupe.svelte`) :
+  - elle montre le ciel, les greniers posés sur le champ, puis le sol, où sont creusés les silos, les caves et les caves profondes, de plus en plus grands, dans un sol de plus en plus sombre ;
+  - chaque couche construite a la même hauteur, quelle que soit sa capacité : le grain monte d'une couche par couche remplie ;
+  - le grain remplit d'abord la couche la plus profonde, et coule en 0,7 s quand la réserve change ;
+  - la marque d'hiver est un trait sur toute la coupe. Au-delà de la capacité des stockages, elle flotte au-dessus des greniers, d'une couche au plus. Elle ne porte son nom qu'une fois dévoilée (§ 7) ;
+  - à l'arrivée, il n'y a que le grenier, et du sol dessous.
+- **Le registre** :
+  - en tête, les achats, écrits comme des écritures, avec des points de conduite jusqu'au prix : « Installer une famille ........ 25 boisseaux ». Sous chacune, ce que la vallée possède déjà ;
+  - dessous, la chronique, la ligne la plus récente en haut ;
+  - la ligne de la feuille qui annonce est d'une autre main et d'une autre encre.
+- **La courbe de la réserve** (`vue/courbe.ts`) : une bande de papier, avec les hivers en bandes grises, le début de chaque année (« an 2 ») et une encoche par achat. Elle monte l'été et tombe l'hiver : l'oscillation se lit d'un coup d'œil.
+- **« Glaner »** est une planche de bois, à la place de « Produire ».
+- **Le filet** part du fond de la coupe (§ 4).
+- **À l'écran de fouille**, le grain récolté s'écrit à l'encre, sur le papier du registre (`apparenceValeur`). Il n'y a pas de strate sous les caves dans le MVP : cet écran servira ensuite.
+- **Vérifié dans Chromium**, à 1280 × 800, 1024 × 768 et 390 × 844 :
+  - l'arrivée par la descente depuis la surface, puis le premier été, l'automne, l'hiver qui refroidit l'écran, et le premier bilan ;
+  - une vallée creusée au grand cycle, avec ses quatre couches ;
+  - le filet.
 
 ## 7. Opacité et Compréhension
 
@@ -362,7 +397,7 @@ Ces lignes de l'arrivée et du seuil sont codées avec l'orchestration de la des
 - **Ton** : celui d'un registre de village. Des phrases courtes, datées, constatées plutôt que racontées, sans émotion affichée : « Hiver de l'an 3 : passé sans rupture. 6 familles sont nées. » Le registre ne s'adresse jamais au joueur.
 - **À écrire** :
   - les noms et une ligne de description des 4 stockages et des 4 outils ;
-  - les libellés : réserve, marque d'hiver, familles, « Glaner », « Installer une famille », « Construire », les saisons, « jour N de l'an N » ;
+  - les libellés : réserve, marque d'hiver, familles, « Glaner », « Installer une famille », « Construire », « Acheter », les saisons, « jour N de l'an N », et le début d'une année sur la courbe (« an 2 ») ;
   - les lignes du registre :
     - le bilan d'un hiver, avec ou sans rupture, avec les naissances ou les départs ;
     - les pertes révélées, la vallée pleine, les hivers qui s'allongent ;
