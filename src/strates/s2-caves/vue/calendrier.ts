@@ -97,3 +97,16 @@ export function casesCycle(etat: Pick<EtatCaves, "annee" | "hivers">, avenir = f
   }
   return cases;
 }
+
+/** Le temps que met l'écran à se refroidir au début de l'hiver, et à se réchauffer au printemps, en jours. */
+export const TRANSITION_FROID = 6;
+
+/**
+ * Le froid de l'écran, de 0 à 1 (fiche, § 6) : l'hiver refroidit tout l'écran en quelques jours, et
+ * le printemps le réchauffe de même. Il suit le calendrier, jour après jour : rien ne saute.
+ */
+export function froidEcran(etat: Pick<EtatCaves, "annee" | "jour">): number {
+  const hiver = saisonChaude(etat.annee);
+  if (etat.jour >= hiver) return Math.min(1, (etat.jour - hiver) / TRANSITION_FROID);
+  return Math.max(0, 1 - etat.jour / TRANSITION_FROID);
+}

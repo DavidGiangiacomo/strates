@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { angleJour, CASES, casesCycle, point, saisonsAnnee, secteur, TAILLE } from "./calendrier";
+import {
+  angleJour,
+  CASES,
+  casesCycle,
+  froidEcran,
+  point,
+  saisonsAnnee,
+  secteur,
+  TAILLE,
+  TRANSITION_FROID,
+} from "./calendrier";
 
 describe("le calendrier circulaire", () => {
   it("fait un tour par année, en partant du haut, dans le sens des aiguilles d'une montre", () => {
@@ -79,5 +89,22 @@ describe("l'anneau du grand cycle", () => {
     const an5 = casesCycle({ annee: 5, hivers: [] }).at(-1)!;
     const an25 = cases.at(-1)!;
     expect(an25.debut).toBeCloseTo(an5.debut, 12);
+  });
+});
+
+describe("le froid de l'écran", () => {
+  it("monte en quelques jours au début de l'hiver", () => {
+    expect(froidEcran({ annee: 1, jour: 70 })).toBe(0);
+    expect(froidEcran({ annee: 1, jour: 350 })).toBe(0);
+    expect(froidEcran({ annee: 1, jour: 350 + TRANSITION_FROID / 2 })).toBe(0.5);
+    expect(froidEcran({ annee: 1, jour: 400 })).toBe(1);
+  });
+
+  it("retombe au printemps, et suit l'hiver qui s'allonge", () => {
+    expect(froidEcran({ annee: 2, jour: 0 })).toBe(1);
+    expect(froidEcran({ annee: 2, jour: TRANSITION_FROID / 2 })).toBe(0.5);
+    expect(froidEcran({ annee: 2, jour: 200 })).toBe(0);
+    // En l'an 14, le grand hiver commence au jour 250.
+    expect(froidEcran({ annee: 14, jour: 260 })).toBe(1);
   });
 });

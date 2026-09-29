@@ -34,7 +34,7 @@ export const textes: Record<string, string> = {
   "stockage.silo": "Silo",
   "stockage.cave": "Cave",
   "stockage.caveProfonde": "Cave profonde",
-  "stockage.detail": "{nombre} construits · {capacite:boisseau} chacun",
+  "stockage.detail": "{nombre:construit} · {capacite:boisseau} chacun",
   "stockage.pertes": "pertes : {pertes:boisseau} par jour",
   construire: "Construire",
 
@@ -50,6 +50,7 @@ export const textes: Record<string, string> = {
   prix: "{prix:boisseau}",
   registre: "Registre",
   courbe: "Réserve, 3 dernières années",
+  "courbe.annee": "an {annee}",
   calendrier: "Le calendrier : l'année au centre, les années passées autour",
 
   "registre.arrivee": "An {annee}. {familles:famille}, un grenier.",
