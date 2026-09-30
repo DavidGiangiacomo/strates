@@ -18,7 +18,8 @@
     "test:watch": "vitest",
     "sauvegardes": "vitest run tests/sauvegardes-nommees.test.ts --update",
     "mesures": "vitest run tests/equilibrage-surface.test.ts tests/equilibrage-caves.test.ts --update",
-    "analyse": "node src/playtest/analyser.mjs"
+    "analyse": "node src/playtest/analyser.mjs",
+    "simuler": "node sim/simuler.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

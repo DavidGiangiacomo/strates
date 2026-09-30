@@ -1,6 +1,7 @@
 // Un joueur automatique pour les caves (#36), branché sur le noyau. Deux façons de jouer :
-// - le réflexe de la surface : acheter dès qu'on peut ce qui se rembourse le plus vite, et de la place
-//   quand la réserve est pleine (docs/strates/strate-2.md, § 5) ;
+// - le réflexe de la surface : acheter dès qu'on peut ce qui se rembourse le plus vite (ou, plus naïf,
+//   ce qui coûte le moins cher), et de la place quand la réserve est pleine (docs/strates/strate-2.md,
+//   § 5) ;
 // - la prévision : ne dépenser que ce qui laisse, au pire moment d'ici la fin de la prochaine soudure,
 //   une marge de quelques jours de consommation ; construire d'abord si le grain va déborder.
 import type { Noyau } from "../../src/noyau/logique/noyau";
@@ -32,6 +33,11 @@ export interface ProfilCaves {
   reflexeJusqua: number;
   /** La marge de la prévision, en jours de consommation. */
   marge: number;
+  /**
+   * Ce qu'achète le réflexe : ce qui se rembourse le plus vite (le glouton, par défaut), ou ce qui
+   * coûte le moins cher, stockages compris.
+   */
+  achat?: "rendement" | "moins-cher";
 }
 
 /** Le joueur qui arrive de la surface et n'en change pas : il ne passe jamais le premier hiver. */
@@ -52,6 +58,14 @@ export const APPREND: ProfilCaves = {
   attention: (t) => (t < 900 ? 5 : 20),
   reflexeJusqua: 6 * 60,
   marge: 30,
+};
+
+/** Le joueur naïf : il achète toujours ce qui coûte le moins cher, comme à la surface, sans jamais prévoir. */
+export const MOINS_CHER: ProfilCaves = {
+  ...REFLEXE,
+  description:
+    "achète toujours le moins cher dès qu'il peut ; 4 clics/s pendant 10 min ; passe toutes les 5 s",
+  achat: "moins-cher",
 };
 
 export const CORRECT: ProfilCaves = {
@@ -130,14 +144,29 @@ export function prevision(e: EtatCaves, ctx: ContexteTick): { mini: number; debo
   return { mini, deborde: copie.pertes.debord - debord };
 }
 
+/** L'achat le moins cher, quel qu'il soit : une famille, un stockage visible ou le prochain outil. */
+function achatLeMoinsCher(e: EtatCaves): { action: ActionCaves; cout: number } | null {
+  const options: { action: ActionCaves; cout: number }[] = [];
+  if (!valleePleine(e)) options.push({ action: { type: "installer" }, cout: coutFamille(e) });
+  for (const def of STOCKAGES) {
+    if (!stockageVisible(e, def)) continue;
+    const cout = coutStockage(def, e.stockages[def.id]);
+    options.push({ action: { type: "construire", stockage: def.id }, cout });
+  }
+  const outil = prochainOutil(e);
+  if (outil) options.push({ action: { type: "outil" }, cout: outil.cout });
+  options.sort((a, b) => a.cout - b.cout);
+  return options[0] ?? null;
+}
+
 /** L'action du joueur réflexe, ou null s'il attend. */
-function reflexe(e: EtatCaves): ActionCaves | null {
+function reflexe(e: EtatCaves, achat: ProfilCaves["achat"]): ActionCaves | null {
   const grenier = coutStockage(STOCKAGES[0], e.stockages.grenier);
   if (e.reserve >= 0.95 * capacite(e) && e.reserve >= grenier) {
     return { type: "construire", stockage: "grenier" };
   }
-  const achat = meilleurAchat(e);
-  return achat && e.reserve >= achat.cout ? achat.action : null;
+  const choix = achat === "moins-cher" ? achatLeMoinsCher(e) : meilleurAchat(e);
+  return choix && e.reserve >= choix.cout ? choix.action : null;
 }
 
 /** L'action du joueur qui prévoit, ou null s'il attend. */
@@ -167,7 +196,8 @@ export function creerJoueur(noyau: Noyau, profil: ProfilCaves) {
       if (t >= prochainPassage) {
         for (let i = 0; i < 40; i++) {
           const e = etat();
-          const action = t < profil.reflexeJusqua ? reflexe(e) : prevoyant(e, profil.marge, ctx);
+          const action =
+            t < profil.reflexeJusqua ? reflexe(e, profil.achat) : prevoyant(e, profil.marge, ctx);
           if (!action) break;
           const avant = e.reserve;
           noyau.agir(action);

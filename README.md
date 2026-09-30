@@ -44,6 +44,7 @@ npm run format       # Prettier
 npm run sauvegardes  # régénère les sauvegardes nommées (sauvegardes-nommees/)
 npm run mesures      # régénère les mesures d'équilibrage (docs/strates/strate-1-mesures.md et strate-2-mesures.md)
 npm run analyse -- journal.json …  # analyse des journaux de session exportés (docs/playtest-mvp.md, § 9)
+npm run simuler -- caves correct --comparer  # le simulateur d'équilibrage (sim/README.md)
 ```
 
 ### Outils de développement
