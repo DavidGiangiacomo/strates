@@ -466,3 +466,5 @@ Le prix des familles est aussi **le levier du choc d'arrivée**, et il ne doit p
 - **I2** : avec les objets d'un jeu correct, le plafond × 4 n'agit jamais.
 
 **À vérifier au playtest** ([#37](https://github.com/DavidGiangiacomo/strates/issues/37)) : que le premier hiver manqué se comprend (§ 5), que l'éveil des objets se remarque (§ 8), et que les grands hivers se vivent comme une tension plutôt que comme une attente (§ 12).
+
+**Le joueur naïf** ([#23](https://github.com/DavidGiangiacomo/strates/issues/23)) achète toujours ce qui coûte le moins cher, dès qu'il peut (`npm run simuler -- caves moins-cher --comparer`). Il manque un hiver sur deux, et n'atteint pas le seuil en 4 h sans artefact ; avec les objets d'un jeu correct, il l'atteint à 2 h 12. Comme le joueur réflexe, il montre que la strate ne se finit pas sans changer de grammaire.

@@ -286,3 +286,5 @@ Issue [#35](https://github.com/DavidGiangiacomo/strates/issues/35). Les mesures 
 **Décision.** Aucun chiffre du § 3 ne change : le calibrage de la fiche tient. Les deux économies de fin de strate sont gardées. Elles marquent le passage au jeu de fond décrit au § 4 (« le joueur n'intervient plus que toutes les quelques minutes »), et la strate finit sur un achat qui compte.
 
 **À vérifier au playtest** ([#37](https://github.com/DavidGiangiacomo/strates/issues/37)) : que le passage du clic à l'automatisation est agréable, et que les attentes de fin de strate ne font pas décrocher. Si elles sont trop longues, les leviers sont le coût de la filiale et celui de « Plan stratégique ».
+
+**Le joueur naïf** ([#23](https://github.com/DavidGiangiacomo/strates/issues/23)) achète toujours ce qui coûte le moins cher (`npm run simuler -- surface moins-cher --limite=6`). Il n'atteint le seuil qu'à 4 h 37, au-delà des 3 h 15 d'I5. La surface suppose donc qu'on achète au rendement, comme dans les incrémentaux ordinaires. Le test du MVP dira si des joueurs réels s'en approchent, en particulier ceux qui ne jouent pas aux incrémentaux (le journal note chaque achat).

@@ -1,5 +1,6 @@
 // Un joueur automatique pour la surface : il clique, puis achète toujours ce qui se rembourse le plus
-// vite. Il sert au test de partie complète, aux sauvegardes nommées (#28), et au simulateur (#23).
+// vite (le glouton), ou, plus naïf, ce qui coûte le moins cher. Il sert au test de partie complète,
+// aux sauvegardes nommées (#28), et au simulateur (#23).
 import type { Noyau } from "../../src/noyau/logique/noyau";
 import {
   logique,
@@ -23,6 +24,11 @@ export interface Profil {
   clics: (t: number) => number;
   /** Secondes entre deux passages du joueur sur le tableau de bord. */
   attention: (t: number) => number;
+  /**
+   * Ce qu'il achète : ce qui se rembourse le plus vite (le glouton, par défaut), ou ce qui coûte le
+   * moins cher.
+   */
+  achat?: "rendement" | "moins-cher";
 }
 
 /** Un joueur parfait : il clique beaucoup et achète à la seconde près. */
@@ -53,6 +59,13 @@ export const DISTRAIT: Profil = {
   attention: (t) => (t < 600 ? 10 : 60),
 };
 
+/** Un joueur naïf : il achète toujours ce qui coûte le moins cher, au rythme du joueur correct. */
+export const MOINS_CHER: Profil = {
+  ...CORRECT,
+  description: "achète toujours le moins cher ; clique et passe comme le joueur correct",
+  achat: "moins-cher",
+};
+
 /** Un joueur occasionnel : quelques clics, puis un passage toutes les 5 minutes. */
 export const OCCASIONNEL: Profil = {
   description: "3 clics/s pendant 2 min ; passe toutes les 10 s, puis toutes les 5 min",
@@ -65,13 +78,9 @@ const SANS_EFFETS = {
   emettre: () => {},
 };
 
-/** Le meilleur achat : celui qui se rembourse le plus vite, compte tenu de l'attente pour le payer. */
-export function meilleurAchat(
-  etat: EtatSurface,
-  clics: number,
-): { action: ActionSurface; cout: number } | null {
-  const avant = production(etat) + valeurClic(etat) * clics;
-  const options: { action: ActionSurface; cout: number }[] = [
+/** Ce qui peut s'acheter : un exemplaire de chaque générateur visible, et chaque amélioration disponible. */
+function achatsPossibles(etat: EtatSurface): { action: ActionSurface; cout: number }[] {
+  return [
     ...GENERATEURS.filter((g) => generateurVisible(etat, g)).map((g) => ({
       action: { type: "acheter", generateur: g.id, quantite: 1 } as const,
       cout: coutAchat(g, etat.generateurs[g.id]),
@@ -81,6 +90,23 @@ export function meilleurAchat(
       cout: a.cout,
     })),
   ];
+}
+
+/** L'achat le moins cher, quel qu'il soit. */
+export function achatLeMoinsCher(
+  etat: EtatSurface,
+): { action: ActionSurface; cout: number } | null {
+  const options = achatsPossibles(etat).sort((a, b) => a.cout - b.cout);
+  return options[0] ?? null;
+}
+
+/** Le meilleur achat : celui qui se rembourse le plus vite, compte tenu de l'attente pour le payer. */
+export function meilleurAchat(
+  etat: EtatSurface,
+  clics: number,
+): { action: ActionSurface; cout: number } | null {
+  const avant = production(etat) + valeurClic(etat) * clics;
+  const options = achatsPossibles(etat);
   let meilleur: { action: ActionSurface; cout: number; score: number } | null = null;
   for (const option of options) {
     const essai = JSON.parse(JSON.stringify(etat)) as EtatSurface;
@@ -109,7 +135,8 @@ export function creerJoueur(noyau: Noyau, profil: Profil) {
       if (t >= prochainPassage) {
         // Le joueur achète tant que le meilleur achat est à sa portée.
         for (;;) {
-          const achat = meilleurAchat(etat(), clics);
+          const achat =
+            profil.achat === "moins-cher" ? achatLeMoinsCher(etat()) : meilleurAchat(etat(), clics);
           if (!achat || achat.cout > etat().credits) break;
           noyau.agir(achat.action);
           noyau.tick(0);
