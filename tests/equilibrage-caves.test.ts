@@ -1,6 +1,6 @@
-// L'équilibrage des caves (#36) : des parties complètes, jouées par des joueurs automatiques de
-// profils différents, avec et sans les objets de la surface, doivent tomber dans les cibles de la fiche
-// (docs/strates/strate-2.md) et de l'issue. Les mesures sont publiées dans
+// L'équilibrage des caves (#36, puis #163 pour les rations) : des parties complètes, jouées par des
+// joueurs automatiques de profils différents, avec et sans les objets de la surface, doivent tomber dans
+// les cibles de la fiche (docs/strates/strate-2.md) et des issues. Les mesures sont publiées dans
 // docs/strates/strate-2-mesures.md, tenu à jour par ce test.
 // Pour le régénérer après un changement de règles : npm run mesures
 import { describe, expect, it } from "vitest";
@@ -12,7 +12,7 @@ import {
   REFLEXE,
   type ProfilCaves,
 } from "../sim/joueurs/caves";
-import { mesurerCaves, type MesuresCaves } from "../sim/mesures/caves";
+import { mesurerCaves, TRANCHE, type MesuresCaves } from "../sim/mesures/caves";
 import { artefact, preselection } from "../src/noyau/logique/artefacts";
 
 const PROFILS: Record<string, ProfilCaves> = {
@@ -43,6 +43,13 @@ for (const variante of ["sans", "avec"] as const) {
 const minutes = (s: number | null | undefined) => (s == null ? Infinity : s / 60);
 const plusLongueAttente = (m: MesuresCaves) =>
   m.attentes.reduce((max, a) => (a.duree > max.duree ? a : max), { debut: 0, duree: 0 });
+/**
+ * Les décisions de la seconde moitié (#163) : celles des tranches de 10 minutes entières, de 60 minutes
+ * jusqu'au seuil.
+ */
+const SECONDE_MOITIE = 60 * 60;
+const decisionsSecondeMoitie = (m: MesuresCaves) =>
+  m.decisions.slice(SECONDE_MOITIE / TRANCHE, Math.floor((m.seuil ?? 0) / TRANCHE));
 const chaque = (f: (m: MesuresCaves, variante: Variante, nom: string) => void) => {
   for (const variante of ["sans", "avec"] as const) {
     for (const nom of REGULIERS) f(MESURES[variante][nom]!, variante, nom);
@@ -61,11 +68,23 @@ describe("l'équilibrage des caves", () => {
     for (const nom of REGULIERS) expect(minutes(MESURES.sans[nom]!.seuil)).toBeLessThan(195);
   });
 
-  it("donne 8 points sans objets, 9 au plus avec, pour environ 10⁶ boisseaux", () => {
-    chaque((m, variante) => {
-      expect(m.points.auSeuil).toBe(variante === "sans" ? 8 : 9);
+  it("donne 8 ou 9 points sans objets selon le jeu, 9 avec, pour 10⁶ à 10⁷ boisseaux", () => {
+    chaque((m, variante, nom) => {
+      if (variante === "sans") expect([8, 9]).toContain(m.points.auSeuil);
+      else expect(m.points.auSeuil).toBe(9);
+      // Les objets de la surface ne retirent jamais de point.
+      expect(m.points.auSeuil).toBeLessThanOrEqual(MESURES.avec[nom]!.points.auSeuil);
       expect(m.cumul).toBeGreaterThan(5e5);
-      expect(m.cumul).toBeLessThan(1e7);
+      expect(m.cumul).toBeLessThan(2e7);
+    });
+  });
+
+  it("demande des décisions jusqu'au seuil : 3 au moins par tranche de 10 minutes, 5 en moyenne, après 60 minutes", () => {
+    chaque((m) => {
+      const tranches = decisionsSecondeMoitie(m);
+      expect(tranches.length).toBeGreaterThanOrEqual(4);
+      expect(Math.min(...tranches)).toBeGreaterThanOrEqual(3);
+      expect(tranches.reduce((a, n) => a + n, 0) / tranches.length).toBeGreaterThanOrEqual(5);
     });
   });
 
@@ -152,6 +171,27 @@ function resultats(variante: Variante): string {
   );
 }
 
+function decisions(): string {
+  const n = Math.max(
+    ...REGULIERS.flatMap((nom) =>
+      [MESURES.sans, MESURES.avec].map((v) => v[nom]!.decisions.length),
+    ),
+  );
+  const tranches = Array.from(
+    { length: n },
+    (_, i) => `${(i * TRANCHE) / 60}–${((i + 1) * TRANCHE) / 60}`,
+  );
+  return tableau(
+    ["Profil", ...tranches],
+    (["sans", "avec"] as const).flatMap((variante) =>
+      REGULIERS.map((nom) => [
+        `${nom}, ${variante === "sans" ? "sans objets" : "avec objets"}`,
+        ...tranches.map((_, i) => String(MESURES[variante][nom]!.decisions[i] ?? "")),
+      ]),
+    ),
+  );
+}
+
 function rapport(): string {
   const profils = tableau(
     ["Profil", "Jeu"],
@@ -161,9 +201,9 @@ function rapport(): string {
 
   return `# Strate 2 — mesures d'équilibrage
 
-*Fichier généré par \`tests/equilibrage-caves.test.ts\` : ne pas le modifier à la main. Après un changement des règles, \`npm run mesures\` le régénère. Les cibles viennent de la [fiche](strate-2.md) et de l'issue #36 ; l'analyse est dans la section « Équilibrage » de la fiche.*
+*Fichier généré par \`tests/equilibrage-caves.test.ts\` : ne pas le modifier à la main. Après un changement des règles, \`npm run mesures\` le régénère. Les cibles viennent de la [fiche](strate-2.md) et des issues #36 et #163 ; l'analyse est dans la section « Équilibrage » de la fiche.*
 
-Chaque profil est un joueur automatique (\`sim/joueurs/caves.ts\`). Le joueur réflexe achète dès qu'il peut ce qui se rembourse le plus vite, comme à la surface. Les autres prévoient : ils ne dépensent que ce qui laisse, au plus bas d'ici la fin de la prochaine soudure, une marge de quelques jours de consommation. Les parties vont jusqu'au seuil, trois grands hivers de suite sans rupture ; le joueur réflexe est arrêté à 20 minutes.
+Chaque profil est un joueur automatique (\`sim/joueurs/caves.ts\`). Le joueur réflexe achète dès qu'il peut ce qui se rembourse le plus vite, comme à la surface. Les autres prévoient : ils ne dépensent que ce qui laisse, au plus bas d'ici la fin de la prochaine soudure, une marge de quelques jours de consommation. Dès que les rations se comptent, ils prennent les plus larges qui tiennent cette marge, et les resserrent à temps. Les parties vont jusqu'au seuil, trois grands hivers de suite sans rupture ; le joueur réflexe est arrêté à 20 minutes.
 
 ## Profils
 
@@ -182,5 +222,11 @@ ${resultats("avec")}
 - **Points** : points de fouille au seuil ; **+10 min** et **+1 h** : en continuant de jouer.
 - **Hivers manqués** : sur les hivers jugés avant le seuil, soudure comprise.
 - **Plus longue attente** : le plus long intervalle entre deux achats avant le seuil.
+
+## Décisions par tranche de 10 minutes
+
+Les secondes où le joueur achète ou change les rations, jusqu'au seuil (#163). La dernière tranche est celle que le seuil interrompt.
+
+${decisions()}
 `;
 }

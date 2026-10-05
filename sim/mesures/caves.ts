@@ -25,6 +25,11 @@ export interface MesuresCaves {
   dernierAchat: number | null;
   /** Les attentes entre deux achats successifs avant le seuil, en secondes. */
   attentes: { debut: number; duree: number }[];
+  /**
+   * Les décisions avant le seuil, par tranche de 10 minutes : les secondes où le joueur achète ou
+   * change les rations (#163). La dernière tranche, entamée par le seuil, est comptée telle quelle.
+   */
+  decisions: number[];
   /** Au seuil (ou à la limite). */
   familles: number;
   stockages: Record<IdStockage, number>;
@@ -32,6 +37,9 @@ export interface MesuresCaves {
   /** Le plafond × 4 des artefacts a-t-il agi ? */
   plafonne: boolean;
 }
+
+/** Les décisions se comptent par tranches de 10 minutes. */
+export const TRANCHE = 600;
 
 function nombreAchats(e: EtatCaves): number {
   return e.installees + e.outils + Object.values(e.stockages).reduce((a, n) => a + n, 0);
@@ -58,12 +66,14 @@ export async function mesurerCaves(
   const attentes: { debut: number; duree: number }[] = [];
   let dernierAchat: number | null = null;
   let achats = nombreAchats(etat());
+  const decisions: number[] = [];
   let premiereRupture: number | null = null;
   const juges: { annee: number; rupture: boolean }[] = [];
 
   let t = 0;
   for (; t < limite && !noyau.seuil.atteint; t++) {
     const avant = etat().hivers.at(-1)?.annee;
+    const rations = etat().rations;
     joueur.seconde(t);
     const s = t + 1;
     const e = etat();
@@ -71,6 +81,9 @@ export async function mesurerCaves(
     const dernier = e.hivers.at(-1);
     if (dernier && dernier.annee !== avant) juges.push(dernier);
     const n = nombreAchats(e);
+    const tranche = Math.floor(t / TRANCHE);
+    while (decisions.length <= tranche) decisions.push(0);
+    if (n > achats || e.rations !== rations) decisions[tranche]! += 1;
     if (n > achats) {
       if (dernierAchat !== null) attentes.push({ debut: dernierAchat, duree: s - dernierAchat });
       dernierAchat = s;
@@ -93,6 +106,7 @@ export async function mesurerCaves(
     achats: achats - nombreAchats(logique.etatInitial({ graine: 1, journal: { strates: [] } })),
     dernierAchat,
     attentes,
+    decisions,
     familles: e.familles,
     stockages: { ...e.stockages },
     outils: e.outils,

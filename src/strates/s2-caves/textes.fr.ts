@@ -38,6 +38,19 @@ export const textes: Record<string, string> = {
   "installer.note": "Une famille de plus aux champs. Elle récolte l'été, et mange toute l'année.",
   "vallee.pleine": "La vallée est pleine.",
 
+  // Les rations : une écriture qui ne se paie pas sur le moment, mais en naissances (#163).
+  rations: "Rations de l'hiver",
+  "rations.maigres": "maigres",
+  "rations.reduites": "réduites",
+  "rations.pleines": "pleines",
+  "rations.larges": "larges",
+  "rations.maigres.detail": "Une demi-ration ; personne ne naît.",
+  "rations.reduites.detail": "Trois quarts de ration ; peu de naissances.",
+  "rations.pleines.detail": "Une ration entière.",
+  "rations.larges.detail": "Une double ration ; deux fois plus de naissances.",
+  "rations.note":
+    "Ce que mangent les familles l'hiver, jusqu'à la fin de la soudure. Mieux nourries, elles ont plus d'enfants.",
+
   "stockage.grenier": "Grenier",
   "stockage.silo": "Silo",
   "stockage.cave": "Cave",
@@ -76,10 +89,13 @@ export const textes: Record<string, string> = {
     "Hiver de l'an {annee} : passé sans rupture. Naissances : {naissances:famille}.",
   "registre.sans-rupture-vallee-pleine":
     "Hiver de l'an {annee} : passé sans rupture. La vallée est pleine.",
+  "registre.sans-rupture-sans-naissance":
+    "Hiver de l'an {annee} : passé sans rupture. Aucune naissance.",
   "registre.rupture":
     "Hiver de l'an {annee} : le grain a manqué {jours:jour}. Départs : {departs:famille}.",
   "registre.hivers-allongent":
     "An {annee} : l'hiver durera {duree:jour}. Les hivers s'allongent ; les anciens se souviennent des grands hivers.",
+  "registre.rations": "An {annee} : on compte désormais les rations de l'hiver.",
   "registre.grand-hiver-arrive":
     "An {annee} : le grand hiver est là. Les anciens disent qu'une vallée qui en passe trois de suite n'a plus rien à craindre.",
   "registre.grand-hiver":
@@ -120,6 +136,9 @@ export const textes: Record<string, string> = {
   "aide.familles.titre": "Les familles",
   "aide.familles":
     "Chaque famille récolte pendant la saison chaude et mange toute l'année. Après un hiver sans manque, des familles naissent ; quand le grain manque, des familles partent.",
+  "aide.rations.titre": "Les rations",
+  "aide.rations":
+    "Quand les hivers s'allongent, le registre fixe ce que mangent les familles l'hiver et pendant la soudure. Des rations larges doublent ce qu'elles mangent, et les naissances ; des rations maigres le réduisent de moitié, et personne ne naît. La marque d'hiver suit les rations.",
   "aide.achats.titre": "Les écritures",
   "aide.achats":
     "Tout se paie en grain : les familles qu'on installe, les stockages, les outils. Un outil s'achète une fois, et fait mieux récolter.",

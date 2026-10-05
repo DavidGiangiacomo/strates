@@ -195,7 +195,13 @@ describe("la rupture et le bilan de l'hiver", () => {
     expect(ligne.cle).toBe("registre.rupture");
     expect(ligne.valeurs.annee).toBe(1);
     expect(ligne.valeurs.jours).toBeGreaterThan(70);
-    expect(etat.bilan).toEqual({ rupture: false, joursDeRupture: 0, departs: 0 });
+    expect(etat.bilan).toEqual({
+      rupture: false,
+      joursDeRupture: 0,
+      departs: 0,
+      rations: 0,
+      jours: 0,
+    });
   });
 
   it("ne fait jamais partir les familles fondatrices", () => {
@@ -233,7 +239,7 @@ describe("la rupture et le bilan de l'hiver", () => {
     });
     expect(etat.familles).toBeCloseTo(44, 9);
 
-    const pleine = avecCaves({ ...etatInitial(), familles: VALLEE - 10, jour: 350 }, 3);
+    const pleine = avecCaves({ ...etatInitial(), familles: VALLEE - 10, jour: 350 }, 10);
     pleine.reserve = marqueHiver(pleine);
     jusquauBilan(pleine, 1);
     expect(pleine.familles).toBe(VALLEE);

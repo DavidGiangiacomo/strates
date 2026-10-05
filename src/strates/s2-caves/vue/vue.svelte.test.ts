@@ -93,7 +93,9 @@ describe("la vue des caves", () => {
       { cle: "registre.sans-rupture", valeurs: { annee: 1, naissances: 3 } },
       { cle: "registre.rupture", valeurs: { annee: 2, jours: 12, departs: 4 } },
       { cle: "registre.sans-rupture-vallee-pleine", valeurs: { annee: 3 } },
+      { cle: "registre.sans-rupture-sans-naissance", valeurs: { annee: 4, naissances: 0 } },
       { cle: "registre.hivers-allongent", valeurs: { annee: 5, duree: 80 } },
+      { cle: "registre.rations", valeurs: { annee: 5 } },
       { cle: "registre.grand-hiver-arrive", valeurs: { annee: 14 } },
       { cle: "registre.grand-hiver", valeurs: { annee: 14, serie: 1 } },
       { cle: "registre.grand-hiver-rupture", valeurs: { annee: 15, jours: 5, departs: 2 } },
@@ -103,9 +105,13 @@ describe("la vue des caves", () => {
       { cle: "registre.eveil", valeurs: {}, objet: "s1-filiale" },
       { cle: "registre.feuille", valeurs: {} },
     ];
-    // Le registre n'affiche que ses 8 dernières lignes : deux passages.
-    for (const partie of [lignes.slice(0, 4), lignes.slice(4)]) {
+    // Le registre n'affiche que ses 8 dernières lignes : deux passages, le second aux rations.
+    for (const [annee, partie] of [
+      [1, lignes.slice(0, 6)],
+      [9, lignes.slice(6)],
+    ] as const) {
       monter((etat) => {
+        etat.annee = annee;
         etat.cumul = 1e7;
         etat.reserve = 1e5;
         etat.outils = 2;
@@ -325,6 +331,47 @@ describe("la vue des caves", () => {
     flushSync();
     expect(document.querySelector("[data-test=aide]")).toBeNull();
     expect(document.activeElement).toBe(lien);
+  });
+
+  it("n'écrit les rations qu'à partir du premier hiver long, et envoie celles qu'on entoure", () => {
+    monter((etat) => (etat.annee = 4));
+    expect(document.querySelector("[data-test=rations]")).toBeNull();
+    if (composant) unmount(composant);
+
+    const { actions } = monter((etat) => (etat.annee = 6));
+    const mots = [...document.querySelectorAll("[data-test=rations] label")];
+    expect(mots.map((m) => m.textContent?.trim())).toEqual([
+      "maigres",
+      "réduites",
+      "pleines",
+      "larges",
+    ]);
+    expect(mots.map((m) => m.classList.contains("choisies"))).toEqual([false, false, true, false]);
+    expect(texte("[data-test=rations-detail]")).toBe("Une ration entière.");
+    const note = document.getElementById(
+      document.querySelector("[data-test=rations] fieldset")!.getAttribute("aria-describedby")!,
+    );
+    expect(note?.textContent).toMatch(/^Ce que mangent les familles l'hiver/);
+
+    mots[3]!.querySelector("input")!.click();
+    expect(actions).toEqual([{ type: "rations", rations: "larges" }]);
+  });
+
+  it("entoure les rations de l'état, et dit ce qu'elles donnent", () => {
+    monter((etat) => {
+      etat.annee = 6;
+      etat.rations = "maigres";
+    });
+    expect(texte("[data-test=rations] label.choisies")).toBe("maigres");
+    expect(texte("[data-test=rations-detail]")).toBe("Une demi-ration ; personne ne naît.");
+  });
+
+  it("ajoute une page sur les rations à l'aide, quand elles se comptent", () => {
+    monter((etat) => (etat.annee = 6));
+    bouton("Aide")!.click();
+    flushSync();
+    const titres = [...document.querySelectorAll("[data-test=aide] h4")].map((h) => h.textContent);
+    expect(titres).toContain("Les rations");
   });
 
   it("dit que la vallée est pleine, et qu'elle a tous ses outils", () => {

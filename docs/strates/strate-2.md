@@ -1,6 +1,6 @@
 # Strate 2 — Les caves
 
-*Fiche de design, issue [#6](https://github.com/DavidGiangiacomo/strates/issues/6). Les chiffres des § 1 à § 13 viennent d'une première simulation grossière (§ 4). L'équilibrage ([#36](https://github.com/DavidGiangiacomo/strates/issues/36)) les a mesurés dans le code du jeu et a changé deux règles, la taille de la vallée et le prix des familles : voir § 14 et les [mesures](strate-2-mesures.md).*
+*Fiche de design, issue [#6](https://github.com/DavidGiangiacomo/strates/issues/6). Les chiffres des § 1 à § 13 viennent d'une première simulation grossière (§ 4). L'équilibrage ([#36](https://github.com/DavidGiangiacomo/strates/issues/36)) les a mesurés dans le code du jeu et a changé deux règles, la taille de la vallée et le prix des familles. Puis les rations de l'hiver ([#163](https://github.com/DavidGiangiacomo/strates/issues/163)) ont donné des décisions à la seconde moitié de la strate (§ 3, § 12). Voir § 14 et les [mesures](strate-2-mesures.md).*
 
 *Choix tranchés le 27 septembre 2026 :*
 - *le seuil demande trois **grands** hivers de suite sans rupture ;*
@@ -19,7 +19,7 @@ C'est la strate du test du MVP (§14). Elle doit prouver que le changement de r�
 | Verbe | stocker |
 | Ressource | Grain |
 | Unité et notation | Le **boisseau**, toujours entier et jamais abrégé : « 24 038 boisseaux », « 1 boisseau ». Les milliers sont séparés par une espace fine. Il n'y a ni suffixe, ni décimale, ni notation scientifique. Les débits se comptent par jour (« 312 boisseaux par jour »), et le temps en jours et en années (« jour 214 de l'an 3 »), jamais en secondes. Aucune autre strate ne compte en boisseaux (I1). |
-| Ordre de grandeur final | ≈ 10⁶ boisseaux récoltés : de 1,5 à 2,5 × 10⁶ au seuil sans artefact, environ 5 × 10⁶ avec les objets d'un jeu correct (§ 14). La réserve, elle, ne dépasse pas quelques centaines de milliers. C'est l'échelle basse **exprès** du §9, mille fois sous celle de la surface. |
+| Ordre de grandeur final | 10⁶ à 10⁷ boisseaux récoltés : de 2,2 à 4,3 × 10⁶ au seuil sans artefact, environ 10⁷ avec les objets d'un jeu correct (§ 14). La réserve, elle, ne dépasse pas quelques centaines de milliers. C'est l'échelle basse **exprès** du §9, cent fois sous celle de la surface, ou presque. |
 | Durée cible | 2 h. Le calendrier impose 1 h 51 au plus tôt (§ 4) ; c'est le temps de tous les profils réguliers en simulation. |
 | κ à l'entrée → à la sortie | 8 → 22 |
 
@@ -64,10 +64,32 @@ Le bouton « Glaner » rapporte `sin(π d / S)` boisseau par clic : 1 au plus fo
 ### Les familles
 
 - **Installer une famille** coûte `25 × 1,09ⁿ` boisseaux, où n est le nombre de familles déjà installées par le joueur.
-- **Naissances** : après chaque hiver passé sans rupture, les familles augmentent de 10 %. Les naissances sont gratuites et ne renchérissent pas l'installation.
+- **Naissances** : après chaque hiver passé sans rupture, les familles augmentent de 10 % à rations pleines, de 0 à 20 % selon les rations de l'hiver (ci-dessous). Les naissances ne coûtent rien d'autre que ces rations, et ne renchérissent pas l'installation.
 - **Départs** : chaque jour de rupture, 0,5 % des familles quittent la vallée. Les 8 familles fondatrices restent toujours.
-- **La vallée** accueille 360 familles au plus. Pleine, elle refuse les installations et les naissances : « La vallée est pleine. »
+- **La vallée** accueille 1000 familles au plus : assez pour que les naissances comptent jusqu'aux grands hivers, même à rations larges. Pleine, elle refuse les installations et les naissances : « La vallée est pleine. »
 - Les familles se comptent en nombre réel (les départs sont fractionnaires), affiché arrondi.
+
+### Les rations ([#163](https://github.com/DavidGiangiacomo/strates/issues/163))
+
+À partir du premier hiver long (an 5), le registre fixe ce que mangent les familles l'hiver et pendant sa soudure.
+
+| Id | Rations | L'hiver, une famille mange | Naissances au bilan |
+|---|---|---|---|
+| `maigres` | maigres | une demi-ration : 0,5 boisseau par jour | aucune |
+| `reduites` | réduites | trois quarts de ration : 0,75 | 5 % |
+| `pleines` | pleines | une ration : 1 | 10 % |
+| `larges` | larges | une double ration : 2 | 20 % |
+
+- **Quand** : l'hiver et sa soudure, jusqu'au bilan. La saison chaude ne change pas : une famille y mange une ration.
+- **Les naissances** suivent les rations moyennes de l'hiver, soudure comprise, jour par jour : entre deux rations, au prorata. Un hiver large puis plein fait naître entre 10 et 20 %. Une rupture empêche toujours les naissances.
+- **Pour un hiver** : au bilan, les rations redeviennent pleines. Chaque automne repose la question, et le joueur qui ne touche à rien joue comme avant les rations.
+- **La marque d'hiver suit les rations** : elle double, ou presque, à rations larges. Elle dit toujours la vérité, à chaque ration.
+- **La soudure** dure plus longtemps à rations larges, puisque la récolte met plus de jours à couvrir la consommation, et moins à rations maigres.
+- **Changer de rations** est permis en toute saison, et ne coûte rien sur le moment.
+
+**Pourquoi.** Avec ses quatre outils, achetés vers 35 minutes, la vallée récolte plus du double de ce qu'elle mange ; avec les objets d'un jeu correct, plus du quadruple. Sans rations, la réserve dépassait de loin la marque à chaque grand hiver, et il ne restait qu'à regarder le calendrier avancer ([#163](https://github.com/DavidGiangiacomo/strates/issues/163)). Les rations larges donnent un usage au grain en trop, faire grandir la vallée, et rendent la marque serrée de nouveau. Il faut alors décider, chaque automne, de ce qu'on peut se permettre, puis resserrer à temps pendant l'hiver. Deux rations voisines nourrissent mieux qu'un hiver large puis maigre : les naissances croissent moins vite que les rations au-dessus de la ration pleine.
+
+**Pourquoi l'an 5.** Avant, c'est l'école des hivers : le premier hiver doit juger la saison chaude sans échappatoire, pour que le choc d'arrivée reste entier (§ 5). Les rations arrivent avec les hivers longs, au moment où le registre note que les hivers s'allongent.
 
 ### Les stockages
 
@@ -110,6 +132,7 @@ La jauge de la réserve porte une marque : ce qu'il faut au premier jour de l'hi
 
 ```ts
 type IdStockage = "grenier" | "silo" | "cave" | "caveProfonde";
+type IdRations = "maigres" | "reduites" | "pleines" | "larges";
 
 interface EtatCaves {
   reserve: number;                  // boisseaux en réserve (réel, affiché entier)
@@ -121,10 +144,13 @@ interface EtatCaves {
   annee: number;                    // 1, 2, …
   jour: number;                     // jour de l'année, de 0 à 420 ; l'hiver occupe la fin
   soudure: boolean;                 // du premier jour du printemps à la fin de la soudure
+  rations: IdRations;               // celles de l'hiver qui vient ; pleines après chaque bilan (#163)
   bilan: {                          // l'hiver en cours de jugement, jusqu'à la fin de sa soudure
     rupture: boolean;               // la réserve a été vide depuis le bilan précédent
     joursDeRupture: number;
     departs: number;
+    rations: number;                // la somme des rations de chaque jour, et le nombre de jours :
+    jours: number;                  //   leur moyenne fait les naissances
   };
   hivers: { annee: number; rupture: boolean }[];  // les 20 derniers hivers jugés, pour le calendrier
   serie: number;                    // grands hivers de suite sans rupture
@@ -140,7 +166,8 @@ type ActionCaves =
   | { type: "glaner" }
   | { type: "installer" }
   | { type: "construire"; stockage: IdStockage }
-  | { type: "outil" };             // le prochain outil
+  | { type: "outil" }              // le prochain outil
+  | { type: "rations"; rations: IdRations };  // à partir du premier hiver long
 ```
 
 - **`tick(dt)`** fait avancer le calendrier : récolte, consommation, pertes, débordement et ruptures.
@@ -148,12 +175,13 @@ type ActionCaves =
   - La récolte s'intègre exactement sur le pas ; les pertes sont comptées sur la réserve du début du pas.
   - Un pas qui vide la réserve est coupé au moment de la rupture.
 - **Le bilan d'un hiver** se fait à la fin de sa soudure, au premier jour où la récolte couvre la consommation. Il écrit une ligne au registre, puis :
-  - il applique les naissances, s'il n'y a pas eu de rupture ;
+  - il applique les naissances, s'il n'y a pas eu de rupture, selon les rations moyennes de l'hiver ;
   - il met à jour la série des grands hivers et vérifie le seuil.
+- **Les rations** redeviennent pleines après le bilan.
 - **`pasMax`** vaut 1 s, soit un jour.
 - **Les prix** sont arrondis au boisseau : on paie exactement ce qui est affiché.
 - La strate n'utilise pas d'aléatoire.
-- Un achat impossible (grain insuffisant, vallée pleine, plus d'outil) est ignoré sans erreur. Acheter est permis en toute saison, hiver compris.
+- Un achat impossible (grain insuffisant, vallée pleine, plus d'outil) est ignoré sans erreur, comme des rations avant l'an 5. Acheter est permis en toute saison, hiver compris.
 
 ## 4. Boucle moyenne et seuil de fouille
 
@@ -161,12 +189,12 @@ type ActionCaves =
 
 | Joueur correct | Étape | Contenu |
 |---|---|---|
-| 0 – 12 min (ans 1 et 2) | L'école des hivers | Hivers de 70 jours. Faucille (1 min), premiers greniers, silo (6 min), fléau (8 min). La première soudure manque de peu. |
-| 12 – 35 min (ans 3 à 5) | La vallée se remplit | Charrue (15 min), caves (27 min), assolement (30 min). Les naissances suivent chaque hiver réussi. À partir de l'an 5 (27 min), l'hiver s'allonge. |
-| 35 – 94 min (ans 6 à 13) | Le grand cycle | L'hiver gagne 10 jours par an, et la marque monte plus vite que les familles. On construit en bas : première cave profonde à 83 min. La vallée se remplit pendant les grands hivers (§ 14). |
-| 94 – 111 min (ans 14 à 16) | Les grands hivers | Trois hivers de 170 jours, de 2 min 50 chacun. Le seuil tombe au bilan du troisième. |
+| 0 – 12 min (ans 1 et 2) | L'école des hivers | Hivers de 70 jours. Faucille (1 min), premiers greniers, silo (6 min), fléau (8 min). La première soudure passe de justesse. |
+| 12 – 35 min (ans 3 à 5) | La vallée se remplit | Charrue (15 min), caves (27 min), assolement (30 min). Les naissances suivent chaque hiver réussi. À partir de l'an 5 (32 min), l'hiver s'allonge, et les rations se comptent. |
+| 35 – 94 min (ans 6 à 13) | Le grand cycle | L'hiver gagne 10 jours par an. Chaque automne, les rations les plus larges que la réserve permet : la vallée grandit de 20 % par hiver, et la réserve ne dépasse plus la marque que d'un tiers. On construit en bas : première cave profonde à 91 min. |
+| 94 – 111 min (ans 14 à 16) | Les grands hivers | Trois hivers de 170 jours, de 2 min 50 chacun, à rations larges si la réserve tient. La vallée passe de 500 à près de 900 familles. Le seuil tombe au bilan du troisième. |
 
-La boucle moyenne du §3, c'est l'année : 7 minutes, avec au milieu un hiver qui juge ce qu'on a fait de la saison chaude. Le joueur correct fait 157 achats, dont 80 dans les vingt premières minutes, puis de moins en moins. Il ne fait plus aucun achat après 97 minutes (§ 13).
+La boucle moyenne du §3, c'est l'année : 7 minutes, avec au milieu un hiver qui juge ce qu'on a fait de la saison chaude. Le joueur correct fait 175 achats, dont 80 dans les vingt premières minutes. Il décide encore 5 à 11 fois par tranche de 10 minutes après la première heure : des achats, et les rations de chaque hiver (§ 14).
 
 ### Le seuil
 
@@ -203,7 +231,7 @@ Le seuil ne peut pas tomber avant 1 h 51, quelle que soit l'habileté du joueur 
 
 ### En simulation
 
-Six profils de joueur automatiques jouent la strate. Le script est en Python, dans le brouillon de l'issue ; le simulateur headless ([#23](https://github.com/DavidGiangiacomo/strates/issues/23)) le remplacera.
+Six profils de joueur automatiques jouent la strate. Le script est en Python, dans le brouillon de l'issue ; le simulateur headless ([#23](https://github.com/DavidGiangiacomo/strates/issues/23)) l'a remplacé. Ce sont les chiffres de la conception, avant l'équilibrage et les rations : les mesures à jour sont au § 14.
 - Tous les profils réguliers suivent une prévision : ils ne dépensent que ce qui laisse, au pire moment d'ici la fin de la prochaine soudure, une marge de 30 jours de consommation (90 pour le prudent).
 - Le joueur réflexe dépense tout, dès qu'il peut, comme en surface.
 - La simulation juge chaque hiver sur l'année civile, et non de soudure à soudure comme le § 3. Le seuil ne s'en trouve décalé que de quelques jours.
@@ -303,6 +331,7 @@ Bois, registres, calendrier circulaire (§5). Tout ce que la surface n'était pa
   - à l'arrivée, il n'y a que le grenier, et du sol dessous.
 - **Le registre** :
   - en tête, les achats, écrits comme des écritures, avec des points de conduite jusqu'au prix : « Installer une famille ........ 25 boisseaux ». Sous chacune, ce que la vallée possède déjà ;
+  - sous les familles, à partir de l'an 5, les rations de l'hiver : quatre mots, « maigres, réduites, pleines, larges », et celui qui vaut est entouré à l'encre. Ce sont des boutons radio, qu'on choisit aussi au clavier. Dessous, ce qu'elles donnent (« Une double ration ; deux fois plus de naissances. »). La marque d'hiver et la consommation suivent aussitôt ;
   - dessous, la chronique, la ligne la plus récente en haut ;
   - la ligne de la feuille qui annonce est d'une autre main et d'une autre encre.
 - **La courbe de la réserve** (`vue/courbe.ts`) : une bande de papier, avec les hivers en bandes grises, le début de chaque année (« an 2 ») et une encoche par achat. Elle monte l'été et tombe l'hiver : l'oscillation se lit d'un coup d'œil.
@@ -312,7 +341,8 @@ Bois, registres, calendrier circulaire (§5). Tout ce que la surface n'était pa
 - **Vérifié dans Chromium**, à 1280 × 800, 1024 × 768 et 390 × 844 :
   - l'arrivée par la descente depuis la surface, puis le premier été, l'automne, l'hiver qui refroidit l'écran, et le premier bilan ;
   - une vallée creusée au grand cycle, avec ses quatre couches ;
-  - le filet.
+  - le filet ;
+  - les rations, à 1280 et 420 px de large : la marque passe de 23 888 à 50 627 boisseaux à rations larges, et à 11 592 à rations maigres ([#163](https://github.com/DavidGiangiacomo/strates/issues/163)).
 
 ## 7. Opacité et Compréhension
 
@@ -334,7 +364,8 @@ On ne cache jamais le calendrier ni la marque d'hiver : ce sont les deux informa
   - La réserve reçoit la récolte ; elle perd la consommation des familles et les pertes des stockages, et sa capacité est bornée par les stockages.
   - La marque d'hiver compare la réserve à l'hiver qui vient.
   - Le bilan de l'hiver renvoie aux familles, par les naissances et les départs.
-- **Formules exposées** : celles du § 3 (récolte, consommation, pertes, marque d'hiver).
+  - Les rations règlent la consommation de l'hiver et les naissances du bilan ; la marque les suit.
+- **Formules exposées** : celles du § 3 (récolte, consommation, pertes, marque d'hiver, rations).
 
 ## 8. Artefacts reçus
 
@@ -359,7 +390,7 @@ Ces lignes de l'arrivée et du seuil sont codées avec l'orchestration de la des
 
 **Dans le code** ([#34](https://github.com/DavidGiangiacomo/strates/issues/34)) : les caves reconnaissent les objets de la surface par leur identifiant (`OBJETS`, dans `logique/regles.ts`) et les lisent par `EffetsActifs`. Les multiplicateurs restent à 1 tant qu'aucun hiver n'a été jugé ; les autres objets sont notés dans l'état (`objets`), que la vue lit. L'opacité de la marque et des pertes (§ 7) est codée pour que les deux fenêtres aient quelque chose à lever ; le reste de l'opacité viendra avec la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)).
 
-- **Aucun artefact ne raccourcit la strate** : le calendrier en impose la durée (§ 4). Un artefact rend les hivers plus sûrs et la vallée plus grande. Il rapporte donc des points, pas du temps : en simulation, avec les cinq objets d'un jeu correct, le seuil tombe toujours à 1 h 51, avec 9 points au lieu de 8.
+- **Aucun artefact ne raccourcit la strate** : le calendrier en impose la durée (§ 4). Un artefact rend les hivers plus sûrs et la vallée plus grande. Il rapporte donc des points, pas du temps : en simulation, avec les cinq objets d'un jeu correct, le seuil tombe toujours à 1 h 51, avec 9 points. Sans objets, c'est 8 ou 9 selon le jeu, depuis les rations (§ 9).
 - **I2** : le noyau plafonne le produit des multiplicateurs à × 4. Même à × 4 sur la récolte, le cumul ne gagne qu'un point de fouille au plus (log₁₀ 4 × 1,4 ≈ 0,8).
 - **I5** : toute la simulation du § 4 est faite **sans aucun artefact**. La strate se termine en 1 h 51, sous les 3 h 15.
 - Les effets uniques ne doivent pas toucher au calendrier : ni hiver raccourci, ni année accélérée. Ce serait le seul moyen de contourner I5 par le haut et le sens de la strate par le bas.
@@ -367,9 +398,10 @@ Ces lignes de l'arrivée et du seuil sont codées avec l'orchestration de la des
 ## 9. Valeur convertible
 
 - C'est le **cumul du grain récolté** dans la strate, glanage compris, y compris le grain qui a débordé ou pourri. Ni les achats ni les pertes ne le diminuent (D-003).
-- Mesuré dans le code du jeu (§ 14), le cumul au seuil vaut de 1,5 à 2,5 × 10⁶ boisseaux pour tous les profils réguliers sans artefact : **8 points** (il en faut de 5,2 × 10⁵ à 2,7 × 10⁶). Avec les objets d'un jeu correct, il vaut de 5 à 6 × 10⁶ : **9 points**. Un joueur qui a raté ses premiers hivers descend avec les mêmes points qu'un joueur prudent.
-- Rester après le seuil rapporte peu. En simulation, le joueur correct gagne 1 point en 10 minutes (9 points), puis plus rien en deux heures : le 10ᵉ demande 1,4 × 10⁷ boisseaux.
-- Pour le catalogue : le budget de 8 points correspond au catalogue indicatif de la strate 2 ([`artefacts.md`](../artefacts.md) : 5 objets, 13 points au total). Le joueur laisse donc un ou deux objets en bas.
+- Mesuré dans le code du jeu (§ 14), le cumul au seuil sans artefact vaut de 2,2 à 4,3 × 10⁶ boisseaux selon le jeu : **8 points** pour le joueur prudent, **9** pour les autres (il en faut 5,2 × 10⁵ pour 8, 2,7 × 10⁶ pour 9). Avec les objets d'un jeu correct, il vaut de 8,5 à 10,6 × 10⁶ : **9 points** pour tous.
+- **Depuis les rations** ([#163](https://github.com/DavidGiangiacomo/strates/issues/163)), un joueur qui nourrit bien sa vallée la fait grandir davantage, et descend avec un point de plus : avant, tous les joueurs réguliers descendaient avec 8 points sans objets. En revanche, les objets d'un jeu correct ne rapportent plus de point au seuil à un bon joueur. Ils doublent le grain récolté et remplissent la vallée, mais le 10ᵉ point demande 1,4 × 10⁷ boisseaux, et la vallée est pleine quand le seuil tombe. Ils rapportent ce point 10 minutes plus tard. À trancher avec le catalogue des caves ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)).
+- Rester après le seuil rapporte peu : 1 point au plus en 10 minutes, et en une heure.
+- Pour le catalogue : le budget de 8 points correspondait au catalogue indicatif de la strate 2 ([`artefacts.md`](../artefacts.md) : 5 objets, 13 points au total), où le joueur laissait un ou deux objets en bas. Avec 9 points, un bon joueur en laisse un de moins.
 
 ## 10. Hors-ligne
 
@@ -404,36 +436,39 @@ Ces lignes de l'arrivée et du seuil sont codées avec l'orchestration de la des
     - le premier grand hiver, la série, le seuil ;
     - l'éveil des objets d'en haut (« Les familles ont compris la roue chaude. »), et la ligne de l'atelier qu'écrit la feuille qui annonce ;
   - le résumé d'absence (§ 10) ;
+  - les rations de l'hiver : l'écriture, ses quatre mots, ce qu'ils donnent, et la ligne du registre qui les annonce ;
   - l'aide de la strate : une page courte, écrite comme une page du registre, qui décrit le calendrier, la réserve et les stockages, et ne dit rien du bandeau.
 - **Traces laissées au fond** (strate 8) : trois lignes du registre au plus. Par exemple la dernière ligne écrite, le nombre d'hivers passés sans rupture, et la profondeur de la cave la plus basse.
 - **Aucun texte ne mentionne « creuser »**, bien que la civilisation n'ait fait que ça.
 
 ### Dans le code ([#17](https://github.com/DavidGiangiacomo/strates/issues/17))
 
-Tous les textes sont dans `textes.fr.ts` : 614 mots, dont 163 pour l'aide, 99 pour les notes en marge et 153 pour la chronique. Un test vérifie le budget, l'absence de « creuser » et de point d'exclamation, que le registre ne s'adresse jamais au joueur et que l'aide ne parle ni du bandeau, ni de la profondeur, ni des objets.
+Tous les textes sont dans `textes.fr.ts` : 726 mots, dont 209 pour l'aide, 117 pour les notes en marge et 171 pour la chronique. Les rations en ont ajouté 112 ([#163](https://github.com/DavidGiangiacomo/strates/issues/163)). Un test vérifie le budget, l'absence de « creuser » et de point d'exclamation, que le registre ne s'adresse jamais au joueur et que l'aide ne parle ni du bandeau, ni de la profondeur, ni des objets.
 - **Les écritures** disent ce qu'on fait : « Installer une famille », « Construire un grenier », « Aménager une cave », « Acheter une charrue », « Adopter l'assolement ». Aucune ne dit « creuser ».
 - **Les notes en marge** : au survol d'une écriture, ou au clavier, un billet de papier glissé à gauche du registre en donne le sens (« Une tour de terre, à moitié enterrée. Le grain s'y garde mieux. »). Sur un téléphone, il se pose au-dessus de l'écriture. Il est lié au bouton (`aria-describedby`).
 - **L'aide** : un lien « Aide », en haut à droite de la vallée, ouvre une page du registre, « Comment tient la vallée », qu'on referme par « Refermer » ou Échap. Elle décrit le calendrier, la réserve, les stockages, les familles et les écritures. Elle ne nomme pas la marque d'hiver, qui ne prend son nom qu'au premier bilan (§ 7), et ne dit pas quand acheter : c'est la leçon du premier hiver (§ 5). Chaque ouverture est notée, comme à la surface.
+- **Les rations** : l'écriture « Rations de l'hiver », ses quatre mots et ce que chacun donne (« Une demi-ration ; personne ne naît. »), avec sa note en marge. Le registre les annonce au premier hiver long (« An 5 : on compte désormais les rations de l'hiver. »), et note un hiver sans naissance (« Aucune naissance. »). L'aide leur ajoute une page à partir de l'an 5. Celle-ci nomme la marque d'hiver, dévoilée depuis longtemps.
 - **Les traces pour le fond** (`trace.hivers`, `trace.profondeur.*`) attendent la strate 8 ([#109](https://github.com/DavidGiangiacomo/strates/issues/109)).
 - **Les noms d'en bas** des objets de la surface restent dans le catalogue du noyau (`src/noyau/logique/catalogue.ts` ; [`artefacts.md`](../artefacts.md), § 8), comme le veut le modèle des artefacts : le registre les lit de là.
 
 ## 12. Critère R5
 
 Les caves doivent tenir seules, comme un petit jeu de gestion agricole de 2 heures. Ce qui les fait tenir :
-- **une tension qui revient** : chaque automne pose la même question (combien garder ?), avec une réponse différente chaque année, puisque les familles augmentent et que l'hiver s'allonge ;
+- **une tension qui revient** : chaque automne pose la même question (combien garder, et quelles rations ?), avec une réponse différente chaque année, puisque les familles augmentent et que l'hiver s'allonge ;
 - **un arc lisible** : l'école des hivers, la vallée qui se remplit, le grand cycle, puis les trois grands hivers, dont l'enjeu est réel (21 minutes si le troisième manque) ;
 - **une fin qui est une vraie fin** : la saturation, la vallée pleine et le registre qui n'a plus rien à noter ;
 - **un geste d'agriculture et non d'usine** : garder, et pas seulement produire.
 
-**Le point faible** était la dernière demi-heure : dans la première simulation, le joueur correct ne faisait plus que 4 achats après 80 minutes, et attendait jusqu'à 14 minutes entre deux achats pendant les grands hivers. L'équilibrage ([#36](https://github.com/DavidGiangiacomo/strates/issues/36)) a agrandi la vallée pour qu'elle se remplisse pendant les grands hivers : aucun joueur régulier n'attend plus de 7 minutes (§ 14). Les grands hivers restent surtout des moments où l'on regarde la réserve baisser ; le playtest dira si c'est une tension ou une attente.
+**Le point faible** était la seconde moitié. Dans la première simulation, le joueur correct ne faisait plus que 4 achats après 80 minutes. Il attendait jusqu'à 14 minutes entre deux achats pendant les grands hivers. L'équilibrage ([#36](https://github.com/DavidGiangiacomo/strates/issues/36)) a agrandi la vallée, et plus aucun joueur régulier n'attendait plus de 7 minutes.
+
+Mais une partie jouée à la main ([#163](https://github.com/DavidGiangiacomo/strates/issues/163)) a montré que cela ne suffisait pas. Une fois le principe compris et la production stable, il ne restait qu'à regarder le calendrier avancer : la vallée récoltait plus du double de ce qu'elle mangeait, et la réserve dépassait de loin la marque. Les rations de l'hiver (§ 3) rendent la question de l'automne réelle jusqu'au seuil : nourrir largement pour grandir, ou garder de la marge. Pendant l'hiver, il faut resserrer à temps. Après la première heure, les joueurs automatiques décident 2 à 3 fois plus souvent qu'avant (§ 14). Le playtest dira si les grands hivers sont devenus une tension.
 
 ## 13. Questions ouvertes
 
-1. **La fin de strate sans décision** (§ 12) : en partie réglée par l'équilibrage ([#36](https://github.com/DavidGiangiacomo/strates/issues/36)), qui a choisi la vallée plus grande (§ 14). Si le playtest trouve encore les grands hivers longs, il reste :
+1. **La fin de strate sans décision** (§ 12) : réglée par les rations ([#163](https://github.com/DavidGiangiacomo/strates/issues/163)), après la vallée plus grande de l'équilibrage ([#36](https://github.com/DavidGiangiacomo/strates/issues/36)). Si le playtest trouve encore les grands hivers longs, il reste :
    - des améliorations de conservation (chats, jarres, chaux), qui divisent les pertes et se paient en fin de strate ;
-   - des caves profondes rendues nécessaires aux grands hivers ;
-   - le rationnement (question 2).
-2. **Le rationnement** : un levier d'hiver qui réduit la consommation, au prix des naissances. Il donnerait une réaction au joueur qui revient au premier jour d'un hiver mal préparé, et une décision pendant les grands hivers. Il est écarté de la première version, pour garder l'hiver comme un jugement de la saison chaude.
+   - des caves profondes rendues nécessaires aux grands hivers.
+2. ~~**Le rationnement**~~ : adopté par [#163](https://github.com/DavidGiangiacomo/strates/issues/163), dans les deux sens : des rations maigres pour tenir, des rations larges pour grandir (§ 3). Seul, comme frein d'urgence, il n'aurait servi à rien : la fin de strate ne manquait jamais de grain. Il arrive à l'an 5, pour garder les premiers hivers comme un jugement de la saison chaude.
 3. **Le rythme des départs** : 0,5 % par jour de rupture, avec 8 familles fondatrices qui ne partent jamais. C'est assez dur pour qu'on le sente (un tiers de la vallée sur un hiver raté), assez doux pour qu'on s'en relève en une année. À régler au playtest ([#37](https://github.com/DavidGiangiacomo/strates/issues/37)).
 4. **La marge du calibrage de départ** (§ 4, « Fragilité ») : une récolte à peine plus faible fait s'effondrer les profils trop prudents. À élargir si le playtest montre des joueurs qui n'osent pas investir.
 5. **Le temps hors ligne des politiques propres** : le noyau compte l'absence entière dans le journal, même quand la strate n'en utilise qu'une partie (§ 10). À trancher pour la coupe, avec les strates 6 et 7.
@@ -443,28 +478,58 @@ Les caves doivent tenir seules, comme un petit jeu de gestion agricole de 2 heur
 
 ## 14. Équilibrage
 
-Issue [#36](https://github.com/DavidGiangiacomo/strates/issues/36). Les mesures détaillées sont dans [`strate-2-mesures.md`](strate-2-mesures.md), un fichier généré que la CI tient à jour.
+Issues [#36](https://github.com/DavidGiangiacomo/strates/issues/36), puis [#163](https://github.com/DavidGiangiacomo/strates/issues/163) pour les rations. Les mesures détaillées sont dans [`strate-2-mesures.md`](strate-2-mesures.md), un fichier généré que la CI tient à jour.
 
 **Méthode.** Cinq joueurs automatiques (`sim/joueurs/caves.ts`) jouent une partie complète à travers le noyau, sans artefact puis avec les objets qu'emporte un jeu correct à la surface.
 - Le joueur **réflexe** achète dès qu'il peut ce qui se rembourse le plus vite, comme à la surface.
 - Le joueur qui **apprend** fait de même jusqu'à 6 minutes, puis prévoit.
 - Les autres (**correct**, **prudent**, **distrait**) prévoient : ils ne dépensent que ce qui laisse, au plus bas d'ici la fin de la prochaine soudure, une marge de 30 ou 90 jours de consommation.
+- Dès que les rations se comptent, ceux qui prévoient prennent les plus larges qu'ils peuvent tenir jusqu'à leur prochain passage. Ils doivent pouvoir passer ensuite aux rations du dessous, en gardant leur marge. Ils commencent donc l'hiver larges, et resserrent à temps.
 
 `tests/equilibrage-caves.test.ts` vérifie les cibles ; après un changement de règles, `npm run mesures` régénère le rapport.
 
-**Deux règles ont changé** par rapport à la première simulation :
-- **la vallée** accueille 360 familles au lieu de 250. Avec 250, elle était pleine vers 90 minutes, et les joueurs attendaient jusqu'à 14 minutes entre deux achats pendant les grands hivers. Avec 360, elle se remplit pendant les grands hivers, et aucun joueur régulier n'attend plus de 7 minutes ;
+**Deux règles ont changé** par rapport à la première simulation ([#36](https://github.com/DavidGiangiacomo/strates/issues/36)) :
+- **la vallée** accueillait 360 familles au lieu de 250. Avec 250, elle était pleine vers 90 minutes, et les joueurs attendaient jusqu'à 14 minutes entre deux achats pendant les grands hivers. Avec 360, elle se remplissait pendant les grands hivers, et aucun joueur régulier n'attendait plus de 7 minutes. Les rations l'ont portée à 1000 (ci-dessous) ;
 - **le prix des familles** croît de 9 % par famille au lieu de 8 %, pour que la vallée plus grande ne fasse pas passer le cumul au-dessus de 8 points sans artefact.
 
 Le prix des familles est aussi **le levier du choc d'arrivée**, et il ne doit pas monter plus : à 10 %, le joueur réflexe achète moins de familles, grandit moins avant l'hiver, et ne manque plus aucun hiver. C'est parce que les familles sont bon marché que le réflexe de la surface vide la réserve au pire moment.
 
+### Les rations ([#163](https://github.com/DavidGiangiacomo/strates/issues/163))
+
+**Le constat.** Une partie jouée à la main : une fois le principe compris et la production stable, il ne restait qu'à regarder le calendrier avancer. Les joueurs automatiques le confirmaient. Après la première heure, ils décidaient 1 à 5 fois par tranche de 10 minutes, et même 0 fois pour le prudent avec objets, entre 100 et 110 minutes. Au premier grand hiver, la réserve du joueur correct valait 1,4 à 2,4 fois la marque, et jusqu'à 4,9 fois avec les objets.
+
+**La mesure.** Une décision, c'est une seconde où le joueur achète ou change les rations. `sim/mesures/caves.ts` les compte par tranche de 10 minutes, jusqu'au seuil. La cible : après 60 minutes, au moins 3 décisions dans chaque tranche entière, et 5 en moyenne, pour chaque joueur régulier, avec et sans objets.
+
+**Les règles qui ont changé** :
+- **les rations de l'hiver** (§ 3), à partir de l'an 5 : de maigres à larges, avec les naissances de 0 à 20 %. Elles redeviennent pleines à chaque bilan ;
+- **la vallée** accueille 1000 familles au lieu de 360. Avec 360, les rations larges la remplissaient vers 80 minutes, et les grands hivers redevenaient une attente ;
+- **le joueur automatique** ne paie plus un stockage, pendant l'hiver et sa soudure, avec le grain qui ne débordera qu'à l'été. Il se privait du grain dont il avait besoin tout de suite. Ce défaut faisait manquer au joueur correct un hiver ou deux, dont sa première soudure ; il n'en manque plus aucun.
+
+**Décisions après 60 minutes**, par tranche de 10 minutes (60–70 à 100–110) :
+
+| Joueur | Avant | Avec les rations |
+|---|---|---|
+| correct, sans objets | 5 5 3 3 2 | 11 11 7 10 5 |
+| correct, avec objets | 2 4 3 3 1 | 9 8 4 10 5 |
+| prudent, sans objets | 4 5 3 5 4 | 9 9 6 8 3 |
+| prudent, avec objets | 3 5 1 4 0 | 6 8 5 8 5 |
+| distrait, sans objets | 3 5 2 3 3 | 7 6 4 8 4 |
+| distrait, avec objets | 3 4 2 3 1 | 7 7 4 8 4 |
+
+C'est 2 à 3 fois plus. Sans objets, le joueur correct entre maintenant dans chaque hiver avec 1,2 à 1,5 fois la marque des rations larges : assez pour les tenir, pas assez pour ne pas y penser. Avec les objets, c'est 1,3 à 2,8 fois : la vallée riche garde de la marge, et ses décisions viennent surtout des achats que demande une vallée qui grandit.
+
+**Ce qui a été écarté.**
+- **Le rationnement seul**, comme frein d'urgence : la fin de strate ne manquait jamais de grain, et personne ne l'aurait tiré.
+- **Des rations larges moins chères** (une ration et demie) : sans objets, elles restaient à portée de tous les hivers.
+- **Des terres qui rendent moins** quand la vallée grandit : les points restaient à 8 sans objets, mais le grain allait tout aux rations, et les achats disparaissaient. La seconde moitié en devenait plus vide encore.
+
 **Résultats**, tous dans les cibles, avec et sans artefacts :
 - **Durée** : tous les joueurs réguliers atteignent le seuil à 1 h 51, le plus tôt possible, avec ou sans objets. Aucun ne manque un grand hiver. Sans artefact, c'est sous les 3 h 15 d'I5.
-- **Points** : 8 sans artefact (de 1,5 à 2,5 × 10⁶ boisseaux), 9 avec les objets d'un jeu correct (de 5 à 6 × 10⁶). Rester rapporte peu : 1 point au plus en 10 minutes comme en une heure.
-- **Le test du MVP** : le joueur réflexe manque le premier hiver à 4 min 30, avec ou sans objets, et n'atteint jamais le seuil. Le joueur qui apprend manque ce premier hiver, puis atteint le seuil en même temps que les autres.
-- **Rythme** : 125 à 166 achats avant le seuil ; 7 minutes au plus entre deux achats.
+- **Points** : sans artefact, 8 pour le joueur prudent, 9 pour les autres (de 2,2 à 4,3 × 10⁶ boisseaux) ; 9 avec les objets d'un jeu correct (de 8,5 à 10,6 × 10⁶). Les objets ne rapportent plus de point au seuil à un bon joueur, seulement 10 minutes plus tard (§ 9). Rester rapporte peu : 1 point au plus en 10 minutes comme en une heure.
+- **Le test du MVP** : le joueur réflexe manque le premier hiver à 4 min 30, avec ou sans objets, et n'atteint jamais le seuil. Le joueur qui apprend manque ce premier hiver, puis atteint le seuil en même temps que les autres. Les rations n'arrivent qu'à l'an 5 : elles n'y changent rien.
+- **Rythme** : 135 à 196 achats avant le seuil ; 7 minutes au plus entre deux achats ; après 60 minutes, de 3 à 11 décisions par tranche de 10 minutes.
 - **I2** : avec les objets d'un jeu correct, le plafond × 4 n'agit jamais.
 
-**À vérifier au playtest** ([#37](https://github.com/DavidGiangiacomo/strates/issues/37)) : que le premier hiver manqué se comprend (§ 5), que l'éveil des objets se remarque (§ 8), et que les grands hivers se vivent comme une tension plutôt que comme une attente (§ 12).
+**À vérifier au playtest** ([#37](https://github.com/DavidGiangiacomo/strates/issues/37)) : que le premier hiver manqué se comprend (§ 5), que l'éveil des objets se remarque (§ 8), que les rations se comprennent sans l'aide, et que les grands hivers se vivent comme une tension plutôt que comme une attente (§ 12).
 
-**Le joueur naïf** ([#23](https://github.com/DavidGiangiacomo/strates/issues/23)) achète toujours ce qui coûte le moins cher, dès qu'il peut (`npm run simuler -- caves moins-cher --comparer`). Il manque un hiver sur deux, et n'atteint pas le seuil en 4 h sans artefact ; avec les objets d'un jeu correct, il l'atteint à 2 h 12. Comme le joueur réflexe, il montre que la strate ne se finit pas sans changer de grammaire.
+**Le joueur naïf** ([#23](https://github.com/DavidGiangiacomo/strates/issues/23)) achète toujours ce qui coûte le moins cher, dès qu'il peut (`npm run simuler -- caves moins-cher --comparer`). Il manque un hiver sur deux, et n'atteint pas le seuil en 4 h sans artefact ; avec les objets d'un jeu correct, il l'atteint à 2 h 12. Il ne touche pas aux rations, comme le joueur réflexe. Comme le joueur réflexe, il montre que la strate ne se finit pas sans changer de grammaire.

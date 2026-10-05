@@ -1,4 +1,4 @@
-import { ARRIVEE, type IdStockage } from "./regles";
+import { ARRIVEE, type IdRations, type IdStockage } from "./regles";
 
 /** Un point d'historique tous les 5 jours. */
 export const PERIODE_HISTORIQUE = 5;
@@ -35,8 +35,20 @@ export interface EtatCaves {
   jour: number;
   /** Entre le premier jour du printemps et la fin de la soudure : l'hiver précédent n'est pas jugé. */
   soudure: boolean;
+  /**
+   * Ce que mangent les familles l'hiver et pendant sa soudure : pleines jusqu'au premier hiver long, et
+   * de nouveau pleines après chaque bilan.
+   */
+  rations: IdRations;
   /** L'hiver en cours de jugement : ce qui s'est passé depuis le bilan précédent. */
-  bilan: { rupture: boolean; joursDeRupture: number; departs: number };
+  bilan: {
+    rupture: boolean;
+    joursDeRupture: number;
+    departs: number;
+    /** Les rations de chaque jour de cet hiver, soudure comprise, additionnées : leur moyenne. */
+    rations: number;
+    jours: number;
+  };
   /** Les derniers hivers jugés, du plus ancien au plus récent. */
   hivers: { annee: number; rupture: boolean }[];
   /** Grands hivers de suite passés sans rupture. */
@@ -72,7 +84,8 @@ export function etatInitial(): EtatCaves {
     annee: ARRIVEE.annee,
     jour: ARRIVEE.jour,
     soudure: false,
-    bilan: { rupture: false, joursDeRupture: 0, departs: 0 },
+    rations: "pleines",
+    bilan: { rupture: false, joursDeRupture: 0, departs: 0, rations: 0, jours: 0 },
     hivers: [],
     serie: 0,
     seuilAtteintA: null,

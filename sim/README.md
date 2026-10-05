@@ -5,7 +5,7 @@ Fait tourner la logique d'une strate sans rendu, sous Node ([#23](https://github
 - `joueurs/surface.ts` : un joueur automatique pour la surface, qui clique puis achète toujours ce qui se rembourse le plus vite. Il sert au test de partie complète de la strate 1 et à la génération des [sauvegardes nommées](../sauvegardes-nommees/README.md).
 - `mesures/surface.ts` : les mesures d'une partie de la surface (seuil, points, objectifs, part du clic, attentes entre deux achats). Elles alimentent `tests/equilibrage-surface.test.ts` et le rapport [`docs/strates/strate-1-mesures.md`](../docs/strates/strate-1-mesures.md).
 - `joueurs/caves.ts` : des joueurs automatiques pour les caves, du joueur réflexe, qui achète comme à la surface, aux joueurs qui prévoient l'hiver.
-- `mesures/caves.ts` : les mesures d'une partie des caves, avec ou sans artefacts (seuil, points, premières ruptures, hivers manqués, attentes entre deux achats). Elles alimentent `tests/equilibrage-caves.test.ts` et le rapport [`docs/strates/strate-2-mesures.md`](../docs/strates/strate-2-mesures.md).
+- `mesures/caves.ts` : les mesures d'une partie des caves, avec ou sans artefacts (seuil, points, premières ruptures, hivers manqués, attentes entre deux achats, décisions par tranche de 10 minutes). Elles alimentent `tests/equilibrage-caves.test.ts` et le rapport [`docs/strates/strate-2-mesures.md`](../docs/strates/strate-2-mesures.md).
 
 ## La commande
 
@@ -30,7 +30,7 @@ npm run simuler -- caves tous --json            # les résultats en JSON
 Chaque joueur est un rythme (clics, passages) et une façon d'acheter :
 - **le glouton** achète ce qui se rembourse le plus vite ; c'est le cas de tous les joueurs, sauf un ;
 - **le naïf**, `moins-cher`, achète toujours ce qui coûte le moins cher, au rythme du joueur correct à la surface, et du joueur réflexe dans les caves ;
-- dans les caves, les joueurs qui **prévoient** ne dépensent que ce qui laisse de quoi passer la prochaine soudure (`joueurs/caves.ts`).
+- dans les caves, les joueurs qui **prévoient** ne dépensent que ce qui laisse de quoi passer la prochaine soudure (`joueurs/caves.ts`). À partir de l'an 5, ils prennent aussi les rations les plus larges qu'ils peuvent tenir, et les resserrent à temps ([#163](https://github.com/DavidGiangiacomo/strates/issues/163)).
 
 **Ce que montre le joueur naïf** :
 - à la surface, il n'atteint le seuil qu'à 4 h 37, au-delà des 3 h 15 d'I5. Les joueurs gloutons l'atteignent entre 1 h 07 et 1 h 35. Acheter au meilleur rendement n'est pas qu'une optimisation : c'est la façon de jouer que la surface suppose ;
