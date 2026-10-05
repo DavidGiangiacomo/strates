@@ -13,13 +13,17 @@ import {
   CONSOMMATION_PAR_FAMILLE,
   coutFamille,
   coutStockage,
+  enHiver,
   JOURS_PAR_AN,
   prochainOutil,
+  RATIONS,
+  rationsOuvertes,
   recolteParFamille,
   saisonChaude,
   STOCKAGES,
   stockageVisible,
   valleePleine,
+  type IdRations,
 } from "../../src/strates/s2-caves/logique/regles";
 
 export interface ProfilCaves {
@@ -128,15 +132,23 @@ function meilleurStockage(e: EtatCaves, budget: number): ActionCaves | null {
 }
 
 /**
- * Sans rien acheter, jusqu'à la fin de la prochaine soudure : la réserve au plus bas, et le grain
- * qui débordera faute de place.
+ * Sans rien acheter, jusqu'à la fin de la prochaine soudure : la réserve au plus bas, et le grain qui
+ * débordera faute de place. Aux rations `rations`, puis, après `jours` jours, aux rations `ensuite`.
  */
-export function prevision(e: EtatCaves, ctx: ContexteTick): { mini: number; deborde: number } {
+export function prevision(
+  e: EtatCaves,
+  ctx: ContexteTick,
+  rations: IdRations = e.rations,
+  jours = Infinity,
+  ensuite: IdRations = rations,
+): { mini: number; deborde: number } {
   const copie = structuredClone(e);
+  copie.rations = rations;
   const annee = copie.annee;
   const debord = copie.pertes.debord;
   let mini = copie.reserve;
   for (let jour = 0; jour < 2 * JOURS_PAR_AN; jour++) {
+    if (jour >= jours) copie.rations = ensuite;
     logique.tick(copie, 1, ctx);
     mini = Math.min(mini, copie.reserve);
     if (copie.annee > annee && !copie.soudure) break;
@@ -169,13 +181,36 @@ function reflexe(e: EtatCaves, achat: ProfilCaves["achat"]): ActionCaves | null 
   return choix && e.reserve >= choix.cout ? choix.action : null;
 }
 
+/**
+ * Les rations du joueur qui prévoit : les plus larges qui, tenues jusqu'à son prochain passage puis
+ * resserrées d'un cran, lui laissent sa marge jusqu'à la fin de la prochaine soudure. Il commence
+ * l'hiver large et resserre à temps : les naissances valent mieux que des familles installées, et
+ * deux rations voisines nourrissent mieux qu'un hiver large puis maigre.
+ */
+function rationsPrevues(
+  e: EtatCaves,
+  marge: number,
+  attention: number,
+  ctx: ContexteTick,
+): IdRations {
+  for (let i = RATIONS.length - 1; i > 0; i--) {
+    const r = RATIONS[i]!.id;
+    const dessous = RATIONS[i - 1]!.id;
+    const mini = prevision(e, ctx, r, attention, dessous).mini;
+    if (mini >= consommation({ ...e, rations: r }) * marge) return r;
+  }
+  return RATIONS[0].id;
+}
+
 /** L'action du joueur qui prévoit, ou null s'il attend. */
 function prevoyant(e: EtatCaves, marge: number, ctx: ContexteTick): ActionCaves | null {
   const { mini, deborde } = prevision(e, ctx);
   const libre = Math.min(e.reserve, mini - consommation(e) * marge);
-  // Le grain qui déborde est perdu : de la place d'abord, s'il en manque.
+  // Le grain qui déborde est perdu : de la place d'abord, s'il en manque. Ce grain-là peut payer la
+  // place, mais seulement hors de l'hiver et de sa soudure : il ne déborde qu'à l'été, après le plus bas.
   if (deborde > 0.05 * capacite(e)) {
-    const stockage = meilleurStockage(e, Math.min(e.reserve, Math.max(0, libre) + deborde));
+    const perdu = enHiver(e) || e.soudure ? 0 : deborde;
+    const stockage = meilleurStockage(e, Math.min(e.reserve, Math.max(0, libre) + perdu));
     if (stockage) return stockage;
   }
   const achat = meilleurAchat(e);
@@ -194,6 +229,12 @@ export function creerJoueur(noyau: Noyau, profil: ProfilCaves) {
     seconde(t: number): void {
       for (let i = 0; i < profil.clics(t); i++) noyau.agir({ type: "glaner" });
       if (t >= prochainPassage) {
+        const vallee = etat();
+        if (t >= profil.reflexeJusqua && rationsOuvertes(vallee)) {
+          const rations = rationsPrevues(vallee, profil.marge, profil.attention(t), ctx);
+          const action: ActionCaves = { type: "rations", rations };
+          if (rations !== vallee.rations) noyau.agir(action);
+        }
         for (let i = 0; i < 40; i++) {
           const e = etat();
           const action =

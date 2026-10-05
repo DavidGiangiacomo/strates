@@ -112,9 +112,13 @@ export function recolteEntre(etat: EtatCaves, d0: number, d1: number): number {
   return etat.familles * recolteParFamille(etat) * integrale;
 }
 
-/** La consommation, en boisseaux par jour : F. */
+/**
+ * La consommation, en boisseaux par jour : F, ou F × les rations pendant l'hiver et sa soudure, dès que
+ * les rations se comptent (fiche, § 3, « Les rations »).
+ */
 export function consommation(etat: EtatCaves): number {
-  return etat.familles * CONSOMMATION_PAR_FAMILLE;
+  const rationne = enHiver(etat) || etat.soudure;
+  return etat.familles * CONSOMMATION_PAR_FAMILLE * (rationne ? partRations(etat) : 1);
 }
 
 /** Ce que rapporte un clic sur « Glaner » : sin(π d / S) boisseau, et rien en hiver. */
@@ -124,11 +128,12 @@ export function valeurGlanage(etat: EtatCaves): number {
 
 /**
  * Le jour de l'année `annee` où la récolte recommence à couvrir la consommation : la fin de la
- * soudure, qui appartient à l'hiver précédent. Elle tombe au jour (S/π) × asin(1 / (2,8 × O × m)).
+ * soudure, qui appartient à l'hiver précédent. Elle tombe au jour (S/π) × asin(r / (2,8 × O × m)), r
+ * étant les rations : des rations larges l'allongent, des rations maigres l'abrègent.
  */
 export function finSoudure(etat: EtatCaves, annee = etat.annee): number {
   const s = saisonChaude(annee);
-  const rapport = recolteParFamille(etat) / CONSOMMATION_PAR_FAMILLE;
+  const rapport = recolteParFamille(etat) / (CONSOMMATION_PAR_FAMILLE * partRations(etat));
   // Une récolte qui ne couvrirait jamais la consommation : la soudure finit au plus fort de l'été.
   if (rapport <= 1) return s / 2;
   return (s / Math.PI) * Math.asin(1 / rapport);
@@ -137,9 +142,12 @@ export function finSoudure(etat: EtatCaves, annee = etat.annee): number {
 // ——— Les familles
 
 export const FAMILLES_FONDATRICES = 8;
-/** La vallée accueille 360 familles au plus. */
-export const VALLEE = 360;
-/** Après un hiver sans rupture, les familles augmentent de 10 %. */
+/**
+ * La vallée accueille 1000 familles au plus : assez pour que les naissances comptent jusqu'aux grands
+ * hivers, même à rations larges (#163).
+ */
+export const VALLEE = 1000;
+/** Après un hiver sans rupture, à rations pleines, les familles augmentent de 10 %. */
 export const NAISSANCES = 0.1;
 /** Chaque jour de rupture, 0,5 % des familles quittent la vallée. */
 export const DEPARTS = 0.005;
@@ -158,6 +166,48 @@ export function coutFamille(etat: EtatCaves): number {
 /** Pleine, la vallée refuse les installations. */
 export function valleePleine(etat: EtatCaves): boolean {
   return etat.familles + 1 > VALLEE + 1e-9;
+}
+
+// ——— Les rations (fiche, § 3)
+
+/**
+ * Ce que mange une famille l'hiver, en part de sa consommation ordinaire, et les naissances que ces
+ * rations donnent après un hiver sans rupture, en part des familles.
+ */
+export const RATIONS = [
+  { id: "maigres", part: 0.5, naissances: 0 },
+  { id: "reduites", part: 0.75, naissances: NAISSANCES / 2 },
+  { id: "pleines", part: 1, naissances: NAISSANCES },
+  { id: "larges", part: 2, naissances: 2 * NAISSANCES },
+] as const;
+
+export type IdRations = (typeof RATIONS)[number]["id"];
+
+/** Les rations se comptent à partir du premier hiver qui s'allonge : avant, l'école des hivers. */
+export const ANNEE_RATIONS = DERNIERE_ANNEE_COURTE + 1;
+
+/** Les rations se comptent : depuis le premier jour du premier hiver long. */
+export function rationsOuvertes(etat: EtatCaves): boolean {
+  return etat.annee > ANNEE_RATIONS || (etat.annee === ANNEE_RATIONS && enHiver(etat));
+}
+
+export function partRations(etat: EtatCaves): number {
+  return RATIONS.find((r) => r.id === etat.rations)?.part ?? 1;
+}
+
+/**
+ * Les naissances après un hiver sans rupture, en part des familles, selon les rations moyennes de cet
+ * hiver, soudure comprise : entre deux rations, elles se partagent au prorata.
+ */
+export function tauxNaissances(rationsMoyennes: number): number {
+  const r = Math.min(Math.max(rationsMoyennes, RATIONS[0].part), RATIONS.at(-1)!.part);
+  for (let i = 1; i < RATIONS.length; i++) {
+    const a = RATIONS[i - 1]!;
+    const b = RATIONS[i]!;
+    if (r <= b.part)
+      return a.naissances + ((r - a.part) / (b.part - a.part)) * (b.naissances - a.naissances);
+  }
+  return RATIONS.at(-1)!.naissances;
 }
 
 // ——— Les stockages
@@ -240,13 +290,14 @@ export function outilVisible(etat: EtatCaves): boolean {
 
 /**
  * La réserve qu'il faut au premier jour de l'hiver de l'année en cours pour tenir jusqu'à la fin de
- * la soudure suivante : avec les familles, les outils et les stockages d'aujourd'hui, et la durée
- * réelle de cet hiver. Calculée à rebours, jour par jour, depuis une réserve vide à la fin de la soudure.
+ * la soudure suivante : avec les familles, les outils, les stockages et les rations d'aujourd'hui, et la
+ * durée réelle de cet hiver. Calculée à rebours, jour par jour, depuis une réserve vide à la fin de la soudure.
  * Les pertes de chaque jour sont comptées sur la réserve du début de ce jour : la marque ne sous-estime
  * jamais le besoin.
  */
 export function marqueHiver(etat: EtatCaves): number {
   const f = etat.familles;
+  const mange = f * CONSOMMATION_PAR_FAMILLE * partRations(etat);
   const suivante = etat.annee + 1;
   const s = saisonChaude(suivante);
   const parJour = f * recolteParFamille(etat);
@@ -262,11 +313,11 @@ export function marqueHiver(etat: EtatCaves): number {
     const debut = Math.max(0, fin - 1);
     const recolte =
       parJour * (s / Math.PI) * (Math.cos((Math.PI * debut) / s) - Math.cos((Math.PI * fin) / s));
-    besoin = veille((fin - debut) * f * CONSOMMATION_PAR_FAMILLE - recolte);
+    besoin = veille((fin - debut) * mange - recolte);
   }
   // L'hiver : rien ne se récolte.
   for (let jour = 0; jour < dureeHiver(etat.annee); jour++) {
-    besoin = veille(f * CONSOMMATION_PAR_FAMILLE);
+    besoin = veille(mange);
   }
   return besoin;
 }

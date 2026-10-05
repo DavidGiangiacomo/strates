@@ -118,15 +118,16 @@ describe("le seuil des caves", () => {
 });
 
 describe("le grand cycle au registre", () => {
-  it("note le premier hiver plus long, au premier jour de l'hiver de l'an 5, et une seule fois", () => {
+  it("note le premier hiver plus long, puis les rations, au premier jour de l'hiver de l'an 5, une seule fois", () => {
     const etat = valleeSure(4);
     jouerJusqua(etat, (e) => e.annee === 5 && e.jour >= saisonChaude(5));
-    expect(etat.registre.at(-1)).toEqual({
-      cle: "registre.hivers-allongent",
-      valeurs: { annee: 5, duree: 80 },
-    });
+    expect(etat.registre.slice(-2)).toEqual([
+      { cle: "registre.hivers-allongent", valeurs: { annee: 5, duree: 80 } },
+      { cle: "registre.rations", valeurs: { annee: 5 } },
+    ]);
     jouerJusqua(etat, (e) => e.annee === 7);
     expect(cles(etat).filter((c) => c === "registre.hivers-allongent")).toHaveLength(1);
+    expect(cles(etat).filter((c) => c === "registre.rations")).toHaveLength(1);
   });
 
   it("annonce le premier grand hiver, au premier jour de l'hiver de l'an 14", () => {
@@ -147,12 +148,15 @@ describe("le grand cycle au registre", () => {
 });
 
 describe("la migration de l'état", () => {
-  it("mène un état de la version 1 à la version 3 : série, seuil et hivers, puis objets d'en haut", () => {
-    const { hivers, serie, seuilAtteintA, objets, ...v1 } = etatInitial();
-    void [hivers, serie, seuilAtteintA, objets];
-    expect(logique.versionEtat).toBe(3);
+  it("mène un état de la version 1 à la version 4 : série, seuil et hivers, objets d'en haut, rations", () => {
+    const { hivers, serie, seuilAtteintA, objets, rations, ...reste } = etatInitial();
+    void [hivers, serie, seuilAtteintA, objets, rations];
+    const v1 = { ...reste, bilan: { rupture: false, joursDeRupture: 0, departs: 0 } };
+    expect(logique.versionEtat).toBe(4);
     const v2 = logique.migrations[1]!(v1);
     expect(v2).toMatchObject({ hivers: [], serie: 0, seuilAtteintA: null });
-    expect(logique.migrations[2]!(v2)).toEqual(etatInitial());
+    const v3 = logique.migrations[2]!(v2);
+    expect(v3).toMatchObject({ objets: { fenetres: false, armoire: false, feuille: false } });
+    expect(logique.migrations[3]!(v3)).toEqual(etatInitial());
   });
 });

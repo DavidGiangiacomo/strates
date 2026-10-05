@@ -24,6 +24,8 @@
     outilVisible,
     pertes,
     prochainOutil,
+    RATIONS,
+    rationsOuvertes,
     recolte,
     repartition,
     saison,
@@ -80,9 +82,19 @@
   const outil = $derived(prochainOutil(etat));
   const registre = $derived(etat.registre.slice(-8).reverse());
 
+  // Les rations de l'hiver (fiche, § 3) : une écriture du registre, à partir des hivers longs.
+  const rations = $derived(rationsOuvertes(etat));
+
   // L'aide (fiche, § 11) : une page du registre, qui décrit la vallée et ne dit rien du bandeau.
-  // L'ouvrir est noté (§ 7).
-  const SECTIONS_AIDE = ["calendrier", "reserve", "stockages", "familles", "achats"] as const;
+  // L'ouvrir est noté (§ 7). Les rations y ont leur page quand elles se comptent.
+  const sectionsAide = $derived([
+    "calendrier",
+    "reserve",
+    "stockages",
+    "familles",
+    ...(rations ? ["rations"] : []),
+    "achats",
+  ]);
   let aideOuverte = $state(false);
   let lienAide: HTMLButtonElement | undefined = $state();
   let pageAide: HTMLElement | undefined = $state();
@@ -217,6 +229,29 @@
             </p>
             <span class="note" role="tooltip" id="note-installer">{o("installer.note")}</span>
           </li>
+          {#if rations}
+            <!-- Les rations : quatre mots, et celui qui vaut est entouré à l'encre. -->
+            <li class="avec-note" data-test="rations">
+              <fieldset class="rations" aria-describedby="note-rations">
+                <legend class="quoi">{o("rations")}</legend>
+                <span class="choix">
+                  {#each RATIONS as r (r.id)}
+                    <label class:choisies={etat.rations === r.id}>
+                      <input
+                        type="radio"
+                        name="rations"
+                        value={r.id}
+                        checked={etat.rations === r.id}
+                        onchange={() => agir({ type: "rations", rations: r.id })}
+                      />{o(`rations.${r.id}`)}</label
+                    >
+                  {/each}
+                </span>
+              </fieldset>
+              <p class="detail" data-test="rations-detail">{o(`rations.${etat.rations}.detail`)}</p>
+              <span class="note" role="tooltip" id="note-rations">{o("rations.note")}</span>
+            </li>
+          {/if}
           {#each stockages as s (s.id)}
             {@const n = etat.stockages[s.id]}
             {@const prix = coutStockage(s, n)}
@@ -310,7 +345,7 @@
       data-test="aide"
     >
       <h3 id="aide-titre">{o("aide.titre")}</h3>
-      {#each SECTIONS_AIDE as section (section)}
+      {#each sectionsAide as section (section)}
         <h4>{o(`aide.${section}.titre`)}</h4>
         <p>{o(`aide.${section}`)}</p>
       {/each}
@@ -598,6 +633,52 @@
   .ecriture.pleine {
     font-style: italic;
     color: var(--encre-douce);
+  }
+  /* Les rations : la légende comme une écriture, puis quatre mots ; le choisi est entouré. */
+  .rations {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 10px;
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+  .rations legend {
+    float: left;
+    padding: 0;
+  }
+  .choix {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 4px;
+  }
+  .choix label {
+    position: relative;
+    padding: 0 6px;
+    color: var(--encre-douce);
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: 50%;
+  }
+  .choix label:hover {
+    color: var(--encre);
+  }
+  .choix label.choisies {
+    color: var(--encre);
+    border-color: var(--encre);
+  }
+  .choix label:has(input:focus-visible) {
+    outline: 1px solid var(--encre);
+    outline-offset: 2px;
+  }
+  /* Le bouton radio reste au clavier et aux lecteurs d'écran ; à l'œil, seul le mot entouré compte. */
+  .choix input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
   }
   .detail {
     font-size: 13px;

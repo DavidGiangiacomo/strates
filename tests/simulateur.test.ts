@@ -113,12 +113,15 @@ describe("le rapport du simulateur", () => {
 });
 
 describe("les parties simulées", () => {
-  it("mesurent les caves avec et sans les objets d'un jeu correct : I5 tenu, un point de plus", async () => {
+  it("mesurent les caves avec et sans les objets d'un jeu correct : I5 tenu, une vallée plus grande", async () => {
     const [resultat] = await jouer(lireArguments(["caves", "correct", "--comparer"]));
     const { sans, avec } = resultat!;
     expect(sans.seuil).not.toBeNull();
     expect(sans.seuil!).toBeLessThan(LIMITE_I5);
-    expect(avec!.points).toBe(sans.points + 1);
+    // Avec les rations, le joueur correct descend avec 9 points dans les deux cas ; les objets font
+    // une vallée plus grande, et deux fois plus de grain.
+    expect(avec!.points).toBeGreaterThanOrEqual(sans.points);
+    expect(avec!.valeur).toBeGreaterThan(2 * sans.valeur);
   });
 
   it("jouent aussi le joueur naïf, qui achète toujours le moins cher", async () => {

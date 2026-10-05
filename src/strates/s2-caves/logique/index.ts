@@ -20,6 +20,7 @@ import {
 } from "./etat";
 import { remplir } from "./notation";
 import {
+  ANNEE_RATIONS,
   capacite,
   consommation,
   coutFamille,
@@ -33,18 +34,22 @@ import {
   finSoudure,
   JOURS_PAR_AN,
   marqueHiver,
-  NAISSANCES,
   OBJETS,
+  partRations,
   pertes,
   prochainOutil,
+  RATIONS,
+  rationsOuvertes,
   recolteEntre,
   saison,
   saisonChaude,
   SERIE_SEUIL,
   stockage,
+  tauxNaissances,
   VALLEE,
   valeurGlanage,
   valleePleine,
+  type IdRations,
   type IdStockage,
 } from "./regles";
 
@@ -54,7 +59,8 @@ export type ActionCaves =
   | { type: "glaner" }
   | { type: "installer" }
   | { type: "construire"; stockage: IdStockage }
-  | { type: "outil" };
+  | { type: "outil" }
+  | { type: "rations"; rations: IdRations };
 
 // Tolérance pour les sommes de pas en virgule flottante, en jours ou en boisseaux.
 const EPSILON = 1e-9;
@@ -163,6 +169,10 @@ function solde(etat: EtatCaves, f: Flux): number {
 
 /** Fait couler `duree` jours de récolte, de consommation et de pertes. */
 function couler(etat: EtatCaves, duree: number): void {
+  if (enHiver(etat) || etat.soudure) {
+    etat.bilan.rations += partRations(etat) * duree;
+    etat.bilan.jours += duree;
+  }
   const f = flux(etat, duree);
   etat.cumul += f.recolte;
   etat.pertes.pourri += f.pourri;
@@ -180,17 +190,18 @@ function couler(etat: EtatCaves, duree: number): void {
 }
 
 /**
- * Le bilan de l'hiver, à la fin de sa soudure : naissances s'il est passé sans rupture, série des
- * grands hivers, seuil. Après le seuil, le registre n'a plus rien à noter qu'une rupture : c'est la
- * saturation (fiche, § 4). Le premier bilan révèle aussi les pertes (§ 7) et éveille les objets d'en
- * haut (§ 8).
+ * Le bilan de l'hiver, à la fin de sa soudure : naissances s'il est passé sans rupture, selon ses
+ * rations moyennes, série des grands hivers, seuil. Après le seuil, le registre n'a plus rien à noter
+ * qu'une rupture : c'est la saturation (fiche, § 4). Le premier bilan révèle aussi les pertes (§ 7) et
+ * éveille les objets d'en haut (§ 8). Les rations se fixent pour un hiver : elles redeviennent
+ * pleines, et l'automne pose à nouveau la question (#163).
  */
 function faireBilan(etat: EtatCaves, ctx: ContexteTick): void {
   const hiver = etat.annee - 1;
   const premier = etat.hivers.length === 0;
   const grand = estGrandHiver(hiver);
   const avantSeuil = etat.seuilAtteintA === null;
-  const { rupture, joursDeRupture, departs } = etat.bilan;
+  const { rupture, joursDeRupture, departs, rations, jours } = etat.bilan;
 
   etat.hivers.push({ annee: hiver, rupture });
   if (etat.hivers.length > TAILLE_HIVERS) etat.hivers.splice(0, etat.hivers.length - TAILLE_HIVERS);
@@ -206,18 +217,20 @@ function faireBilan(etat: EtatCaves, ctx: ContexteTick): void {
     if (serieRompue && avantSeuil) ecrire(etat, ctx, "registre.serie-rompue", {});
   } else {
     const avant = etat.familles;
-    etat.familles = Math.max(avant, Math.min(VALLEE, avant * (1 + NAISSANCES)));
+    const taux = tauxNaissances(jours > 0 ? rations / jours : 1);
+    etat.familles = Math.max(avant, Math.min(VALLEE, avant * (1 + taux)));
     const naissances = Math.round(etat.familles - avant);
     if (grand) etat.serie += 1;
     if (avantSeuil) {
       if (grand) ecrire(etat, ctx, "registre.grand-hiver", { annee: hiver, serie: etat.serie });
       else {
-        ecrire(
-          etat,
-          ctx,
-          naissances > 0 ? "registre.sans-rupture" : "registre.sans-rupture-vallee-pleine",
-          { annee: hiver, naissances },
-        );
+        const cle =
+          naissances > 0
+            ? "registre.sans-rupture"
+            : valleePleine(etat)
+              ? "registre.sans-rupture-vallee-pleine"
+              : "registre.sans-rupture-sans-naissance";
+        ecrire(etat, ctx, cle, { annee: hiver, naissances });
       }
       if (etat.serie >= SERIE_SEUIL) {
         etat.seuilAtteintA = etat.temps;
@@ -237,12 +250,13 @@ function faireBilan(etat: EtatCaves, ctx: ContexteTick): void {
     }
   }
   etat.soudure = false;
-  etat.bilan = { rupture: false, joursDeRupture: 0, departs: 0 };
+  etat.rations = "pleines";
+  etat.bilan = { rupture: false, joursDeRupture: 0, departs: 0, rations: 0, jours: 0 };
 }
 
 /**
- * Le premier jour de l'hiver : le registre note le premier hiver plus long, puis le premier grand
- * hiver. Le journal de session reçoit la réserve et la marque du jour (docs/playtest-mvp.md, § 5.1).
+ * Le premier jour de l'hiver : le registre note le premier hiver plus long, et que les rations se
+ * comptent désormais, puis le premier grand hiver. Le journal de session reçoit la réserve et la marque du jour (docs/playtest-mvp.md, § 5.1).
  */
 function debutHiver(etat: EtatCaves, ctx: ContexteTick): void {
   const { annee } = etat;
@@ -254,6 +268,7 @@ function debutHiver(etat: EtatCaves, ctx: ContexteTick): void {
   if (dureeHiver(annee) > HIVER_COURT && dureeHiver(annee - 1) === HIVER_COURT) {
     ecrire(etat, ctx, "registre.hivers-allongent", { annee, duree: dureeHiver(annee) });
   }
+  if (annee === ANNEE_RATIONS) ecrire(etat, ctx, "registre.rations", { annee });
   if (estGrandHiver(annee) && !estGrandHiver(annee - 1)) {
     ecrire(etat, ctx, "registre.grand-hiver-arrive", { annee });
   }
@@ -366,7 +381,7 @@ function absence(etat: EtatCaves, duree: number, ctx: ContexteTick): ResumeAbsen
 
 export const logique: LogiqueStrate<EtatCaves, ActionCaves> = {
   numero: 2,
-  versionEtat: 3,
+  versionEtat: 4,
   migrations: {
     // Version 2 (#32) : la série des grands hivers, le seuil et l'historique des hivers.
     1: (etat) => ({ ...(etat as object), hivers: [], serie: 0, seuilAtteintA: null }),
@@ -375,6 +390,11 @@ export const logique: LogiqueStrate<EtatCaves, ActionCaves> = {
       ...(etat as object),
       objets: { fenetres: false, armoire: false, feuille: false },
     }),
+    // Version 4 (#163) : les rations de l'hiver. L'hiver en cours est jugé comme à rations pleines.
+    3: (etat) => {
+      const e = etat as EtatCaves;
+      return { ...e, rations: "pleines", bilan: { ...e.bilan, rations: 0, jours: 0 } };
+    },
   },
   // Un jour. Chaque pas est coupé aux bornes des saisons, et la récolte y est intégrée exactement.
   pasMax: 1,
@@ -413,6 +433,11 @@ export const logique: LogiqueStrate<EtatCaves, ActionCaves> = {
         etat.outils += 1;
         break;
       }
+      // Les rations ne coûtent rien sur le moment : elles se paient en naissances, au bilan.
+      case "rations":
+        if (!rationsOuvertes(etat) || !RATIONS.some((r) => r.id === action.rations)) return;
+        etat.rations = action.rations;
+        break;
     }
   },
 
@@ -430,6 +455,7 @@ export const logique: LogiqueStrate<EtatCaves, ActionCaves> = {
     saison: saison(etat),
     reserve: etat.reserve,
     marque: marqueHiver(etat),
+    rations: etat.rations,
     // La disette de l'hiver en cours de jugement : la réserve a été vide sans que la récolte suffise.
     rupture: etat.bilan.rupture,
     capacite: capacite(etat),
