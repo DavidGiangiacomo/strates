@@ -230,7 +230,7 @@ Fait par [#26](https://github.com/DavidGiangiacomo/strates/issues/26), dans `src
 - **Les métadonnées** : le code du testeur (saisi par l'observateur), la version et le commit du build, la date, le navigateur, la taille de la fenêtre et le réglage des animations.
 - **Les actions** de la strate, avec leurs paramètres :
   - surface : produire, acheter, améliorer ;
-  - caves : glaner, installer, construire, outil.
+  - caves : glaner, installer, construire, outil, et les rations de l'hiver à partir de l'an 5 ([#163](https://github.com/DavidGiangiacomo/strates/issues/163)).
 - **« creuser »** : chaque clic, avec la réponse (le sol résiste, la fouille s'ouvre, la suite n'existe pas).
 - **L'écran de fouille** :
   - son ouverture (valeur, points, présélection) ;
@@ -244,7 +244,7 @@ Fait par [#26](https://github.com/DavidGiangiacomo/strates/issues/26), dans `src
 - **Le seuil** de chaque strate, au moment où il est atteint.
 - **Un relevé** toutes les 5 secondes de jeu, et après chaque action :
   - surface : crédits, cumul, production, objectif, fissure ;
-  - caves : année, jour, saison, réserve, marque d'hiver, disette en cours, capacité, familles, familles installées, outils, stockages, hivers jugés, fissure.
+  - caves : année, jour, saison, réserve, marque d'hiver, rations, disette en cours, capacité, familles, familles installées, outils, stockages, hivers jugés, fissure.
 - **Une même action répétée dans la même seconde** n'est notée qu'une fois, avec son nombre : quatre clics par seconde ne font pas quatre lignes. Une séance de 13 minutes de caves tient en quelques centaines d'événements.
 
 **Rien de personnel** : ni nom, ni adresse, ni mouvements de souris. Le stockage est local, l'export se fait en JSON, d'un clic, et le journal peut être désactivé (#26).
