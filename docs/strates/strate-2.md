@@ -353,12 +353,15 @@ On ne cache jamais le calendrier ni la marque d'hiver : ce sont les deux informa
   - les pertes des stockages ne sont pas affichées. Le registre les révèle au premier bilan (« Grain pourri dans les stockages depuis l'arrivée : 212 boisseaux. »), puis les pertes de chaque stockage s'affichent ;
   - le grand cycle : les années futures ne sont pas dessinées. On découvre en l'an 5 que l'hiver s'allonge ;
   - les naissances ne sont annoncées qu'au premier bilan réussi.
-- **Actes de compréhension** : des propositions, car le barème appartient à [#44](https://github.com/DavidGiangiacomo/strates/issues/44). Ensemble, ils couvrent les 14 points de κ prévus (§9).
-  - Atteindre le seuil sans consulter l'aide (l'acte générique du §8).
-  - Passer le premier hiver sans rupture, soudure comprise : ne pas avoir eu besoin d'échouer.
-  - Une année entière sans achat en automne et sans rupture : la grammaire « acheter au printemps, stocker à l'automne ».
-  - Passer le premier grand hiver au premier essai : avoir anticipé le grand cycle.
-  - Atteindre le seuil au plus tôt, à la fin de l'hiver de l'an 16 : aucun grand hiver manqué.
+- **Actes de compréhension**, sur le barème de [`comprehension.md`](../comprehension.md) (§ 2). Ensemble, ils couvrent les 14 points de κ prévus (§9).
+  - Atteindre le seuil sans consulter l'aide (l'acte générique du §8) : 3 points.
+  - Atteindre le seuil sans artefact actif (l'autre acte générique) : 3 points.
+  - Passer le premier hiver sans rupture, soudure comprise : ne pas avoir eu besoin d'échouer. 3 points.
+  - Une année entière sans achat en automne et sans rupture : la grammaire « acheter au printemps, stocker à l'automne ». 2 points.
+  - Atteindre le seuil au plus tôt, à la fin de l'hiver de l'an 16 : aucun grand hiver manqué, donc le grand cycle anticipé. 3 points.
+- **Le délai de levée** (`comprehension.md`, § 4) vaut ici 17 minutes au plus tôt, en arrivant avec κ = 8 :
+  - il ne change rien pour la marque et les pertes, que le premier bilan lève bien avant, vers 6 minutes ;
+  - le grand cycle y échappe : on le découvre en l'an 5, vers 32 minutes, ou d'avance avec l'armoire qui compte les hivers (§ 8).
 - **Graphe de dépendances** :
   - Les familles et les outils alimentent la récolte, modulée par la saison.
   - La réserve reçoit la récolte ; elle perd la consommation des familles et les pertes des stockages, et sa capacité est bornée par les stockages.

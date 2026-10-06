@@ -278,10 +278,40 @@ Safari peut effacer les données d'un site qu'on n'a pas visité depuis 7 jours.
 
 ---
 
+## D-007 — Compréhension : des formules progressives, κ visible et des actes muets
+
+- **Date** : 2026-10-06
+- **Statut** : active
+- **Origine** : issue [#44](https://github.com/DavidGiangiacomo/strates/issues/44) ; design doc, §8 et §9
+
+**Contexte.** Le §8 promet trois paliers : à κ = 0, environ 20 minutes pour comprendre le verbe d'une strate ; à κ = 50, 8 minutes et le graphe de dépendances ; à κ = 100, 3 minutes et les formules réelles. Mais la progression du §9 n'atteint 100 qu'au fond (96 à la fin de la strate 7), où il n'y a plus rien à calculer : les formules ne serviraient jamais en jeu. Il fallait aussi décider de ce que le joueur voit de κ.
+
+**Options étudiées.**
+1. *Les formules à κ = 70* : un palier atteignable, dès la dette.
+2. *Les formules progressives* : elles apparaissent une à une à partir de κ = 50, en proportion de κ.
+3. *Recalibrer κ* pour atteindre 100 avant la strate 7.
+
+Pour l'affichage : κ visible et actes muets ; κ et actes annoncés ; tout caché.
+
+**Décision.** Les formules progressives, κ visible et des actes muets.
+- À partir de κ = 50, la part accessible des formules d'une strate vaut `(κ − 50) / 50`, dans l'ordre que la strate leur donne. Une formule accessible s'affiche sur son élément dès que celui-ci est compris. À κ = 100, toutes le sont.
+- Le graphe de dépendances apparaît à κ = 50. Le délai de levée de l'opacité suit `L(κ) = 20 × 0,15^(κ/100)` minutes : 20, 8 et 3 minutes aux trois paliers du §8.
+- Le bandeau affiche « Compréhension 22 % ». κ monte à l'arrivée dans la strate suivante, sans un mot : rien ne dit quels actes l'ont fait monter, ni lesquels existent.
+- La progression du §9 est le maximum, si tous les actes sont accomplis.
+
+Le design complet est décrit dans [`comprehension.md`](comprehension.md).
+
+**Conséquences.**
+- Le design doc est corrigé au §8.
+- Les fiches définissent les actes de leur strate et leurs éléments opaques dans leur § 7, sur le barème de `comprehension.md` (§ 2).
+- La surface reste entièrement lisible : la décision de sa fiche est confirmée.
+- Le code suit : le modèle et les actes ([#56](https://github.com/DavidGiangiacomo/strates/issues/56)), la couche d'opacité ([#66](https://github.com/DavidGiangiacomo/strates/issues/66)), l'intégration aux strates 1 et 2 ([#78](https://github.com/DavidGiangiacomo/strates/issues/78)).
+
+---
+
 ## Décisions en attente
 
 | Issue | Question | Phase |
 |---|---|---|
-| [#44](https://github.com/DavidGiangiacomo/strates/issues/44) | Palier κ = 100 (dans le design de la Compréhension) | 2 |
 | [#38](https://github.com/DavidGiangiacomo/strates/issues/38) | Go / no-go après le MVP | 1 |
 | [#133](https://github.com/DavidGiangiacomo/strates/issues/133) | Garder 8 strates ou en retirer une (R5) | 5 |

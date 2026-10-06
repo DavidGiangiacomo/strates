@@ -87,7 +87,7 @@ Les effets uniques ne doivent pas contourner le plafond. Toute strate reste term
 ## 6. L'écran de choix
 
 - Il est générique et appartient au noyau : même écran à chaque descente, sous le bandeau.
-- Il affiche le catalogue de la strate quittée, sous les **noms d'en haut**, avec leur coût et leur famille d'effet (une icône), mais pas leur effet exact. On emporte « la turbine » et on découvre en bas « la roue chaude ». Le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)) pourra dévoiler davantage à partir d'un certain κ.
+- Il affiche le catalogue de la strate quittée, sous les **noms d'en haut**, avec leur coût et leur famille d'effet (une icône), mais pas leur effet exact. On emporte « la turbine » et on découvre en bas « la roue chaude ». Le design de la Compréhension n'y dévoile rien de plus, quel que soit κ : la découverte en bas reste entière ([`comprehension.md`](comprehension.md), § 7).
 - Le noyau propose une présélection (les objets les moins chers d'abord), que le joueur modifie librement. Emporter rien du tout est permis ; c'est aussi un moyen de viser l'acte de compréhension « réussir une strate sans artefact ».
 - Au-dessus du catalogue, la conversion est affichée franchement : la valeur convertible, les points, puis le prix d'un point de plus.
 - Seul « descendre » engage. Jusque-là, le joueur peut reboucher et retrouver sa strate telle qu'il l'a laissée.

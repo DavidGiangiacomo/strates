@@ -2,7 +2,7 @@
 
 *Concept n°7 du document « Douze concepts de jeux incrémentaux ».*
 *Format visé : **jeu long, 18 à 25 h**, multi-sessions, **prestige structurel** (la descente), hors-ligne oui. Références de cadrage : Kittens Game et Antimatter Dimensions (la durée, les couches de systèmes), Universal Paperclips (le changement de grammaire en cours de route), Outer Wilds (le plaisir d'archéologue).*
-*Révisions : D-002, modèle des artefacts ; D-003, valeur convertible de chaque strate ; D-005, sauvegarde et horloge (24 septembre 2026). Le détail des décisions est dans `docs/decisions.md`.*
+*Révisions : D-002, modèle des artefacts ; D-003, valeur convertible de chaque strate ; D-005, sauvegarde et horloge (24 septembre 2026) ; D-007, paliers de la Compréhension (6 octobre 2026). Le détail des décisions est dans `docs/decisions.md`.*
 
 ---
 
@@ -161,12 +161,14 @@ La dévaluation est affichée franchement : chaque artefact porte un niveau d'us
 Chaque strate commence avec une interface **partiellement opaque** : libellés inconnus, unités inconnues, boutons dont la fonction n'est pas décrite. La Compréhension accélère la levée de cette opacité :
 
 - κ = 0 : environ 20 minutes pour comprendre le verbe d'une strate.
-- κ = 50 : environ 8 minutes, et le graphe de dépendances est fourni.
-- κ = 100 : environ 3 minutes, et les formules réelles sont affichées.
+- κ = 50 : environ 8 minutes, et le graphe de dépendances est fourni. Les formules réelles commencent à apparaître, une à une, en proportion de κ.
+- κ = 100 : environ 3 minutes, et toutes les formules réelles sont affichées.
 
 κ augmente par **actes de compréhension** et non par temps passé : trouver le goulot avant que le jeu ne le signale, atteindre un seuil de fouille sans consulter l'aide, réussir une strate sans artefact. Le joueur qui apprend vraiment va de plus en plus vite ; celui qui brute-force refait vingt minutes de découverte à chaque étage.
 
 C'est l'écho direct de la thèse de *La langue morte* — **le vrai upgrade est la compréhension du joueur** — mais appliqué à la grammaire des incrémentaux plutôt qu'à une langue.
+
+κ est affiché dans le bandeau ; les actes, eux, sont muets. Le barème, les paliers et la levée de l'opacité sont décrits dans `docs/comprehension.md` (décision D-007).
 
 ---
 

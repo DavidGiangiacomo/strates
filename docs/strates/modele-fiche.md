@@ -44,9 +44,10 @@ Palette, typographie, disposition, sons. Ce qui la distingue de toutes les autre
 
 ## 7. Opacité et Compréhension
 
-- Ce qui est opaque à l'arrivée : libellés, unités, fonctions des boutons.
-- Les actes de compréhension propres à la strate, et leur gain de κ.
-- Le graphe de dépendances et les formules que le module expose.
+Sur le design de la Compréhension ([`comprehension.md`](../comprehension.md)) :
+- ce qui est opaque à l'arrivée (les noms, les valeurs, les rôles), ce qui le lève par l'usage, et ce qui échappe au délai de levée ;
+- les actes de compréhension propres à la strate, avec leur poids, sur le barème du § 2 ;
+- le graphe de dépendances et les formules que le module expose, dans l'ordre où elles se dévoilent.
 
 ## 8. Artefacts reçus
 
