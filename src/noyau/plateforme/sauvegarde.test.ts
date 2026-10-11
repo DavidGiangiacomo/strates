@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
+import { creerLogiqueFactice } from "../../strates/factice/logique";
 import { creerEtatNoyau, type EtatNoyau } from "../logique/etat";
+import { SEUIL_ABSENCE } from "../logique/horsligne";
+import { Noyau } from "../logique/noyau";
+import { Registre, type StrateQuelconque } from "../logique/registre";
 import { ecrireSauvegarde } from "../logique/sauvegarde";
 import { CLES, GestionnaireSauvegarde, sauvegarderPartie } from "./sauvegarde";
 import { StockageMemoire, type Stockage } from "./stockage";
@@ -154,11 +158,26 @@ describe("l'export et l'import", () => {
 });
 
 describe("la sauvegarde de la partie", () => {
-  it("note l'instant dans la référence avant d'écrire", async () => {
+  it("écrit la référence du noyau sans la déplacer", async () => {
     const stockage = new StockageMemoire();
     const etat = partie(1);
-    await sauvegarderPartie(etat, gestionnaire(stockage), 50_000);
-    expect(etat.reference).toBe(50_000);
-    expect(JSON.parse(stockage.contenu.get(CLES.courante) ?? "").reference).toBe(50_000);
+    await sauvegarderPartie(etat, gestionnaire(stockage));
+    expect(etat.reference).toBe(1_000);
+    expect(JSON.parse(stockage.contenu.get(CLES.courante) ?? "").reference).toBe(1_000);
+  });
+
+  it("laisse au rattrapage toute l'absence d'un onglet caché, malgré les sauvegardes", async () => {
+    const registre = new Registre();
+    const logique = creerLogiqueFactice(1);
+    registre.enregistrer(1, async () => ({ logique, vue: null, textes: {} }) as StrateQuelconque);
+    const noyau = new Noyau(registre, creerEtatNoyau(1, 1_000));
+    await noyau.demarrer(1_000);
+    const g = gestionnaire();
+
+    // Onglet caché : dix minutes sans image, pendant que la sauvegarde automatique continue.
+    for (let i = 0; i < 20; i++) await sauvegarderPartie(noyau.etat, g);
+    const reprise = noyau.avancerJusqua(1_000 + 600_000, SEUIL_ABSENCE);
+
+    expect(reprise).toMatchObject({ type: "absence", duree: 600, comptee: 600 });
   });
 });

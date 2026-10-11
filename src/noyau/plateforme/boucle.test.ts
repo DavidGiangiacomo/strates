@@ -111,6 +111,51 @@ describe("la boucle des images", () => {
     expect(surReprise.mock.calls).toEqual([[absence]]);
   });
 
+  it("passe les images d'un onglet caché, et laisse toute l'absence à la première image du retour", () => {
+    const { noyau, avancerJusqua } = noyauFactice();
+    const apresImage = vi.fn();
+    let horloge = 50_000;
+    let cache = false;
+    demarrerBoucle(
+      noyau,
+      undefined,
+      () => horloge,
+      undefined,
+      apresImage,
+      () => cache,
+    );
+    image(1_016);
+
+    // Caché dix minutes : le navigateur donne encore quelques images, de plus en plus rares.
+    cache = true;
+    for (const attente of [1_000, 2_000, 4_000, 8_000]) {
+      horloge += attente;
+      image(horloge);
+    }
+    expect(avancerJusqua).toHaveBeenCalledTimes(1);
+    expect(apresImage).toHaveBeenCalledTimes(1);
+
+    cache = false;
+    horloge = 50_000 + 600_000;
+    image(horloge);
+    expect(avancerJusqua.mock.calls[1]).toEqual([650_000, SEUIL_ABSENCE]);
+    expect(apresImage).toHaveBeenCalledTimes(2);
+  });
+
+  it("continue de demander des images pendant que l'onglet est caché", () => {
+    const { noyau } = noyauFactice();
+    demarrerBoucle(
+      noyau,
+      undefined,
+      () => 0,
+      undefined,
+      undefined,
+      () => true,
+    );
+    image(1_016);
+    expect(rappel).not.toBeNull();
+  });
+
   it("s'arrête", () => {
     const { noyau } = noyauFactice();
     demarrerBoucle(noyau, undefined, () => 0)();

@@ -104,7 +104,7 @@
     const monter = () => (courante = { strate: noyau.strate, etat: rendreStrateReactive(noyau) });
     monter();
 
-    const sauvegarder = () => sauvegarderPartie(noyau.etat, gestionnaire, maintenant());
+    const sauvegarder = () => sauvegarderPartie(noyau.etat, gestionnaire);
     const passage = new Passage({
       noyau,
       maintenant,
