@@ -59,7 +59,7 @@ Parmi elles, les décisions sur le modèle des artefacts [#3](https://github.com
 | [#38](https://github.com/DavidGiangiacomo/strates/issues/38) | Go / no-go après le MVP | **toutes les phases 2 à 5** |
 | [#133](https://github.com/DavidGiangiacomo/strates/issues/133) | Garder 8 strates ou en retirer une (R5) | la sortie 1.0 |
 
-Le design de la Compréhension [#44](https://github.com/DavidGiangiacomo/strates/issues/44) contient aussi une décision à prendre : le palier κ = 100, qui n'est atteint qu'au fond tel que le rythme du §9 est écrit.
+Le design de la Compréhension [#44](https://github.com/DavidGiangiacomo/strates/issues/44) contenait aussi une décision : le palier κ = 100, qui n'est atteint qu'au fond tel que le rythme du §9 est écrit. Elle est tranchée par D-007 : les formules apparaissent progressivement à partir de κ = 50.
 
 ## Chemin critique
 

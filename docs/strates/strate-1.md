@@ -201,10 +201,10 @@ Un tableau de bord moderne, propre, tiède. C'est la référence : toutes les st
 
 ## 7. Opacité et Compréhension
 
-- **Opacité** : aucune. La surface parle notre langue. C'est la seule strate entièrement lisible dès l'arrivée, et le tutoriel de toutes les autres. La seule chose qu'elle n'explique pas est le bouton « creuser », qui ne lui appartient pas. Ce choix est à confirmer par le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)), qui prévoit une interface partiellement opaque dans chaque strate.
-- **Actes de compréhension** : ce sont des propositions, car le barème appartient à [#44](https://github.com/DavidGiangiacomo/strates/issues/44), hors du MVP.
-  - Atteindre le seuil sans consulter l'aide (l'acte générique du §8).
-  - Creuser avant l'apparition de la fissure, c'est-à-dire sans y avoir été poussé.
+- **Opacité** : aucune. La surface parle notre langue. C'est la seule strate entièrement lisible dès l'arrivée, et le tutoriel de toutes les autres. La seule chose qu'elle n'explique pas est le bouton « creuser », qui ne lui appartient pas. Le design de la Compréhension confirme ce choix ([`comprehension.md`](../comprehension.md), § 4).
+- **Actes de compréhension**, sur le barème de [`comprehension.md`](../comprehension.md) (§ 2) :
+  - atteindre le seuil sans consulter l'aide (l'acte générique du §8) : 3 points ;
+  - creuser avant l'apparition de la fissure, c'est-à-dire sans y avoir été poussé : 5 points.
   
   Ensemble, ils couvrent les 8 points de κ prévus pour la strate (§9).
 - **Graphe de dépendances** : le clic et les sept générateurs alimentent la production. Chaque amélioration pointe vers son générateur, vers la production (les globales) ou vers le clic. La production mène à l'objectif.
@@ -265,7 +265,7 @@ Elle dure 1 h 15 et non 2 h : pour elle, le critère se juge sur la qualité plu
 
 1. **Une nuit d'absence après le seuil** rapporte 2 points sans jouer. À garder si l'équilibrage ([#35](https://github.com/DavidGiangiacomo/strates/issues/35)) le juge acceptable ; sinon, plafonner ce que l'absence ajoute au cumul une fois le seuil atteint.
 2. **Délai du filet** (5 minutes avant la fissure) : à régler d'après le test du MVP ([#37](https://github.com/DavidGiangiacomo/strates/issues/37)).
-3. **Aucune opacité** : à confirmer par le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)).
+3. ~~**Aucune opacité**~~ : confirmée par le design de la Compréhension ([`comprehension.md`](../comprehension.md), § 4 ; D-007).
 4. ~~**Le sol qui résiste**~~ : fait dans le bandeau ([#22](https://github.com/DavidGiangiacomo/strates/issues/22)), comportement commun à toutes les strates. Il manque le son sourd, qui attend le moteur audio ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)).
 5. ~~**Budget du catalogue**~~ : calibré sur 12 à 14 points par [#10](https://github.com/DavidGiangiacomo/strates/issues/10) (six objets, 17 points au total ; voir [`artefacts.md`](../artefacts.md), § 8).
 6. **Remontée à 100 %, sans plafond** : c'est une proposition, à confirmer avec la fin « Remonter » ([#128](https://github.com/DavidGiangiacomo/strates/issues/128)).
