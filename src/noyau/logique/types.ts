@@ -205,6 +205,10 @@ export interface EntreeJournal {
   tempsDeJeu: number;
   tempsHorsLigne: number;
   aideConsultee: boolean;
+  /** Les actes de compréhension accomplis dans la strate, une fois chacun (docs/comprehension.md). */
+  actes: string[];
+  /** Le κ que ces actes ont rapporté, crédité à la descente (à l'arrivée, pour le fond). */
+  kappaGagne?: number;
   seuil?: { le: number; issue?: string };
   /** La fouille à la sortie de la strate (D-002). */
   fouille?: { points: number; emportes: string[]; abandonnes: string[] };

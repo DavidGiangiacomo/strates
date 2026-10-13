@@ -177,6 +177,8 @@ declare function tirer(alea: EtatAlea): number;
 
 Le noyau calcule `EffetsActifs` à partir des artefacts possédés, de leur usure (niveau = profondeur − origine) et du plafond ×4, au démarrage de chaque strate (`effetsActifs`, dans `src/noyau/logique/artefacts.ts`). La strate n'a pas à connaître le catalogue, qui est une donnée du noyau (`src/noyau/logique/catalogue.ts`).
 
+De même, la strate ne connaît pas le poids de ses actes de compréhension : le barème est une donnée du noyau (`src/noyau/logique/comprehension.ts`, [`comprehension.md`](comprehension.md)). Un acte qu'il ne connaît pas est ignoré.
+
 ## 5. La vue
 
 Chaque strate fournit un composant Svelte racine. Le noyau le monte sous le bandeau, dans une zone sans marge, haute d'au moins un écran et disposée en colonne. La vue y pose son propre fond et ses propres marges ; pour couvrir toute la zone, sa racine prend `flex: 1 0 auto`.
@@ -235,15 +237,16 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
   - Tant que l'onglet est caché, la boucle passe les images que le navigateur lui donne encore (Firefox en donne quelques-unes, de plus en plus rares). L'absence est rattrapée en une fois, à la première image du retour : un seul plafond, un seul résumé.
   - La sauvegarde écrit la référence sans la déplacer : une sauvegarde faite pendant que l'onglet est caché garde l'absence à rattraper.
 - **Hors-ligne standard** : le noyau simule 80 % de l'absence, plafonnée à 12 h, par ticks de `pasMax` au plus. En politique propre, il appelle `absence()`. Le temps rattrapé s'ajoute à `tempsHorsLigne`, pas à `tempsDeJeu`. Le rattrapage du chargement se fait avant l'enveloppe réactive, sur l'objet brut ; en session, il passe par l'enveloppe, comme les ticks (12 h de la strate factice : moins de 0,1 s dans Chromium).
-- **Bandeau** (`noyau/ui/Bandeau.svelte`, §12) : 24 px en haut de l'écran, identique quelle que soit la strate montée, avec la Profondeur, les artefacts et le bouton « creuser ». Le bouton a le même aspect avant et après le seuil ; seule sa réponse change. Avant le seuil, `demanderFouille()` refuse et le bandeau tressaille, sans texte ni pénalité (un bref assombrissement si le joueur préfère moins de mouvement ; le son sourd viendra avec le moteur audio, [#46](https://github.com/DavidGiangiacomo/strates/issues/46)). Le bouton d'une strate qui appellerait `CommandesNoyau.demanderFouille()` a la même réponse.
+- **Bandeau** (`noyau/ui/Bandeau.svelte`, §12) : 24 px en haut de l'écran, identique quelle que soit la strate montée, avec la Profondeur, les artefacts, la Compréhension (« Compréhension 22 % ») et le bouton « creuser ». Le bouton a le même aspect avant et après le seuil ; seule sa réponse change. Avant le seuil, `demanderFouille()` refuse et le bandeau tressaille, sans texte ni pénalité (un bref assombrissement si le joueur préfère moins de mouvement ; le son sourd viendra avec le moteur audio, [#46](https://github.com/DavidGiangiacomo/strates/issues/46)). Le bouton d'une strate qui appellerait `CommandesNoyau.demanderFouille()` a la même réponse.
 - **Résumé au retour** : `noyau/ui/reprise.ts` rédige le résumé d'une absence d'au moins une minute (durée, taux, plafond atteint, ou les lignes de la strate en politique propre). L'interface l'affiche sous le bandeau, dans sa palette, jusqu'à ce que le joueur le ferme.
 - **Actions** : mises en file, appliquées au début du tick suivant dans l'ordre d'arrivée.
 - **Journal de session** ([#26](https://github.com/DavidGiangiacomo/strates/issues/26), `src/playtest/`) : pour les playtests, et seulement si l'observateur l'a demandé (`?journal=T3` dans l'adresse).
   - Il observe le noyau (`Noyau.observateur`), qui le prévient de chaque action appliquée et de chaque événement des strates.
   - Il note le relevé de la strate (`releve`), toutes les 5 secondes de jeu et après chaque action, ainsi que les traces, le seuil, ce que signale le passage (réponses de « creuser », fouille, phases) et les ouvertures de l'aide.
   - Le noyau n'en dépend pas : sans journal, l'observateur est vide.
-- **Après chaque tick** : le noyau lit `seuil()`, et note au journal l'heure où il est atteint (`seuil.le`, avec l'issue). Si le seuil est atteint et `automatique` vaut vrai, `Noyau.descenteAutomatique` le signale, et l'interface lance la descente sans le joueur, à la fin de l'image. Sinon, le bouton de fouille du bandeau cesse de résister.
+- **Après chaque tick** : le noyau lit `seuil()`, et note au journal l'heure où il est atteint (`seuil.le`, avec l'issue). C'est alors que se juge l'acte « sans aide » : l'aide ouverte après le seuil ne coûte plus rien. Si le seuil est atteint et `automatique` vaut vrai, `Noyau.descenteAutomatique` le signale, et l'interface lance la descente sans le joueur, à la fin de l'image. Sinon, le bouton de fouille du bandeau cesse de résister.
 - **Sauvegarde** : selon D-005 (toutes les 30 s, en arrière-plan, après chaque descente). Le format, sa validation et les migrations sont dans `noyau/logique/sauvegarde.ts` et `migrations.ts` ; le stockage, la rotation des deux emplacements et la mise de côté des sauvegardes illisibles, dans `noyau/plateforme/sauvegarde.ts`. Les migrations d'une strate s'appliquent à son démarrage. De vraies sauvegardes de chaque version publiée sont archivées dans `tests/sauvegardes/` et doivent toutes se charger.
+  - Le format 2 ([#56](https://github.com/DavidGiangiacomo/strates/issues/56)) ajoute à chaque entrée du journal de partie ses actes de compréhension. La migration du format 1 les laisse vides.
 
 ### La descente
 
@@ -257,11 +260,13 @@ La logique est dans `Noyau` (`ouvrirFouille`, `reboucher`, `descendre`, `reprend
    - Il écrit la valeur convertible et le prix d'un point de plus (`valeurPourPoints`) dans la notation de la strate quittée : `DefinitionStrate.formaterValeur` et la clé de texte `fouille.valeur` (I1). La valeur prend aussi la police et les couleurs de la strate (`apparenceValeur`).
    - Jusqu'à « descendre », le joueur peut **reboucher** (`reboucher()`) : rien n'est noté, et la strate reprend là où elle s'était figée.
    - En descente automatique, `descendre()` sans choix ouvre la fouille et applique la présélection, sans écran.
-4. `descendre(maintenant, emportes)` vérifie le choix et charge la strate suivante. Si le chargement échoue, rien n'a changé : la fouille reste ouverte. Puis tout s'engage d'un coup, avant l'animation : `fouiller` note la fouille au journal (points, objets emportés, objets abandonnés), à côté du seuil et de l'issue.
+4. `descendre(maintenant, emportes)` vérifie le choix et charge la strate suivante. Si le chargement échoue, rien n'a changé : la fouille reste ouverte. Puis tout s'engage d'un coup, avant l'animation :
+   - la Compréhension de la strate quittée se conclut : « sans artefact » est constaté si aucun objet n'y agissait, puis le gain de ses actes est crédité à κ et noté au journal (`kappaGagne`) ;
+   - `fouiller` note la fouille au journal (points, objets emportés, objets abandonnés), à côté du seuil et de l'issue.
 5. Les objets emportés rejoignent `artefacts` (`fouiller`), et la Profondeur augmente de 1. Une action restée en file pour la strate quittée est oubliée.
 6. L'état de la strate quittée reste tel quel dans `strates` : gelé, gardé dans la sauvegarde.
 7. La strate suivante s'installe : ses effets sont calculés, puis `etatInitial()` est appelé avec une nouvelle graine, le journal et ces effets, et une entrée de journal s'ouvre. L'interface monte sa vue, puis sauvegarde.
-8. La nouvelle strate reste figée pendant la transition (4 s, puis 1 s d'arrivée), qui ne fait que représenter ce qui est déjà fait. Son temps part à la fin, par `reprendre()`. Un rechargement pendant la transition retrouve la nouvelle strate, et ne rejoue pas la transition.
+8. La nouvelle strate reste figée pendant la transition (4 s, puis 1 s d'arrivée), qui ne fait que représenter ce qui est déjà fait : le bandeau change de Profondeur à mi-course, puis reçoit les objets à l'arrivée, et enfin κ. Son temps part à la fin, par `reprendre()`. Un rechargement pendant la transition retrouve la nouvelle strate, et ne rejoue pas la transition.
 
 ### Les fins
 
@@ -289,6 +294,10 @@ interface EntreeJournal {
   tempsDeJeu: number;
   tempsHorsLigne: number;
   aideConsultee: boolean;
+  /** Les actes de compréhension accomplis dans la strate, une fois chacun (docs/comprehension.md). */
+  actes: string[];
+  /** Le κ que ces actes ont rapporté, crédité à la descente (à l'arrivée, pour le fond). */
+  kappaGagne?: number;
   seuil?: { le: number; issue?: string };
   /** La fouille à la sortie de la strate (D-002). */
   fouille?: { points: number; emportes: string[]; abandonnes: string[] };

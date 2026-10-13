@@ -1,0 +1,77 @@
+// Le barème de la Compréhension (docs/comprehension.md, § 2 ; D-007).
+import { describe, expect, it } from "vitest";
+import {
+  ARRIVEE,
+  BAREME,
+  crediter,
+  gainDesActes,
+  KAPPA_MAX,
+  poidsActe,
+  PROGRESSION,
+  SANS_AIDE,
+  SANS_ARTEFACT,
+} from "./comprehension";
+import type { NumeroStrate } from "./types";
+
+const STRATES = [1, 2, 3, 4, 5, 6, 7, 8] as const satisfies readonly NumeroStrate[];
+const somme = (actes: Readonly<Record<string, number>>) =>
+  Object.values(actes).reduce((a, n) => a + n, 0);
+
+describe("le barème de la Compréhension", () => {
+  it("suit la progression du §9 : de 0 à 100, en 8, 14, 16, 17, 15, 15, 11 et 4 points", () => {
+    let kappa = 0;
+    const paliers = STRATES.map((n) => (kappa += PROGRESSION[n]));
+    expect(paliers).toEqual([8, 22, 38, 55, 70, 85, 96, 100]);
+  });
+
+  it("donne aux strates 1, 2 et 8 toute leur progression, et jamais plus aux autres", () => {
+    for (const n of [1, 2, 8] as const) expect(somme(BAREME[n])).toBe(PROGRESSION[n]);
+    // Les actes propres des strates 3 à 7 viendront avec leurs fiches.
+    for (const n of [3, 4, 5, 6, 7] as const) {
+      expect(somme(BAREME[n])).toBeLessThan(PROGRESSION[n]);
+    }
+  });
+
+  it("propose « sans aide » de la strate 1 à la 7, « sans artefact » de la 2 à la 7, l'arrivée au fond", () => {
+    for (const n of STRATES) {
+      expect(poidsActe(BAREME, n, SANS_AIDE) !== null).toBe(n <= 7);
+      expect(poidsActe(BAREME, n, SANS_ARTEFACT) !== null).toBe(n >= 2 && n <= 7);
+      expect(poidsActe(BAREME, n, ARRIVEE) !== null).toBe(n === 8);
+    }
+  });
+
+  it("ne compte que des poids entiers et positifs", () => {
+    for (const n of STRATES) {
+      for (const poids of Object.values(BAREME[n])) {
+        expect(Number.isInteger(poids) && poids > 0).toBe(true);
+      }
+    }
+  });
+});
+
+describe("le gain des actes", () => {
+  it("compte chaque acte une fois, et rien pour un acte que le barème ne connaît pas", () => {
+    expect(gainDesActes(BAREME, 2, ["premier-hiver", SANS_AIDE, "premier-hiver"])).toBe(6);
+    expect(gainDesActes(BAREME, 2, ["inconnu", "creuser-avant-fissure"])).toBe(0);
+    expect(gainDesActes(BAREME, 1, [])).toBe(0);
+  });
+
+  it("ne prend pas pour un acte une propriété de tout objet", () => {
+    expect(poidsActe(BAREME, 1, "constructor")).toBeNull();
+    expect(poidsActe(BAREME, 1, "toString")).toBeNull();
+    expect(gainDesActes(BAREME, 1, ["constructor", "__proto__"])).toBe(0);
+  });
+});
+
+describe("le crédit de κ", () => {
+  it("ajoute le gain, sans jamais dépasser 100", () => {
+    expect(crediter(8, 14)).toBe(22);
+    expect(crediter(96, 4)).toBe(KAPPA_MAX);
+    expect(crediter(98, 14)).toBe(KAPPA_MAX);
+  });
+
+  it("ne fait jamais baisser κ", () => {
+    expect(crediter(40, 0)).toBe(40);
+    expect(crediter(40, -5)).toBe(40);
+  });
+});

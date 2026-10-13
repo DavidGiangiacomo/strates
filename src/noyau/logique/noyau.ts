@@ -8,6 +8,16 @@ import {
   type Fouille,
   type FouilleOuverte,
 } from "./artefacts";
+import {
+  ARRIVEE,
+  BAREME,
+  crediter,
+  gainDesActes,
+  poidsActe,
+  SANS_AIDE,
+  SANS_ARTEFACT,
+  type Bareme,
+} from "./comprehension";
 import { EFFETS_NEUTRES } from "./effets";
 import { estNumeroStrate, noterInstant, type EtatNoyau, type EtatStrateRange } from "./etat";
 import {
@@ -46,6 +56,11 @@ export interface ObservateurNoyau {
   evenement?(evenement: EvenementStrate): void;
 }
 
+/** Ce qu'on peut changer au noyau, pour les tests : le barème de la Compréhension. */
+export interface OptionsNoyau {
+  bareme?: Bareme;
+}
+
 /**
  * Le noyau : l'état global, la strate courante et la boucle de tick.
  * Déterministe : le temps lui est fourni, il ne le lit jamais.
@@ -66,16 +81,20 @@ export class Noyau {
   #fouille: FouilleOuverte | null = null;
   /** La strate courante est figée : pendant la fouille, puis pendant la transition vers la suivante. */
   #suspendu = false;
+  /** Le barème de la Compréhension, appliqué par le noyau (docs/comprehension.md, § 2). */
+  #bareme: Bareme;
 
-  constructor(registre: Registre, etat: EtatNoyau) {
+  constructor(registre: Registre, etat: EtatNoyau, options: OptionsNoyau = {}) {
     if (!estNumeroStrate(etat.profondeur)) {
       throw new RangeError(`Profondeur invalide : ${String(etat.profondeur)}.`);
     }
     this.#registre = registre;
     this.etat = etat;
+    this.#bareme = options.bareme ?? BAREME;
     this.#contexte = {
       effets: EFFETS_NEUTRES,
       emettre: (evenement) => {
+        if (evenement.type === "acte") this.#noterActe(evenement.acte);
         this.#evenements.push(evenement);
         this.observateur?.evenement?.(evenement);
       },
@@ -269,8 +288,8 @@ export class Noyau {
   }
 
   /**
-   * Le joueur a ouvert l'aide de la strate courante : le journal le note (l'acte « sans aide » de la
-   * Compréhension, §8). Le noyau n'en fait rien de plus pour l'instant (#56).
+   * Le joueur a ouvert l'aide de la strate courante : le journal le note. Avant le seuil, elle coûte
+   * l'acte « sans aide », qui se juge au seuil (docs/comprehension.md, § 6).
    */
   noterAide(): void {
     this.#entreeCourante().aideConsultee = true;
@@ -362,14 +381,22 @@ export class Noyau {
     const strate = await this.#registre.charger(suivante);
     if (this.#fouille !== fouille) throw new Error("La fouille a été refermée entre-temps.");
 
-    const resultat = fouiller(this.etat, fouille.points, choix);
     const entree = this.#entreeCourante();
+    // La Compréhension de la strate quittée se conclut avant que les objets emportés ne rejoignent
+    // les artefacts : « sans artefact » regarde ceux qui agissaient ici.
+    this.#conclureComprehension(entree);
+    const resultat = fouiller(this.etat, fouille.points, choix);
     entree.seuil ??= { le: maintenant };
     // Une action restée en file appartient à la strate quittée : elle ne doit pas atteindre la suivante.
     this.#actions.length = 0;
     this.etat.profondeur = suivante;
     noterInstant(this.etat, maintenant);
     this.#installer(strate, maintenant);
+    // Le fond n'a pas de descente : y arriver est un acte, crédité aussitôt.
+    if (poidsActe(this.#bareme, suivante, ARRIVEE) !== null) {
+      this.#noterActe(ARRIVEE);
+      this.#crediter(this.#entreeCourante());
+    }
     return resultat;
   }
 
@@ -383,13 +410,48 @@ export class Noyau {
     return this.#evenements.splice(0);
   }
 
-  /** Lit le seuil de la strate courante, et note au journal le moment où il est atteint (ms). */
+  /**
+   * Lit le seuil de la strate courante, et note au journal le moment où il est atteint (ms). C'est
+   * alors que se juge l'acte « sans aide » : l'aide ouverte ensuite ne coûte plus rien.
+   */
   #lireSeuil(): void {
     this.#seuil = this.strate.logique.seuil(this.etatStrate);
     const entree = this.#entreeCourante();
     if (!this.#seuil.atteint || entree.seuil) return;
     entree.seuil = { le: this.etat.reference };
     if (this.#seuil.issue !== undefined) entree.seuil.issue = this.#seuil.issue;
+    if (!entree.aideConsultee) this.#noterActe(SANS_AIDE);
+  }
+
+  /**
+   * Un acte de compréhension de la strate courante (docs/comprehension.md, § 2) : noté une fois au
+   * journal, s'il est au barème de la strate et que sa Compréhension n'est pas déjà créditée. Il est
+   * muet : rien ne l'annonce au joueur.
+   */
+  #noterActe(acte: string): void {
+    const entree = this.#entreeCourante();
+    if (entree.kappaGagne !== undefined) return;
+    if (poidsActe(this.#bareme, entree.strate, acte) === null) return;
+    if (!entree.actes.includes(acte)) entree.actes.push(acte);
+  }
+
+  /**
+   * À la descente : « sans artefact » si aucun objet n'agissait ici, ni puissant ni utile, puis le
+   * gain des actes de la strate est crédité à κ.
+   */
+  #conclureComprehension(entree: EntreeJournal): void {
+    if (!this.etat.artefacts.some((id) => this.#effets.niveau(id) !== null)) {
+      this.#noterActe(SANS_ARTEFACT);
+    }
+    this.#crediter(entree);
+  }
+
+  /** Crédite à κ le gain des actes d'une strate, une seule fois, et le note au journal. */
+  #crediter(entree: EntreeJournal): void {
+    if (entree.kappaGagne !== undefined) return;
+    const gain = gainDesActes(this.#bareme, entree.strate, entree.actes);
+    entree.kappaGagne = gain;
+    this.etat.kappa = crediter(this.etat.kappa, gain);
   }
 
   #appliquerActions(): void {
@@ -449,6 +511,7 @@ function nouvelleEntree(strate: NumeroStrate, arrivee: number): EntreeJournal {
     tempsDeJeu: 0,
     tempsHorsLigne: 0,
     aideConsultee: false,
+    actes: [],
     perturbations: [],
   };
 }

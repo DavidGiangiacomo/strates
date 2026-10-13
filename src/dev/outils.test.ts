@@ -18,6 +18,7 @@ const entree = (strate: NumeroStrate, arrivee: number): EntreeJournal => ({
   tempsDeJeu: 0,
   tempsHorsLigne: 0,
   aideConsultee: false,
+  actes: [],
   perturbations: [],
 });
 
