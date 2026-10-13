@@ -1,4 +1,4 @@
-import { noterInstant, type EtatNoyau } from "../logique/etat";
+import type { EtatNoyau } from "../logique/etat";
 import { ecrireSauvegarde, lireSauvegarde, type LectureSauvegarde } from "../logique/sauvegarde";
 import { demanderPersistance, type Stockage } from "./stockage";
 
@@ -110,13 +110,16 @@ export class GestionnaireSauvegarde {
   }
 }
 
-/** Sauvegarde la partie : note l'instant, et demande un stockage persistant après la première descente. */
+/**
+ * Sauvegarde la partie, et demande un stockage persistant après la première descente.
+ * La référence d'horloge n'est pas touchée : seul le noyau l'avance, quand il a joué ou rattrapé le
+ * temps. Dans un onglet caché, les sauvegardes continuent sans les images : si elles notaient
+ * l'instant, elles effaceraient l'absence au lieu de la laisser au rattrapage.
+ */
 export function sauvegarderPartie(
   etat: EtatNoyau,
   gestionnaire: GestionnaireSauvegarde,
-  maintenant: number,
 ): Promise<boolean> {
-  noterInstant(etat, maintenant);
   if (etat.profondeur >= 2) demanderPersistance();
   return gestionnaire.ecrire(etat);
 }
