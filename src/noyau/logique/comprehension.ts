@@ -69,6 +69,22 @@ export function gainDesActes(
   return gain;
 }
 
+// ——— Les paliers (docs/comprehension.md, § 3)
+
+/** Le délai de levée à κ = 0, en secondes de strate : environ 20 minutes pour comprendre une strate. */
+export const DELAI_LEVEE_MAX = 20 * 60;
+/** Ce qu'il en reste à κ = 100 : 3 minutes sur 20. */
+const RAPPORT_LEVEE = 0.15;
+
+/**
+ * Le délai au bout duquel un élément encore opaque se lève de lui-même, en secondes de strate :
+ * `L(κ) = 20 × 0,15^(κ/100)` minutes, soit 20 minutes à κ = 0, 8 à κ = 50 et 3 à κ = 100 (§8).
+ */
+export function delaiLevee(kappa: number): number {
+  const k = Math.min(KAPPA_MAX, Math.max(0, kappa));
+  return DELAI_LEVEE_MAX * RAPPORT_LEVEE ** (k / KAPPA_MAX);
+}
+
 /** κ après un gain : il ne descend jamais, et ne dépasse jamais 100. */
 export function crediter(kappa: number, gain: number): number {
   return Math.max(kappa, Math.min(KAPPA_MAX, kappa + gain));

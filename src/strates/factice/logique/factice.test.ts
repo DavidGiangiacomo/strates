@@ -31,7 +31,20 @@ describe("la strate factice", () => {
     etat.unites = coutGenerateur(0);
     logique.agir(etat, { type: "acheter" }, ctx);
     expect(etat).toMatchObject({ unites: 0, generateurs: 1 });
-    expect(ctx.evenements).toEqual([{ type: "acte", acte: "premier-achat" }]);
+    expect(ctx.evenements).toEqual([
+      { type: "acte", acte: "premier-achat" },
+      { type: "levee", element: "unites" },
+    ]);
+  });
+
+  it("lève l'annonce de son seuil quand il est atteint, une seule fois", () => {
+    const etat = { ...etatNeuf(), cumul: SEUIL_FACTICE - 2, generateurs: 1 };
+    const ctx = contexte();
+    logique.agir(etat, { type: "produire" }, ctx);
+    expect(ctx.evenements).toEqual([]);
+    logique.tick(etat, 1, ctx);
+    logique.tick(etat, 1, ctx);
+    expect(ctx.evenements).toEqual([{ type: "levee", element: "seuil" }]);
   });
 
   it("produit avec le temps, multiplié par les artefacts", () => {

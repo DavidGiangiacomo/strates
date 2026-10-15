@@ -8,7 +8,7 @@
     type EtatFactice,
   } from "../logique";
 
-  let { etat, agir, o }: ProprietesVue<EtatFactice, ActionFactice> = $props();
+  let { etat, agir, o, lisible }: ProprietesVue<EtatFactice, ActionFactice> = $props();
 
   const cout = $derived(coutGenerateur(etat.generateurs));
 </script>
@@ -20,7 +20,15 @@
     {o("unites")} · {etat.generateurs}
     {o("generateurs")}
   </p>
-  <p>{o("cumul")} : {Math.floor(etat.cumul)} / {SEUIL_FACTICE}</p>
+  <p data-test="cumul">
+    {o("cumul")} :
+    {#if lisible("cumul")}
+      {Math.floor(etat.cumul)} / {SEUIL_FACTICE}
+    {:else}
+      <!-- Opaque, le compteur est une jauge sans échelle : il avance, sans un chiffre. -->
+      <progress max={SEUIL_FACTICE} value={Math.min(etat.cumul, SEUIL_FACTICE)}></progress>
+    {/if}
+  </p>
   <button onclick={() => agir({ type: "produire" })}>{o("produire")}</button>
   <button onclick={() => agir({ type: "acheter" })} disabled={etat.unites < cout}>
     {o("acheter")} ({cout})

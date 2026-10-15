@@ -4,6 +4,7 @@ import {
   ARRIVEE,
   BAREME,
   crediter,
+  delaiLevee,
   gainDesActes,
   KAPPA_MAX,
   poidsActe,
@@ -73,5 +74,27 @@ describe("le crédit de κ", () => {
   it("ne fait jamais baisser κ", () => {
     expect(crediter(40, 0)).toBe(40);
     expect(crediter(40, -5)).toBe(40);
+  });
+});
+
+describe("le délai de levée de l'opacité", () => {
+  const minutes = (kappa: number) => delaiLevee(kappa) / 60;
+
+  it("suit les paliers du §8 : 20 minutes à κ = 0, 8 à κ = 50, 3 à κ = 100", () => {
+    expect(minutes(0)).toBeCloseTo(20, 9);
+    expect(minutes(50)).toBeCloseTo(7.75, 2);
+    expect(minutes(100)).toBeCloseTo(3, 9);
+  });
+
+  it("passe par les paliers intermédiaires de comprehension.md, § 3", () => {
+    expect(Math.round(minutes(25))).toBe(12);
+    expect(Math.round(minutes(70))).toBe(5);
+    expect(Math.round(minutes(85))).toBe(4);
+  });
+
+  it("raccourcit à mesure que κ monte, et reste borné hors de 0 à 100", () => {
+    for (let k = 1; k <= 100; k++) expect(delaiLevee(k)).toBeLessThan(delaiLevee(k - 1));
+    expect(delaiLevee(-10)).toBe(delaiLevee(0));
+    expect(delaiLevee(140)).toBe(delaiLevee(100));
   });
 });

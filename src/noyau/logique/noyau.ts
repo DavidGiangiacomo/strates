@@ -28,6 +28,7 @@ import {
   type Reprise,
 } from "./horsligne";
 import { migrerEtatStrate } from "./migrations";
+import { elementsOpaques } from "./opacite";
 import type { Registre, StrateQuelconque } from "./registre";
 import type {
   ActionBase,
@@ -95,6 +96,7 @@ export class Noyau {
       effets: EFFETS_NEUTRES,
       emettre: (evenement) => {
         if (evenement.type === "acte") this.#noterActe(evenement.acte);
+        if (evenement.type === "levee") this.#noterLevee(evenement.element);
         this.#evenements.push(evenement);
         this.observateur?.evenement?.(evenement);
       },
@@ -280,6 +282,30 @@ export class Noyau {
   }
 
   /**
+   * Le temps passé dans la strate courante, en secondes : le jeu actif et les absences comptées. C'est
+   * lui que mesure le délai de levée de l'opacité (docs/comprehension.md, § 4).
+   */
+  get tempsStrate(): number {
+    const entree = this.#entreeCourante();
+    return entree.tempsDeJeu + entree.tempsHorsLigne;
+  }
+
+  /**
+   * Les éléments de la strate courante encore opaques : ni levés par l'usage, ni par un objet qui
+   * agit ici, ni par le délai `L(κ)` (docs/comprehension.md, § 4). Vide si la strate n'en déclare pas.
+   */
+  elementsOpaques(): Set<string> {
+    const elements = this.strate.logique.opacite;
+    if (!elements?.length) return new Set();
+    return elementsOpaques(elements, {
+      leves: this.#entreeCourante().leves,
+      kappa: this.etat.kappa,
+      tempsStrate: this.tempsStrate,
+      effets: this.#effets,
+    });
+  }
+
+  /**
    * Le joueur demande la descente : refusée tant que le seuil n'est pas atteint
    * (docs/architecture.md § 6, « La descente », étape 1). Acceptée, elle s'ouvre par `ouvrirFouille`.
    */
@@ -436,6 +462,16 @@ export class Noyau {
   }
 
   /**
+   * Un élément opaque levé à l'usage (docs/comprehension.md, § 4) : noté une fois au journal, s'il
+   * est déclaré par la strate courante ; sinon, ignoré. Le journal se sauvegarde : levé, il le reste.
+   */
+  #noterLevee(element: string): void {
+    if (!this.strate.logique.opacite?.some((e) => e.id === element)) return;
+    const leves = this.#entreeCourante().leves;
+    if (!leves.includes(element)) leves.push(element);
+  }
+
+  /**
    * À la descente : « sans artefact » si aucun objet n'agissait ici, ni puissant ni utile, puis le
    * gain des actes de la strate est crédité à κ.
    */
@@ -512,6 +548,7 @@ function nouvelleEntree(strate: NumeroStrate, arrivee: number): EntreeJournal {
     tempsHorsLigne: 0,
     aideConsultee: false,
     actes: [],
+    leves: [],
     perturbations: [],
   };
 }

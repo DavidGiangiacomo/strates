@@ -20,6 +20,7 @@
   import Descente from "./Descente.svelte";
   import Fente from "./Fente.svelte";
   import Fouille from "./Fouille.svelte";
+  import { CoucheOpacite } from "./opacite.svelte";
   import { DUREES, DUREES_REDUITES, Passage } from "./passage.svelte";
   import Pioche from "./Pioche.svelte";
   import { resumerReprise } from "./reprise";
@@ -32,8 +33,12 @@
   let bandeau: ReturnType<typeof Bandeau> | undefined = $state();
   /** Multiplie le temps de jeu : réglée par les outils de développement, toujours 1 sinon. */
   let vitesse = $state(1);
-  /** La strate montée et son état réactif : ils changent à la descente. */
-  let courante = $state.raw<{ strate: StrateQuelconque; etat: object } | null>(null);
+  /** La strate montée, son état réactif et sa couche d'opacité : ils changent à la descente. */
+  let courante = $state.raw<{
+    strate: StrateQuelconque;
+    etat: object;
+    opacite: CoucheOpacite;
+  } | null>(null);
   /** L'élément de la strate à l'écran : la fente en prend une copie. */
   let elementStrate: HTMLElement | undefined = $state();
 
@@ -101,7 +106,12 @@
     };
     // Rattrape le temps passé depuis la dernière sauvegarde, avant de rendre l'état réactif.
     reprendre(noyau.rattraper(maintenant()));
-    const monter = () => (courante = { strate: noyau.strate, etat: rendreStrateReactive(noyau) });
+    const monter = () =>
+      (courante = {
+        strate: noyau.strate,
+        etat: rendreStrateReactive(noyau),
+        opacite: new CoucheOpacite(noyau),
+      });
     monter();
 
     const sauvegarder = () => sauvegarderPartie(noyau.etat, gestionnaire);
@@ -125,6 +135,7 @@
         () => vitesse,
         () => {
           session?.journal.suivre();
+          courante?.opacite.actualiser();
           // La strate 7 descend d'elle-même, sans écran de choix (docs/artefacts.md, § 6).
           if (noyau.descenteAutomatique) void passage.descendre();
         },
@@ -222,14 +233,15 @@
     aria-hidden={phase === "fouille" ? "true" : undefined}
   >
     {#if courante}
-      {@const { strate, etat } = courante}
+      {@const { strate, etat, opacite } = courante}
       {@const Vue = strate.vue as VueStrate}
       {#key strate}
         <Vue
           {etat}
           agir={(action) => noyau.agir(action)}
           noyau={commandes}
-          o={(cle) => strate.textes[cle] ?? cle}
+          o={opacite.o}
+          lisible={opacite.lisible}
           mode="jeu"
         />
       {/key}
