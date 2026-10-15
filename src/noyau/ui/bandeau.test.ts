@@ -32,6 +32,30 @@ describe("le bandeau commun", () => {
     expect(document.querySelector("button")?.textContent).toBe("creuser");
   });
 
+  it("offre le bouton « graphe » quand on le lui donne, et dit s'il est ouvert", () => {
+    monter([], 55);
+    expect(document.querySelector("[data-test=ouvrir-graphe]")).toBeNull();
+    unmount(composant!);
+    const ongraphe = vi.fn();
+    composant = mount(Bandeau, {
+      target: document.body,
+      props: {
+        profondeur: 4,
+        artefacts: [],
+        kappa: 55,
+        oncreuser: () => {},
+        ongraphe,
+        grapheOuvert: true,
+      },
+    });
+    flushSync();
+    const bouton = document.querySelector<HTMLButtonElement>("[data-test=ouvrir-graphe]")!;
+    expect(bouton.textContent).toBe("graphe");
+    expect(bouton.getAttribute("aria-expanded")).toBe("true");
+    bouton.click();
+    expect(ongraphe).toHaveBeenCalledOnce();
+  });
+
   it("écrit la Compréhension en pourcentage entier, avec une espace fine insécable", () => {
     monter([], 7.6);
     expect(document.querySelector("[data-test=comprehension] strong")?.textContent).toBe(

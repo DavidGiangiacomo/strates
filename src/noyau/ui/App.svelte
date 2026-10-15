@@ -20,6 +20,9 @@
   import Descente from "./Descente.svelte";
   import Fente from "./Fente.svelte";
   import Fouille from "./Fouille.svelte";
+  import { NOMS_STRATES } from "./fouille";
+  import Graphe from "./Graphe.svelte";
+  import { grapheOuvrable } from "./graphe";
   import { CoucheOpacite } from "./opacite.svelte";
   import { DUREES, DUREES_REDUITES, Passage } from "./passage.svelte";
   import Pioche from "./Pioche.svelte";
@@ -31,6 +34,12 @@
   let avis = $state<string | null>(null);
   let resume = $state<string[] | null>(null);
   let bandeau: ReturnType<typeof Bandeau> | undefined = $state();
+  /** Le graphe de dépendances, ouvert depuis le bandeau à partir de κ = 50 (#76). */
+  let grapheOuvert = $state(false);
+  function fermerGraphe(): void {
+    grapheOuvert = false;
+    bandeau?.focaliserGraphe();
+  }
   /** Multiplie le temps de jeu : réglée par les outils de développement, toujours 1 sinon. */
   let vitesse = $state(1);
   /** La strate montée, son état réactif et sa couche d'opacité : ils changent à la descente. */
@@ -106,12 +115,15 @@
     };
     // Rattrape le temps passé depuis la dernière sauvegarde, avant de rendre l'état réactif.
     reprendre(noyau.rattraper(maintenant()));
-    const monter = () =>
-      (courante = {
+    const monter = () => {
+      courante = {
         strate: noyau.strate,
         etat: rendreStrateReactive(noyau),
         opacite: new CoucheOpacite(noyau),
-      });
+      };
+      // Le graphe ouvert était celui de la strate quittée.
+      grapheOuvert = false;
+    };
     monter();
 
     const sauvegarder = () => sauvegarderPartie(noyau.etat, gestionnaire);
@@ -177,13 +189,30 @@
   <main><p>Chargement…</p></main>
 {:then { noyau, passage, commandes, dev, session }}
   {@const phase = passage.phase}
+  {@const graphe =
+    phase === "jeu" && courante && grapheOuvrable(passage.kappa, courante.strate.logique)}
   <Bandeau
     bind:this={bandeau}
     profondeur={passage.profondeur}
     artefacts={passage.artefacts}
     kappa={passage.kappa}
-    oncreuser={() => passage.creuser()}
+    oncreuser={() => {
+      // Le coup de pioche ouvre la strate : le graphe se referme d'abord.
+      grapheOuvert = false;
+      void passage.creuser();
+    }}
+    ongraphe={graphe ? () => (grapheOuvert ? fermerGraphe() : (grapheOuvert = true)) : undefined}
+    {grapheOuvert}
   />
+  {#if graphe && grapheOuvert && courante?.strate.logique.graphe}
+    {@const { strate, etat, opacite } = courante}
+    <Graphe
+      graphe={strate.logique.graphe!(etat)}
+      nom={NOMS_STRATES[strate.logique.numero]}
+      o={opacite.o}
+      onfermer={fermerGraphe}
+    />
+  {/if}
   <!-- La séquence de la descente : docs/strates/descente-1-2.md. -->
   {#if phase !== "jeu"}
     <div class="fond" aria-hidden="true"></div>

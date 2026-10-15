@@ -99,7 +99,8 @@ Une strate peut exempter un élément du délai :
 **Le graphe de dépendances**, à partir de κ = 50 :
 - il montre la structure de la strate : ce qui alimente quoi (`graphe()`, `docs/architecture.md`) ;
 - un élément encore opaque y reste opaque, par un glyphe à la place de son nom : le graphe donne la forme, pas les mots ;
-- il s'ouvre depuis le bandeau, sur la strate courante.
+- il s'ouvre depuis le bandeau, sur la strate courante ;
+- il montre ce que la strate expose, dans l'état où elle est. Une strate dont le jeu est un graphe, comme le réseau (4), n'y montre que ce que le joueur a déjà relié : le graphe ne la résout pas à sa place.
 
 **Les formules réelles**, progressivement :
 - chaque strate ordonne ses formules, de la plus simple à la plus profonde (`formules()`), et chacune est attachée à un élément ;
@@ -164,7 +165,20 @@ Ce sont les formules des fiches (§ 3 et § 7) : le coût d'un exemplaire, la r�
   - avec les 8 points de la surface, s'il creuse avant la fissure, il arrive à l'atelier avec κ = 19 ou 22 ;
   - ces joueurs n'ouvrent jamais l'aide et ne manquent aucun hiver : leurs chiffres sont un plafond.
 
-**À venir** : les affichages du graphe et des formules, et les actes propres des strates 3 à 7, avec leurs fiches.
+**Fait par [#76](https://github.com/DavidGiangiacomo/strates/issues/76)** : l'affichage du graphe de dépendances.
+- **Le bandeau** offre un bouton « graphe » à partir de κ = 50 (`SEUIL_GRAPHE`), si la strate expose son graphe (`grapheOuvrable`). Comme les objets et κ, il suit le spectacle de la descente : il apparaît à l'arrivée.
+- **Le panneau** (`noyau/ui/Graphe.svelte`) s'ouvre sous le bandeau, dans sa palette : il appartient au noyau. La strate continue de vivre dessous.
+  - Les noms des nœuds passent par la couche d'opacité : un élément encore opaque y garde ses glyphes.
+  - Au survol d'un nœud, ses liens s'éclairent et le reste s'efface.
+  - Il se referme par « fermer » ou Échap, et le focus revient au bouton. Il se referme aussi au coup de pioche.
+  - Pour les lecteurs d'écran, le graphe se lit en phrases : « Récolte ← Familles, Outils, Saisons ».
+- **La disposition** (`noyau/ui/graphe.ts`) se fait en couches, de gauche à droite, de ce qui alimente à ce qui est alimenté (la méthode de Sugiyama, simplifiée).
+  - Les liens qui ferment un cycle, comme le bilan qui renvoie aux familles, se tracent en pointillés et entrent dans leur cible par la droite.
+  - Un lien qui saute des couches y passe par des points de passage : il contourne les nœuds.
+  - Dans chaque couche, des passes de barycentres réduisent les croisements ; l'ordre des nœuds donnés par la strate départage.
+- **Un test** vérifie que chaque strate du registre expose un graphe bien formé, nommé par ses textes (`tests/graphes.test.ts`). Une strate ajoutée y passera.
+
+**À venir** : l'affichage des formules ([#77](https://github.com/DavidGiangiacomo/strates/issues/77)), et les actes propres des strates 3 à 7, avec leurs fiches.
 
 ## 9. Questions ouvertes
 
