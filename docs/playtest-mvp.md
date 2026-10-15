@@ -2,6 +2,8 @@
 
 *Protocole, issue [#14](https://github.com/DavidGiangiacomo/strates/issues/14). Il est écrit **avant** que le MVP soit terminé, pour qu'on ne puisse pas ajuster les critères au résultat : le MVP doit pouvoir échouer (§14). Le test lui-même est l'objet de [#37](https://github.com/DavidGiangiacomo/strates/issues/37), qui ajoutera son compte rendu à la fin de cette page. La décision qui en découle est celle du go / no-go ([#38](https://github.com/DavidGiangiacomo/strates/issues/38), D-006).*
 
+*Depuis D-008 (15 octobre 2026), le projet continue quel que soit le résultat du test : le go / no-go n'a plus lieu, et [#37](https://github.com/DavidGiangiacomo/strates/issues/37) est fermée sans avoir été menée. Le protocole reste valable pour un test d'observation, qui réglerait ce que les fiches renvoient au playtest sans pouvoir arrêter le projet.*
+
 *Choix tranchés le 28 septembre 2026 :*
 - *chaque testeur joue une **partie complète**, de la surface aux caves, en une séance d'environ 2 h ;*
 - ***8 testeurs** : 5 joueurs d'incrémentaux, 3 non-joueurs ;*

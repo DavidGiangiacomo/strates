@@ -258,7 +258,7 @@ Safari peut effacer les données d'un site qu'on n'a pas visité depuis 7 jours.
 ## D-006 — Le MVP d'abord : le projet est engagé jusqu'au go / no-go
 
 - **Date** : 2026-09-26
-- **Statut** : active
+- **Statut** : remplacée par D-008
 - **Origine** : issue [#2](https://github.com/DavidGiangiacomo/strates/issues/2) ; design doc, §0, §12, §14 et « À trancher ensuite », point 1
 
 **Contexte.** Le design doc répond lui-même « non, pas en premier » à la question du bon projet : c'est le concept le plus ambitieux des douze, il coûte 6 à 8 fois les autres, et il « demande un jeu déjà terminé derrière soi ». Il fallait trancher en connaissance de cause avant d'engager la phase 1.
@@ -310,9 +310,35 @@ Le design complet est décrit dans [`comprehension.md`](comprehension.md).
 
 ---
 
+## D-008 — La suite sans go / no-go : le projet continue, quel que soit le test du MVP
+
+- **Date** : 2026-10-15
+- **Statut** : active
+- **Origine** : issue [#38](https://github.com/DavidGiangiacomo/strates/issues/38) ; décision D-006 ; design doc, §14
+
+**Contexte.** D-006 engageait le projet jusqu'au MVP, et suspendait les phases 2 à 5 au go / no-go ([#38](https://github.com/DavidGiangiacomo/strates/issues/38)), lui-même suspendu au test du MVP ([#37](https://github.com/DavidGiangiacomo/strates/issues/37)). Le MVP est construit et publié, et le test n'a pas encore eu lieu. Entre-temps :
+- la seconde moitié des caves a été reprise (les rations, [#163](https://github.com/DavidGiangiacomo/strates/issues/163)) ;
+- la fiche du chœur conclut qu'il ne donne pas de raison d'arrêter ([strate 5](strates/strate-5.md), § 12) ;
+- la phase 2 a commencé : la Compréhension, l'opacité, leur intégration aux strates 1 et 2, et le graphe de dépendances ([#56](https://github.com/DavidGiangiacomo/strates/issues/56), [#66](https://github.com/DavidGiangiacomo/strates/issues/66), [#78](https://github.com/DavidGiangiacomo/strates/issues/78), [#76](https://github.com/DavidGiangiacomo/strates/issues/76)).
+
+**Options étudiées.**
+1. *Attendre le test pour décider*, comme le prévoyait D-006 : continuer, retravailler ou arrêter selon son compte rendu.
+2. *Continuer dès maintenant*, quel que soit le résultat du test.
+
+**Décision.** Option 2 : l'auteur a décidé de poursuivre le jeu quel que soit le résultat du test du MVP. Le go / no-go n'a plus lieu, et les phases 2 à 5 ne lui sont plus suspendues.
+- Le test du MVP n'est plus une condition. S'il est mené, il sert d'outil d'observation : il règle ce que les fiches renvoient au playtest, sans pouvoir arrêter le projet.
+- Son protocole ([`playtest-mvp.md`](playtest-mvp.md)) reste valable pour un tel test, avec ses critères écrits d'avance.
+
+**Conséquences.**
+- D-006 est remplacée.
+- [#38](https://github.com/DavidGiangiacomo/strates/issues/38) est fermée, et [#37](https://github.com/DavidGiangiacomo/strates/issues/37) aussi, sans avoir été menée. La phase 1 n'attend plus rien ([#12](https://github.com/DavidGiangiacomo/strates/issues/12)).
+- Les questions que les fiches renvoient au playtest restent ouvertes, par exemple le délai du filet ou le rythme des départs. Elles se régleront par un test d'observation, ou par les mesures du simulateur.
+- Le design doc est corrigé : §14, et « À trancher ensuite », points 1 et 4.
+
+---
+
 ## Décisions en attente
 
 | Issue | Question | Phase |
 |---|---|---|
-| [#38](https://github.com/DavidGiangiacomo/strates/issues/38) | Go / no-go après le MVP | 1 |
 | [#133](https://github.com/DavidGiangiacomo/strates/issues/133) | Garder 8 strates ou en retirer une (R5) | 5 |
