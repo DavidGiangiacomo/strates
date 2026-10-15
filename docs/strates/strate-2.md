@@ -37,7 +37,7 @@ Elle optimisait **l'absence de manque**. Son temps était circulaire : la même 
 
 Elle a fini par saturation. La vallée était pleine, les caves aussi, et les grands hivers passaient sans rupture. Les registres n'avaient plus rien à noter que « passé sans rupture ». Son dernier geste avait été de creuser plus profond : le joueur le prolonge.
 
-À reprendre dans la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)).
+La bible narrative ([`bible.md`](../bible.md), § 4) en donne la suite : sa voix, ses mots, ses traces, et ce qu'elle a trouvé sous les caves profondes, « les roues sans moulin ».
 
 ## 3. Boucle courte
 
@@ -437,7 +437,7 @@ Ces lignes de l'arrivée et du seuil sont codées avec l'orchestration de la des
 
 ## 11. Textes
 
-- **Budget** : environ 600 mots. La rédaction est l'objet de [#17](https://github.com/DavidGiangiacomo/strates/issues/17). Ces textes sont provisoires : ils seront révisés d'après la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43), [#60](https://github.com/DavidGiangiacomo/strates/issues/60)).
+- **Budget** : environ 600 mots au départ, 750 depuis les rations ([`bible.md`](../bible.md), § 9). La rédaction est l'objet de [#17](https://github.com/DavidGiangiacomo/strates/issues/17). Ces textes sont provisoires : ils seront révisés d'après la bible narrative ([#60](https://github.com/DavidGiangiacomo/strates/issues/60)).
 - **Ton** : celui d'un registre de village. Des phrases courtes, datées, constatées plutôt que racontées, sans émotion affichée : « Hiver de l'an 3 : passé sans rupture. 6 familles sont nées. » Le registre ne s'adresse jamais au joueur.
 - **À écrire** :
   - les noms et une ligne de description des 4 stockages et des 4 outils ;

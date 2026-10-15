@@ -298,7 +298,7 @@ Ce que P3 et P4 décrivent pour la surface vaut pour toutes les descentes. Voici
 - **Variantes :**
   - la strate 6 affichera son issue, soldée ou en défaut, au-dessus de la valeur ([#64](https://github.com/DavidGiangiacomo/strates/issues/64)) ;
   - la strate 7 n'a pas d'écran : la présélection s'applique seule, et la transition part directement ([#106](https://github.com/DavidGiangiacomo/strates/issues/106)).
-- **Textes** : ceux de cette page sont provisoires. Ce sont des textes du noyau, à reprendre avec la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)).
+- **Textes** : ce sont des textes du noyau. Ils parlent sa voix, celle d'un inventaire de fouille, que fixe la bible narrative ([`bible.md`](../bible.md), § 10).
 
 ## 5. Les raccords
 

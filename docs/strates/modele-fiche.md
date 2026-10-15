@@ -21,7 +21,7 @@ Rappel du design doc : chaque strate est **un incrémental complet et différent
 
 ## 2. La civilisation
 
-Qui elle était, ce qu'elle optimisait, comment elle a fini (par saturation : son propre jeu n'avait plus de coup à jouer). Renvoyer à la bible narrative.
+Qui elle était, ce qu'elle optimisait, comment elle a fini (par saturation : son propre jeu n'avait plus de coup à jouer). Partir de la [bible narrative](../bible.md), § 4 : sa voix, ses mots, ses restes et ses traces.
 
 ## 3. Boucle courte
 
@@ -65,7 +65,7 @@ Politique par défaut (80 %, plafond 12 h) ou politique propre, et pourquoi.
 
 ## 11. Textes
 
-Textes clés, budget de mots, traces laissées pour le fond (strate 8).
+Textes clés, budget de mots ([bible](../bible.md), § 9), traces laissées pour le fond (strate 8 ; [bible](../bible.md), § 5).
 
 ## 12. Critère R5
 

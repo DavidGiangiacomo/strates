@@ -46,7 +46,7 @@ Chaque strate est une civilisation qui a laissé son jeu derrière elle : ses co
 
 Ce que la partie finit par établir : chaque couche a fini de la même façon, et pas par catastrophe — par saturation. Chacune a atteint un état où son propre jeu n'avait plus de coup à jouer, et s'est arrêtée. La huitième strate est la première qui n'a pas de générateurs du tout.
 
-Note de ton : archéologique, patient, sans mystère surjoué. Pas de « anciens », pas de prophétie. Des inventaires, des outils, des habitudes de comptage. ~5 000 mots répartis sur huit strates.
+Note de ton : archéologique, patient, sans mystère surjoué. Pas de « anciens », pas de prophétie. Des inventaires, des outils, des habitudes de comptage. ~5 000 mots répartis sur huit strates. Le ton, les huit couches, leurs traces et la répartition des mots sont fixés par la bible narrative (`docs/bible.md`).
 
 ---
 
@@ -144,7 +144,7 @@ La strate 7 est le seul moment du jeu où le joueur ne décide pas, et il ne s'e
 
 ## 7. Les artefacts (l'arbre d'upgrades, réparti dans le temps)
 
-Un artefact est un objet de la couche du dessus, désigné par le nom que lui donnent **ceux d'en bas**. Une turbine devient « la roue chaude ». Un contrat devient « le papier qui oblige ».
+Un artefact est un objet de la couche du dessus, désigné par le nom que lui donnent **ceux d'en bas**. Une turbine devient « la roue chaude ». Un contrat devient « la pierre qui oblige » (la convention des noms est dans la bible narrative, `docs/bible.md`, § 6).
 
 - **Nombre total : 34 artefacts**, répartis dans les catalogues des strates 1 à 7, de 3 à 6 objets par strate. À chaque descente, le joueur choisit ceux qu'il emporte avec ses points de fouille (règle n°1). Selon le parcours, 5 à 9 artefacts sont actifs (puissants ou utiles) dans une strate donnée.
 - Le choix se fait sous les noms d'en haut, avec le coût et la famille d'effet, mais sans l'effet exact : on emporte « la turbine » et on découvre en bas « la roue chaude ».
