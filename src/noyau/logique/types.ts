@@ -52,7 +52,8 @@ export interface LogiqueStrate<E, A extends ActionBase> {
   /**
    * Accroches de la Compréhension, pour les affichages débloqués par κ (docs/comprehension.md, § 5) : le
    * graphe de dépendances de la strate dans cet état, et ses formules réelles, de la plus simple à la
-   * plus profonde.
+   * plus profonde. Une strate dont le jeu est un graphe (le réseau, 4) n'y montre que ce que le joueur
+   * a déjà trouvé : le graphe ne la résout pas à sa place.
    */
   graphe?(etat: E): GrapheDependances;
   formules?(): Formule[];

@@ -76,6 +76,9 @@ export function gainDesActes(
 
 // ——— Les paliers (docs/comprehension.md, § 3)
 
+/** Le graphe de dépendances s'ouvre depuis le bandeau à partir de κ = 50. */
+export const SEUIL_GRAPHE = 50;
+
 /** Le délai de levée à κ = 0, en secondes de strate : environ 20 minutes pour comprendre une strate. */
 export const DELAI_LEVEE_MAX = 20 * 60;
 /** Ce qu'il en reste à κ = 100 : 3 minutes sur 20. */
