@@ -7,6 +7,7 @@ import {
   lireSauvegarde,
   type Sauvegarde,
 } from "./sauvegarde";
+import type { EntreeJournal } from "./types";
 
 function etatExemple(): EtatNoyau {
   const etat = creerEtatNoyau(123, 1_700_000_000_000);
@@ -22,6 +23,8 @@ function etatExemple(): EtatNoyau {
       tempsDeJeu: 4500,
       tempsHorsLigne: 120,
       aideConsultee: false,
+      actes: ["sans-aide"],
+      kappaGagne: 3,
       seuil: { le: 1_700_000_004_500 },
       fouille: { points: 13, emportes: ["s1-turbine", "s1-contrat"], abandonnes: ["s1-brevet"] },
       perturbations: [],
@@ -32,6 +35,7 @@ function etatExemple(): EtatNoyau {
       tempsDeJeu: 60,
       tempsHorsLigne: 0,
       aideConsultee: true,
+      actes: ["premier-hiver"],
       perturbations: [{ le: 1_700_000_004_700, recul: 3600 }],
     },
   );
@@ -84,6 +88,7 @@ describe("les migrations du format global", () => {
     // Un format 1 qui n'avait ni graine ni référence, migré jusqu'à un format 3 hypothétique.
     const ancienne = modifier(ecrireSauvegarde(etatExemple(), "0.1.0"), (s) => {
       const brut = s as unknown as Record<string, unknown>;
+      s.format = 1;
       delete (s.noyau as Partial<Sauvegarde["noyau"]>).graine;
       delete brut.reference;
     });
@@ -107,8 +112,26 @@ describe("les migrations du format global", () => {
 
   it("rendent la sauvegarde illisible s'il en manque une", () => {
     const texte = ecrireSauvegarde(etatExemple(), "0.1.0");
-    const lecture = lireSauvegarde(texte, "0.1.0", {}, 2);
+    const lecture = lireSauvegarde(texte, "0.1.0", {}, FORMAT_SAUVEGARDE + 1);
     expect(lecture).toMatchObject({ type: "illisible", raison: /migration manquante/ });
+  });
+
+  it("mènent le format 1 au format 2 : chaque strate du journal, sans acte de compréhension", () => {
+    const format1 = modifier(ecrireSauvegarde(etatExemple(), "0.1.0"), (s) => {
+      s.format = 1;
+      for (const entree of s.noyau.meta.journal.strates) {
+        const brute = entree as Partial<EntreeJournal>;
+        delete brute.actes;
+        delete brute.kappaGagne;
+      }
+    });
+    const lecture = lireSauvegarde(format1, "0.1.0");
+    expect(lecture.type).toBe("ok");
+    if (lecture.type !== "ok") return;
+    expect(lecture.etat.meta.journal.strates.map((e) => e.actes)).toEqual([[], []]);
+    expect(lecture.etat.kappa).toBe(9);
+    // La migration ne touche pas le texte d'origine : relu, il redonne le même résultat.
+    expect(lireSauvegarde(format1, "0.1.0")).toEqual(lecture);
   });
 });
 
@@ -132,6 +155,15 @@ describe("une sauvegarde illisible", () => {
     ["strate inconnue", (s) => void (s.strates["9"] = { version: 1, etat: {} })],
     ["strate sans version", (s) => void (s.strates["1"] = { etat: {} } as never)],
     ["journal abîmé", (s) => void (s.noyau.meta.journal.strates = [{ strate: 1 } as never])],
+    [
+      "actes absents",
+      (s) => void delete (s.noyau.meta.journal.strates[0] as Partial<EntreeJournal>).actes,
+    ],
+    ["acte non textuel", (s) => void (s.noyau.meta.journal.strates[0]!.actes = [3 as never])],
+    [
+      "κ gagné non numérique",
+      (s) => void (s.noyau.meta.journal.strates[0]!.kappaGagne = "8" as never),
+    ],
     ["référence absente", (s) => void delete (s as Partial<Sauvegarde>).reference],
   ])("est reconnue : %s", (_, changement) => {
     expect(lireSauvegarde(modifier(valide(), changement), "0.1.0").type).toBe("illisible");

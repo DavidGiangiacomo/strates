@@ -170,6 +170,7 @@
     bind:this={bandeau}
     profondeur={passage.profondeur}
     artefacts={passage.artefacts}
+    kappa={passage.kappa}
     oncreuser={() => passage.creuser()}
   />
   <!-- La séquence de la descente : docs/strates/descente-1-2.md. -->

@@ -1,5 +1,5 @@
 {
-  "format": 1,
+  "format": 2,
   "versionJeu": "0.0.0",
   "partieCreeeLe": 1767225600000,
   "reference": 1767230321000,
@@ -16,6 +16,9 @@
             "tempsDeJeu": 4720.9999999996435,
             "tempsHorsLigne": 0,
             "aideConsultee": false,
+            "actes": [
+              "sans-aide"
+            ],
             "perturbations": [],
             "seuil": {
               "le": 1767229960000

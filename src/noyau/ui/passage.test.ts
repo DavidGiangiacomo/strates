@@ -161,9 +161,12 @@ describe("la descente", () => {
     expect(appels).toMatchObject({ changer: 1, sauvegarder: 1 });
     expect(passage.phase).toBe("descente");
     expect(passage.transportes).toEqual(["L'équipe", "La turbine"]);
-    // Le bandeau suit le spectacle : la Profondeur change à mi-course, les objets à l'arrivée.
+    // Le bandeau suit le spectacle : la Profondeur change à mi-course, les objets à l'arrivée, puis
+    // la Compréhension. La surface a été passée sans aide : 3 points, déjà crédités au noyau.
     expect(passage.profondeur).toBe(1);
     expect(passage.artefacts).toEqual([]);
+    expect(noyau.etat.kappa).toBe(3);
+    expect(passage.kappa).toBe(0);
     expect(noyau.suspendu).toBe(true);
 
     await vi.advanceTimersByTimeAsync(DUREES.miCourse);
@@ -171,8 +174,11 @@ describe("la descente", () => {
     await vi.advanceTimersByTimeAsync(DUREES.descente - DUREES.miCourse);
     phases.push(passage.phase);
     expect(passage.artefacts).toEqual(["s1-equipe"]);
+    expect(passage.kappa).toBe(0);
     await vi.advanceTimersByTimeAsync(DUREES.parObjet);
     expect(passage.artefacts).toEqual(["s1-equipe", "s1-turbine"]);
+    await vi.advanceTimersByTimeAsync(DUREES.parObjet);
+    expect(passage.kappa).toBe(3);
     expect(noyau.suspendu).toBe(true);
 
     await vi.advanceTimersByTimeAsync(DUREES.arrivee);

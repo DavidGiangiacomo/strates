@@ -101,6 +101,8 @@ export class Passage {
   /** Ce que montre le bandeau : il suit le spectacle, pas l'engagement. */
   profondeur: NumeroStrate = $state(1);
   artefacts: string[] = $state.raw([]);
+  /** La Compréhension : elle monte à l'arrivée, après les objets, sans un mot (docs/comprehension.md, § 7). */
+  kappa = $state(0);
   /** Les noms d'en haut des objets emportés, qui descendent avec le joueur. */
   transportes: string[] = $state.raw([]);
   /** Une descente est en cours d'engagement : les boutons ne répondent plus. */
@@ -116,6 +118,7 @@ export class Passage {
     this.#durees = dependances.durees ?? DUREES;
     this.profondeur = dependances.noyau.etat.profondeur;
     this.artefacts = [...dependances.noyau.etat.artefacts];
+    this.kappa = dependances.noyau.etat.kappa;
   }
 
   #signaler(evenement: EvenementPassage): void {
@@ -219,6 +222,7 @@ export class Passage {
       ecoule += d.parObjet;
     }
     this.artefacts = [...noyau.etat.artefacts];
+    this.kappa = noyau.etat.kappa;
     await this.#d.attendre(Math.max(0, d.arrivee - ecoule));
     await sauvegarde;
 

@@ -4,10 +4,28 @@ import { appliquerMigrations, ErreurVersionPlusRecente, type Migrations } from "
 import type { Meta, NumeroStrate } from "./types";
 
 /** Version du format global ; elle augmente à chaque changement incompatible. */
-export const FORMAT_SAUVEGARDE = 1;
+export const FORMAT_SAUVEGARDE = 2;
 
 /** Migrations du format global : `MIGRATIONS_FORMAT[v]` fait passer du format v au format v + 1. */
-export const MIGRATIONS_FORMAT: Migrations = {};
+export const MIGRATIONS_FORMAT: Migrations = {
+  // Format 2 (#56) : chaque entrée du journal de partie note les actes de compréhension de sa strate.
+  // Une partie commencée avant la Compréhension n'en a accompli aucun.
+  1: (sauvegarde) => {
+    if (!estObjet(sauvegarde) || !estObjet(sauvegarde.noyau)) return sauvegarde;
+    const meta = sauvegarde.noyau.meta;
+    if (!estObjet(meta) || !estObjet(meta.journal) || !Array.isArray(meta.journal.strates)) {
+      return { ...sauvegarde, format: 2 };
+    }
+    const strates = meta.journal.strates.map((entree: unknown) =>
+      estObjet(entree) && !("actes" in entree) ? { ...entree, actes: [] } : entree,
+    );
+    return {
+      ...sauvegarde,
+      format: 2,
+      noyau: { ...sauvegarde.noyau, meta: { ...meta, journal: { ...meta.journal, strates } } },
+    };
+  },
+};
 
 export interface Sauvegarde {
   format: number;
@@ -183,6 +201,9 @@ function problemeDeMeta(meta: unknown): string | null {
       !estNombre(entree.tempsDeJeu) ||
       !estNombre(entree.tempsHorsLigne) ||
       typeof entree.aideConsultee !== "boolean" ||
+      !Array.isArray(entree.actes) ||
+      !entree.actes.every((a) => typeof a === "string") ||
+      (entree.kappaGagne !== undefined && !estNombre(entree.kappaGagne)) ||
       !Array.isArray(entree.perturbations)
     ) {
       return "entrée du journal de partie invalide";

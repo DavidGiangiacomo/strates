@@ -7,10 +7,13 @@
   let {
     profondeur,
     artefacts,
+    kappa,
     oncreuser,
   }: {
     profondeur: NumeroStrate;
     artefacts: readonly string[];
+    /** La Compréhension, de 0 à 100 : un pourcentage entier (docs/comprehension.md, § 7). */
+    kappa: number;
     oncreuser: () => void;
   } = $props();
 
@@ -37,6 +40,9 @@
 <header class="bandeau" bind:this={barre} data-test="bandeau">
   <span data-test="profondeur">Profondeur <strong>{profondeur}</strong></span>
   <span data-test="artefacts">Artefacts <strong>{artefacts.length}</strong></span>
+  <span data-test="comprehension"
+    >Compréhension <strong>{`${Math.round(kappa)}\u202f%`}</strong></span
+  >
   <button class="creuser" onclick={oncreuser}>creuser</button>
 </header>
 

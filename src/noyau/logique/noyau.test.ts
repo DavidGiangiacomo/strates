@@ -62,6 +62,7 @@ describe("le démarrage", () => {
         tempsDeJeu: 0,
         tempsHorsLigne: 0,
         aideConsultee: false,
+        actes: [],
         perturbations: [],
       },
     ]);

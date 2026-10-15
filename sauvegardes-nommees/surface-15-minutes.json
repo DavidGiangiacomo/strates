@@ -1,5 +1,5 @@
 {
-  "format": 1,
+  "format": 2,
   "versionJeu": "0.0.0",
   "partieCreeeLe": 1767225600000,
   "reference": 1767226500000,
@@ -16,6 +16,7 @@
             "tempsDeJeu": 900.0000000001361,
             "tempsHorsLigne": 0,
             "aideConsultee": false,
+            "actes": [],
             "perturbations": []
           }
         ]

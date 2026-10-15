@@ -125,12 +125,18 @@ Ce sont les formules des fiches (§ 3 et § 7) : le coût d'un exemplaire, la r�
 
 ## 8. Dans le code
 
-Des indications pour [#56](https://github.com/DavidGiangiacomo/strates/issues/56) et [#66](https://github.com/DavidGiangiacomo/strates/issues/66) ; le détail leur appartient.
+**Fait par [#56](https://github.com/DavidGiangiacomo/strates/issues/56)** : κ, les actes et le suivi de l'aide.
+- **Le barème** est dans le noyau (`src/noyau/logique/comprehension.ts`), pas dans les strates : elles ne peuvent pas s'attribuer de κ. Les actes propres des strates 3 à 7 s'y ajouteront avec leurs fiches.
+- **Une strate signale un acte** par un événement de son contexte, comme ses traces : `ctx.emettre({ type: "acte", acte: "premier-hiver" })`. Le noyau le note dans l'entrée de la strate au journal de partie (`actes`), une fois, s'il est à son barème ; sinon, il l'ignore.
+- **Le noyau constate lui-même** « sans aide », au seuil, si l'aide n'a pas été ouverte avant, et « sans artefact », à la descente, si aucun objet n'agissait dans la strate.
+- **À la descente**, il crédite à κ le gain des actes de la strate quittée, plafonné à 100, et le note au journal (`kappaGagne`). Reboucher ne crédite rien. Au fond, l'arrivée est créditée aussitôt.
+- **κ et les actes se sauvegardent** : le journal de partie les porte depuis le format 2 de la sauvegarde. Une partie au format 1 n'a accompli aucun acte.
+- **Le bandeau** affiche « Compréhension N % ». Il suit le spectacle de la descente : κ y monte à l'arrivée, après les objets (`Passage.kappa`).
 
-- **Les actes** : une strate déclare les siens dans sa définition (identifiant, poids) et les signale par un événement de son contexte, comme ses traces. Le noyau constate les actes génériques au seuil, et crédite κ à la descente, une fois par acte et par partie, dans le journal de partie.
+**À venir** : l'opacité ([#66](https://github.com/DavidGiangiacomo/strates/issues/66)), et les actes des strates 1 et 2 ([#78](https://github.com/DavidGiangiacomo/strates/issues/78)).
 - **L'opacité** : une strate déclare ses éléments opaques et les événements qui les lèvent. La couche générique tient l'état de chaque élément, applique les objets et le délai `L(κ)`, et le donne à la vue.
 - **Le graphe et les formules** : les accroches `graphe()` et `formules()` existent déjà dans le contrat. Elles attendent l'attache de chaque formule à un élément.
-- **Le bandeau** affiche κ, déjà sauvegardé dans l'état du noyau (`kappa`).
+- **« Creuser avant la fissure »**, l'acte de la surface : le clic sur « creuser » passe par le noyau, et la fissure par l'état de la strate. Il faudra que l'un sache ce que voit l'autre.
 
 ## 9. Questions ouvertes
 

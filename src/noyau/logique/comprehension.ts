@@ -1,0 +1,75 @@
+// La Compréhension (κ) : le barème des actes, appliqué par le noyau et jamais par les strates, qui ne
+// font que signaler leurs actes (docs/comprehension.md, § 2 ; décision D-007).
+import type { NumeroStrate } from "./types";
+
+/** κ va de 0 à 100. */
+export const KAPPA_MAX = 100;
+
+/** Atteindre le seuil sans avoir ouvert l'aide de la strate : le noyau le constate au seuil. */
+export const SANS_AIDE = "sans-aide";
+/** Atteindre le seuil sans aucun artefact actif, puissant ou utile : le noyau le constate à la descente. */
+export const SANS_ARTEFACT = "sans-artefact";
+/** Arriver au fond : le fond n'a pas de descente, cet acte est crédité dès l'arrivée. */
+export const ARRIVEE = "arrivee";
+
+/** Pour chaque strate, ses actes et leur poids, en points de κ. */
+export type Bareme = Readonly<Record<NumeroStrate, Readonly<Record<string, number>>>>;
+
+/**
+ * Le barème de docs/comprehension.md, § 2. Les actes génériques sont constatés par le noyau ; les
+ * autres, la strate les signale par un événement `{ type: "acte" }`. Les actes propres des strates 3
+ * à 7 viendront avec leurs fiches.
+ */
+export const BAREME: Bareme = {
+  1: { [SANS_AIDE]: 3, "creuser-avant-fissure": 5 },
+  2: {
+    [SANS_AIDE]: 3,
+    [SANS_ARTEFACT]: 3,
+    "premier-hiver": 3,
+    "annee-sans-achat-d-automne": 2,
+    "seuil-au-plus-tot": 3,
+  },
+  3: { [SANS_AIDE]: 4, [SANS_ARTEFACT]: 3 },
+  4: { [SANS_AIDE]: 4, [SANS_ARTEFACT]: 3 },
+  5: { [SANS_AIDE]: 4, [SANS_ARTEFACT]: 3 },
+  6: { [SANS_AIDE]: 3, [SANS_ARTEFACT]: 3 },
+  7: { [SANS_AIDE]: 2, [SANS_ARTEFACT]: 3 },
+  8: { [ARRIVEE]: 4 },
+};
+
+/**
+ * Ce que chaque strate peut donner au plus, si tous ses actes sont accomplis : la progression du §9
+ * (0 → 8 → 22 → 38 → 55 → 70 → 85 → 96 → 100).
+ */
+export const PROGRESSION: Readonly<Record<NumeroStrate, number>> = {
+  1: 8,
+  2: 14,
+  3: 16,
+  4: 17,
+  5: 15,
+  6: 15,
+  7: 11,
+  8: 4,
+};
+
+/** Le poids d'un acte dans une strate, ou null si le barème ne le connaît pas. */
+export function poidsActe(bareme: Bareme, strate: NumeroStrate, acte: string): number | null {
+  const actes = bareme[strate];
+  return Object.hasOwn(actes, acte) ? actes[acte]! : null;
+}
+
+/** Le gain des actes accomplis dans une strate : chacun compte une fois, et un acte inconnu ne vaut rien. */
+export function gainDesActes(
+  bareme: Bareme,
+  strate: NumeroStrate,
+  actes: readonly string[],
+): number {
+  let gain = 0;
+  for (const acte of new Set(actes)) gain += poidsActe(bareme, strate, acte) ?? 0;
+  return gain;
+}
+
+/** κ après un gain : il ne descend jamais, et ne dépasse jamais 100. */
+export function crediter(kappa: number, gain: number): number {
+  return Math.max(kappa, Math.min(KAPPA_MAX, kappa + gain));
+}
