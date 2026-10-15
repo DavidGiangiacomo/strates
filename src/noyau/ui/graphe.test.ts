@@ -8,8 +8,10 @@ import { etatInitial as tableauDeBord } from "../../strates/s1-surface/logique/e
 import { AMELIORATIONS, GENERATEURS } from "../../strates/s1-surface/logique/regles";
 import type { GrapheDependances } from "../logique/types";
 import {
+  couperLignes,
   DIMENSIONS,
   disposer,
+  formulesAffichees,
   grapheOuvrable,
   nomCourt,
   phrasesGraphe,
@@ -31,6 +33,23 @@ function graphe(ids: string[], liens: string[]): GrapheDependances {
 const couches = (d: Disposition) => Object.fromEntries(d.noeuds.map((n) => [n.id, n.couche]));
 const noeud = (d: Disposition, id: string) => d.noeuds.find((n) => n.id === id)!;
 const retours = (d: Disposition) => d.liens.filter((l) => l.retour).map((l) => `${l.de}>${l.vers}`);
+
+/** Deux nœuds d'une même colonne qui se chevauchent, ou un nœud qui sort du cadre. */
+function debordements(d: Disposition): string[] {
+  const defauts: string[] = [];
+  for (const n of d.noeuds) {
+    if (n.x + n.largeur > d.largeur || n.y + n.hauteur > d.hauteur) defauts.push(`${n.id} sort`);
+    for (const m of d.noeuds) {
+      const ensemble = n.id < m.id && n.x === m.x;
+      if (ensemble && n.y < m.y + m.hauteur && m.y < n.y + n.hauteur)
+        defauts.push(`${n.id}/${m.id}`);
+    }
+  }
+  return defauts;
+}
+
+/** Deux décimales, comme les tracés. */
+const f = (x: number) => String(Math.round(x * 100) / 100);
 
 /** Les croisements entre liens de deux couches voisines. */
 function croisements(d: Disposition): number {
@@ -168,5 +187,131 @@ describe("le graphe, à portée du bandeau", () => {
   it("éclaire au survol un nœud et ses voisins, de part et d'autre", () => {
     const g = graphe(["a", "b", "c", "d"], ["a>b", "b>c", "c>d"]);
     expect([...voisinsDe(g, "b")].sort()).toEqual(["a", "b", "c"]);
+  });
+});
+
+describe("les formules sur le graphe", () => {
+  const D = DIMENSIONS;
+  const g = graphe(["a", "b", "c"], ["a>b", "b>c"]);
+  const formules = [
+    { noeud: "a", expression: "fa" },
+    { noeud: "z", expression: "fz" },
+    { noeud: "b", expression: "fb1" },
+    { noeud: "b", expression: "fb2" },
+  ];
+  const toutLisible = () => true;
+  const affichees = (kappa: number, cleLisible: (cle: string) => boolean = toutLisible) =>
+    Object.fromEntries(formulesAffichees(formules, kappa, g, cleLisible));
+
+  it("ne montrent rien à κ = 50, puis les premières de la strate, et toutes à κ = 100", () => {
+    expect(affichees(50)).toEqual({});
+    expect(affichees(51)).toEqual({ a: ["fa"] });
+    expect(affichees(76)).toEqual({ a: ["fa"], b: ["fb1"] });
+    expect(affichees(100)).toEqual({ a: ["fa"], b: ["fb1", "fb2"] });
+  });
+
+  it("comptent aussi la formule d'un nœud absent du graphe : elle l'y attend", () => {
+    // ⌈4 × 25 / 50⌉ = 2 : « fa » et « fz », dont le nœud n'est pas encore là.
+    expect(affichees(75)).toEqual({ a: ["fa"] });
+  });
+
+  it("attendent que leur nœud soit compris : levé, s'il était opaque", () => {
+    expect(affichees(100, (cle) => cle !== "b")).toEqual({ a: ["fa"] });
+  });
+
+  it("se coupent entre les mots, en lignes d'au plus N signes", () => {
+    expect(couperLignes("a bb ccc dddd", 6)).toEqual(["a bb", "ccc", "dddd"]);
+    expect(couperLignes("  a   bb  ", 6)).toEqual(["a bb"]);
+    expect(couperLignes("", 6)).toEqual([]);
+  });
+
+  it("se coupent comme un texte français : ni « ; » ni « % » en tête de ligne, ni « « » en fin", () => {
+    expect(couperLignes("par jour ; chaque outil", 8)).toEqual([
+      "par",
+      "jour ;",
+      "chaque",
+      "outil",
+    ]);
+    expect(couperLignes("0,2 % du grain", 6)).toEqual(["0,2 %", "du", "grain"]);
+    expect(couperLignes("les améliorations de « Produire »", 14)).toEqual([
+      "les",
+      "améliorations",
+      "de",
+      "« Produire »",
+    ]);
+  });
+
+  it("coupent net un mot plus long qu'une ligne", () => {
+    expect(couperLignes("abcdefghij", 4)).toEqual(["abcd", "efgh", "ij"]);
+    expect(couperLignes("x abcdefghij y", 4)).toEqual(["x", "abcd", "efgh", "ij y"]);
+  });
+
+  it("tiennent dans leurs cartes, pour les strates du jeu, sans perdre un mot", () => {
+    for (const { expression } of [...surface.formules!(), ...caves.formules!()]) {
+      const lignes = couperLignes(expression, D.signes);
+      for (const ligne of lignes) {
+        expect([...ligne].length, ligne).toBeLessThanOrEqual(D.signes);
+        expect(ligne).not.toMatch(/^[:;!?%»)]|«$/);
+      }
+      expect(lignes.join(" ")).toBe(expression.split(/\s+/).join(" "));
+    }
+  });
+
+  it("font d'un nœud une carte : plus large, sa colonne avec lui, et plus haute de ses lignes", () => {
+    const longue = "une formule assez longue pour tenir sur deux lignes au moins";
+    const d = disposer(
+      graphe(["a", "b", "c", "d"], ["a>c", "b>c", "c>d"]),
+      new Map([["a", [longue]]]),
+    );
+    const [a, b, c] = ["a", "b", "c"].map((id) => noeud(d, id));
+    expect([a!.largeur, b!.largeur, c!.largeur]).toEqual([
+      D.largeurFormule,
+      D.largeurFormule,
+      D.largeur,
+    ]);
+    expect(c!.x).toBe(D.marge + D.largeurFormule + D.ecartX);
+    expect(d.largeur).toBe(2 * D.marge + D.largeurFormule + 2 * D.largeur + 2 * D.ecartX);
+    const lignes = a!.formules[0]!;
+    expect(lignes.map((l) => l.texte)).toEqual(couperLignes(longue, D.signes));
+    expect(lignes.length).toBeGreaterThan(1);
+    expect(a!.hauteur).toBe(D.hauteur + D.interieur + lignes.length * D.ligne);
+    // Sous le nom, dans la carte.
+    for (const { y } of lignes) {
+      expect(y).toBeGreaterThan(D.hauteur);
+      expect(y).toBeLessThan(a!.hauteur);
+    }
+    expect([b!.hauteur, b!.formules]).toEqual([D.hauteur, []]);
+    // Ses liens partent de son bord droit, à mi-hauteur.
+    const { chemin } = d.liens.find((l) => l.de === "a")!;
+    expect(chemin.startsWith(`M${f(a!.x + D.largeurFormule)},${f(a!.y + a!.hauteur / 2)} `)).toBe(
+      true,
+    );
+    expect(debordements(d)).toEqual([]);
+  });
+
+  it("séparent deux formules d'un même nœud", () => {
+    const d = disposer(graphe(["a"], []), new Map([["a", ["f1", "f2"]]]));
+    const a = noeud(d, "a");
+    expect(a.formules.map((lignes) => lignes.map((l) => l.texte))).toEqual([["f1"], ["f2"]]);
+    expect(a.formules[1]![0]!.y - a.formules[0]![0]!.y).toBe(D.ligne + D.entreFormules);
+    expect(a.hauteur).toBe(D.hauteur + D.interieur + 2 * D.ligne + D.entreFormules);
+  });
+
+  it("tiennent toutes, à κ = 100, dans les graphes des strates du jeu, sans chevauchement", () => {
+    const etat = tableauDeBord();
+    etat.cumul = 1e12;
+    etat.ameliorations = AMELIORATIONS.map((a) => a.id);
+    const vallee6 = { ...vallee(), annee: 6, jour: 0 };
+    for (const [logique, e] of [
+      [surface, etat],
+      [caves, vallee6],
+    ] as const) {
+      const gr = (logique.graphe as (etat: unknown) => GrapheDependances)(e);
+      const toutes = formulesAffichees(logique.formules!(), 100, gr, () => true);
+      expect([...toutes.values()].flat()).toHaveLength(logique.formules!().length);
+      const d = disposer(gr, toutes);
+      expect(debordements(d)).toEqual([]);
+      for (const n of d.noeuds) expect(n.formules.length).toBe(toutes.get(n.id)?.length ?? 0);
+    }
   });
 });

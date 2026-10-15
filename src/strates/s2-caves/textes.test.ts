@@ -36,7 +36,7 @@ describe("les textes des caves", () => {
     }
   });
 
-  it("tiennent dans leur budget, environ 600 mots, hors formules lues à κ ≥ 50", () => {
+  it("tiennent dans leur budget, environ 600 mots, hors formules lues au-delà de κ = 50", () => {
     const total = Object.entries(textes)
       .filter(([cle]) => !cle.startsWith("formule."))
       .reduce((n, [, t]) => n + mots(t), 0);

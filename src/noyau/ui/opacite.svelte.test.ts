@@ -132,6 +132,18 @@ describe("la couche d'opacité", () => {
     expect(opacite.lisible("inconnu")).toBe(true);
   });
 
+  it("dit si une clé est lisible : avec l'élément qui la couvre, toujours si aucun ne la couvre", async () => {
+    const noyau = await partie();
+    const opacite = new CoucheOpacite(noyau);
+    expect(opacite.cleLisible("titre")).toBe(true);
+    expect(opacite.cleLisible("absente")).toBe(true);
+    expect(opacite.cleLisible("generateurs")).toBe(false);
+    premierAchat(noyau, opacite);
+    expect(opacite.cleLisible("generateurs")).toBe(true);
+    expect(opacite.cleLisible("unites")).toBe(true);
+    expect(opacite.cleLisible("cumul")).toBe(false);
+  });
+
   it("met à la place d'un texte opaque les glyphes de sa clé, dans l'alphabet de la strate", async () => {
     const noyau = await partie();
     expect(new CoucheOpacite(noyau).o("cumul")).toBe(glyphes("cumul", "Produit en tout"));

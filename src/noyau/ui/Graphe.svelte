@@ -1,13 +1,15 @@
 <script lang="ts">
   // Le graphe de dépendances de la strate courante (#76 ; docs/comprehension.md, § 5), ouvert depuis
   // le bandeau à partir de κ = 50. Il montre la forme de la strate, pas ses mots : un élément encore
-  // opaque y garde ses glyphes. Dans la palette du bandeau : il appartient au noyau, pas à la strate.
-  // La strate continue de vivre dessous.
+  // opaque y garde ses glyphes. Au-delà de κ = 50, les formules réelles s'y écrivent une à une, sur
+  // les nœuds déjà compris (#77). Dans la palette du bandeau : il appartient au noyau, pas à la
+  // strate. La strate continue de vivre dessous.
   import { onMount } from "svelte";
-  import type { GrapheDependances } from "../logique/types";
+  import type { Formule, GrapheDependances } from "../logique/types";
   import {
     DIMENSIONS,
     disposer,
+    formulesAffichees,
     nomCourt,
     phrasesGraphe,
     TEXTES_GRAPHE,
@@ -16,26 +18,37 @@
 
   let {
     graphe,
+    formules = [],
+    kappa = 0,
     nom,
     o,
+    cleLisible = () => true,
     onfermer,
   }: {
     /** Le graphe de la strate, dans son état du moment. */
     graphe: GrapheDependances;
+    /** Ses formules réelles, de la plus simple à la plus profonde. */
+    formules?: readonly Formule[];
+    /** La Compréhension : elle règle combien de formules sont accessibles. */
+    kappa?: number;
     /** Le nom de la strate, tel que le noyau le montre. */
     nom: string;
     /** Le texte d'une clé, à travers la couche d'opacité. */
     o: (cle: string) => string;
+    /** Une clé est-elle lisible ? Un nœud ne montre sa formule qu'une fois compris. */
+    cleLisible?: (cle: string) => boolean;
     onfermer: () => void;
   } = $props();
 
   const D = DIMENSIONS;
 
-  // La disposition ne se refait que si le graphe change : la strate, elle, avance à chaque tick.
+  // La disposition ne se refait que si le graphe ou ses formules changent : la strate, elle, avance à
+  // chaque tick.
   const signature = $derived(JSON.stringify(graphe));
   const stable = $derived(JSON.parse(signature) as GrapheDependances);
-  const disposition = $derived(disposer(stable));
-  const phrases = $derived(phrasesGraphe(stable, o));
+  const affichees = $derived(formulesAffichees(formules, kappa, stable, cleLisible));
+  const disposition = $derived(disposer(stable, affichees));
+  const phrases = $derived(phrasesGraphe(stable, o, affichees));
 
   // Au survol d'un nœud, ses liens s'éclairent, et ce qui ne le touche pas s'efface.
   let survole: string | null = $state(null);
@@ -105,8 +118,19 @@
           onmouseleave={() => (survole = null)}
           data-test="noeud-{n.id}"
         >
-          <rect width={D.largeur} height={D.hauteur} rx="2" />
-          <text x={D.largeur / 2} y={D.hauteur / 2}>{nomCourt(o(n.cle))}</text>
+          <rect width={n.largeur} height={n.hauteur} rx="2" />
+          <text class="nom" x={n.largeur / 2} y={D.hauteur / 2}>{nomCourt(o(n.cle))}</text>
+          <!-- Ses formules, sous son nom : une carte. -->
+          {#if n.formules.length > 0}
+            <line class="filet" x1="0" y1={D.hauteur} x2={n.largeur} y2={D.hauteur} />
+          {/if}
+          {#each n.formules as lignes, i (i)}
+            <g class="formule" data-test="formule-{n.id}">
+              {#each lignes as ligne, j (j)}
+                <text x={D.interieur} y={ligne.y}>{ligne.texte}</text>
+              {/each}
+            </g>
+          {/each}
         </g>
       {/each}
     </svg>
@@ -203,12 +227,27 @@
   .noeud:hover rect {
     stroke: #f2f2f2;
   }
-  .noeud text {
+  .nom {
     font:
       12px system-ui,
       sans-serif;
     fill: #d6d6d6;
     text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .filet {
+    stroke: #3c3c3c;
+  }
+  /* Les formules réelles, en chasse fixe : la disposition compte ses lignes en signes. */
+  .formule text {
+    font:
+      11px ui-monospace,
+      "SFMono-Regular",
+      Menlo,
+      Consolas,
+      "Liberation Mono",
+      monospace;
+    fill: #a6a6a6;
     dominant-baseline: central;
   }
   .eteint {

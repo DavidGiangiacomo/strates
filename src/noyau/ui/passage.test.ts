@@ -110,6 +110,19 @@ describe("le coup de pioche", () => {
     expect(passage.phase).toBe("fouille");
   });
 
+  it("écrit sur l'écran la formule de la conversion, à partir de κ = 51 seulement", async () => {
+    for (const [kappa, formule] of [
+      [50, undefined],
+      [51, "points = ⌊log₁₀(unités produites) × 1,4⌋"],
+    ] as const) {
+      const { noyau, passage } = await partie();
+      passage.kappa = kappa;
+      auSeuil(noyau);
+      void passage.creuser();
+      expect(passage.ecran?.formule, `κ = ${kappa}`).toBe(formule);
+    }
+  });
+
   it("ne répond pas pendant la séquence", async () => {
     const { noyau, passage } = await partie();
     auSeuil(noyau);

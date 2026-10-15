@@ -79,6 +79,20 @@ export function gainDesActes(
 /** Le graphe de dépendances s'ouvre depuis le bandeau à partir de κ = 50. */
 export const SEUIL_GRAPHE = 50;
 
+/** Les formules réelles viennent avec le graphe : à κ = 50, aucune encore, puis une à une. */
+export const SEUIL_FORMULES = 50;
+
+/**
+ * Combien des `nombre` formules d'une strate sont accessibles à κ : les ⌈n × (κ − 50) / 50⌉ premières,
+ * de la plus simple à la plus profonde. Aucune à κ = 50, 40 % à κ = 70, 70 % à κ = 85, toutes à
+ * κ = 100 (docs/comprehension.md, § 3 et § 5).
+ */
+export function formulesAccessibles(kappa: number, nombre: number): number {
+  const k = Math.min(KAPPA_MAX, Math.max(SEUIL_FORMULES, kappa));
+  // Le produit d'abord : à κ entier, le quotient est exact quand il tombe juste.
+  return Math.ceil((nombre * (k - SEUIL_FORMULES)) / (KAPPA_MAX - SEUIL_FORMULES));
+}
+
 /** Le délai de levée à κ = 0, en secondes de strate : environ 20 minutes pour comprendre une strate. */
 export const DELAI_LEVEE_MAX = 20 * 60;
 /** Ce qu'il en reste à κ = 100 : 3 minutes sur 20. */

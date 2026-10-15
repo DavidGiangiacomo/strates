@@ -208,8 +208,11 @@
     {@const { strate, etat, opacite } = courante}
     <Graphe
       graphe={strate.logique.graphe!(etat)}
+      formules={strate.logique.formules?.() ?? []}
+      kappa={passage.kappa}
       nom={NOMS_STRATES[strate.logique.numero]}
       o={opacite.o}
+      cleLisible={opacite.cleLisible}
       onfermer={fermerGraphe}
     />
   {/if}

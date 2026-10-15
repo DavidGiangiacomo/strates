@@ -5,6 +5,7 @@ import {
   BAREME,
   crediter,
   delaiLevee,
+  formulesAccessibles,
   gainDesActes,
   KAPPA_MAX,
   poidsActe,
@@ -96,5 +97,37 @@ describe("le délai de levée de l'opacité", () => {
     for (let k = 1; k <= 100; k++) expect(delaiLevee(k)).toBeLessThan(delaiLevee(k - 1));
     expect(delaiLevee(-10)).toBe(delaiLevee(0));
     expect(delaiLevee(140)).toBe(delaiLevee(100));
+  });
+});
+
+describe("les formules accessibles", () => {
+  it("suivent les paliers de comprehension.md, § 3 : aucune à κ = 50, 40 % à 70, 70 % à 85, toutes à 100", () => {
+    expect(formulesAccessibles(50, 10)).toBe(0);
+    expect(formulesAccessibles(70, 10)).toBe(4);
+    expect(formulesAccessibles(85, 10)).toBe(7);
+    expect(formulesAccessibles(100, 10)).toBe(10);
+  });
+
+  it("viennent une à une dès κ = 51, en arrondissant au-dessus", () => {
+    expect(formulesAccessibles(51, 5)).toBe(1);
+    expect(formulesAccessibles(60, 5)).toBe(1);
+    expect(formulesAccessibles(61, 5)).toBe(2);
+    expect(formulesAccessibles(99, 5)).toBe(5);
+    // La seule formule du noyau, la conversion, est accessible dès κ = 51.
+    expect(formulesAccessibles(51, 1)).toBe(1);
+  });
+
+  it("tombent juste aux paliers, sans erreur d'arrondi, et restent bornées hors de 50 à 100", () => {
+    for (let n = 0; n <= 40; n++) {
+      for (let k = 50; k <= 100; k++) {
+        // ⌈a / 50⌉ en nombres entiers : ⌊(a + 49) / 50⌋.
+        const exact = Math.floor((n * (k - 50) + 49) / 50);
+        expect(formulesAccessibles(k, n), `n = ${n}, κ = ${k}`).toBe(exact);
+        if (k > 50)
+          expect(formulesAccessibles(k, n)).toBeGreaterThanOrEqual(formulesAccessibles(k - 1, n));
+      }
+      expect(formulesAccessibles(0, n)).toBe(0);
+      expect(formulesAccessibles(KAPPA_MAX + 20, n)).toBe(n);
+    }
   });
 });

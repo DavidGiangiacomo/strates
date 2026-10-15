@@ -91,6 +91,13 @@
         <dt>{T.pointSuivant}</dt>
         <dd data-test="point-suivant">{ecran.formater(fouille.pointSuivant)}</dd>
       </div>
+      <!-- La formule elle-même, quand la Compréhension la montre (docs/comprehension.md, § 5). -->
+      {#if ecran.formule}
+        <div class="texte suivant formule">
+          <dt>{T.formule}</dt>
+          <dd data-test="formule">{ecran.formule}</dd>
+        </div>
+      {/if}
     </dl>
 
     <div class="choix">
@@ -177,7 +184,26 @@
     font-weight: 600;
     border-radius: 4px;
   }
-  /* Trois temps : la valeur, puis les points d'un coup, puis le prix d'un point de plus (P3). */
+  /* La formule réelle, en chasse fixe comme sur le graphe, sur la ligne de base de son libellé. Trop
+     longue pour un téléphone, elle passe entière à la ligne, toujours à droite. */
+  .conversion .formule {
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 1rem;
+  }
+  .formule dd {
+    margin-inline-start: auto;
+    font:
+      13px ui-monospace,
+      "SFMono-Regular",
+      Menlo,
+      Consolas,
+      "Liberation Mono",
+      monospace;
+    color: #d6d6d6;
+  }
+  /* Trois temps : la valeur, puis les points d'un coup, puis le prix d'un point de plus (P3), et la
+     formule avec lui. */
   .points {
     animation: paraitre 1ms 800ms both;
   }

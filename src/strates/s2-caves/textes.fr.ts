@@ -128,7 +128,8 @@ export const textes: Record<string, string> = {
   naissances: "Naissances",
   departs: "Départs",
   cycle: "Le grand cycle",
-  // Les formules réelles, sur le graphe. Lues à κ ≥ 50 seulement, elles n'entrent pas dans le budget.
+  // Les formules réelles, sur le graphe. Lues au-delà de κ = 50 seulement, elles n'entrent pas dans le
+  // budget.
   "formule.consommation":
     "1 boisseau par famille et par jour ; l'hiver et pendant la soudure, × les rations",
   "formule.recolte":
