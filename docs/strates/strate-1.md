@@ -211,7 +211,7 @@ Un tableau de bord moderne, propre, tiède. C'est la référence : toutes les st
   Dans le code ([#78](https://github.com/DavidGiangiacomo/strates/issues/78)), le noyau constate les deux actes. Il juge le second quand le joueur ouvre la fouille, sur le filet que la surface lui montre (`filet`) : la fissure ne doit pas être encore apparue.
 - **Graphe de dépendances** : le clic et les sept générateurs alimentent la production. Chaque amélioration pointe vers son générateur, vers la production (les globales) ou vers le clic. La production mène à l'objectif.
 - **Formules exposées** : celles du § 3 (coût d'un exemplaire, production d'un type, valeur du clic).
-- **Dans le code** ([#78](https://github.com/DavidGiangiacomo/strates/issues/78)) : `graphe` ne montre que ce que le tableau de bord a montré (les moyens apparus, les améliorations achetées). `formules` donne le prix et la production de chaque moyen, puis la valeur du clic, dans la notation de la surface. Celle-ci est passée de `vue/` à `logique/notation.ts` pour cela. Les textes des formules (`formule.*`), lus à κ ≥ 50 seulement, n'entrent pas dans le budget (§ 11).
+- **Dans le code** ([#78](https://github.com/DavidGiangiacomo/strates/issues/78)) : `graphe` ne montre que ce que le tableau de bord a montré (les moyens apparus, les améliorations achetées). `formules` donne le prix et la production de chaque moyen, puis la valeur du clic, dans la notation de la surface. Celle-ci est passée de `vue/` à `logique/notation.ts` pour cela. Les textes des formules (`formule.*`), lus au-delà de κ = 50 seulement, n'entrent pas dans le budget (§ 11).
 
 ## 8. Artefacts reçus
 

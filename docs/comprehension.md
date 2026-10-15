@@ -108,7 +108,7 @@ Une strate peut exempter un élément du délai :
 - une formule accessible s'affiche sur son élément, dans le graphe, **dès que cet élément est compris**, c'est-à-dire levé (§ 4) ;
 - à κ = 100, toutes le sont ; le chœur n'en a pas ; le fond, rien à calculer.
 
-Ce sont les formules des fiches (§ 3 et § 7) : le coût d'un exemplaire, la récolte, la marque d'hiver. La formule de la conversion à la descente (`docs/strates/descente-1-2.md`, P3) en fait partie, sur l'écran de fouille.
+Ce sont les formules des fiches (§ 3 et § 7) : le coût d'un exemplaire, la récolte, la marque d'hiver. La formule de la conversion à la descente (`docs/strates/descente-1-2.md`, P3) en fait partie, sur l'écran de fouille. C'est la seule formule du noyau : comme la première de chaque strate, elle est accessible dès κ = 51.
 
 ## 6. L'aide
 
@@ -122,7 +122,7 @@ Ce sont les formules des fiches (§ 3 et § 7) : le coût d'un exemplaire, la r�
 - **Le bandeau** porte « Compréhension 22 % », à côté de la profondeur et des artefacts.
 - **κ monte à l'arrivée** dans la strate suivante, juste après que les objets ont rejoint les artefacts (storyboard, P6) : le compteur avance, sans un mot.
 - **Il ne voit nulle part** la liste des actes, ni lesquels il a accomplis.
-- **L'écran de fouille ne change pas** avec κ : on emporte « la turbine », et on découvre en bas « la roue chaude » (`docs/artefacts.md`, § 6). La découverte reste entière.
+- **L'écran de fouille ne change pas** avec κ, sauf pour la formule de la conversion, à partir de κ = 51 (§ 5). On emporte toujours « la turbine », et on découvre en bas « la roue chaude » (`docs/artefacts.md`, § 6). La découverte reste entière.
 
 ## 8. Dans le code
 
@@ -159,7 +159,7 @@ Ce sont les formules des fiches (§ 3 et § 7) : le coût d'un exemplaire, la r�
 - **Le graphe et les formules** : les deux strates les exposent (`graphe`, `formules`), selon leurs fiches (§ 7).
   - Une formule s'attache à un nœud du graphe (`Formule.noeud`).
   - Les noms des nœuds passent par l'opacité : un élément opaque y reste un glyphe.
-  - Les affichages restent à faire ([#76](https://github.com/DavidGiangiacomo/strates/issues/76), [#77](https://github.com/DavidGiangiacomo/strates/issues/77)).
+  - Les affichages sont venus ensuite ([#76](https://github.com/DavidGiangiacomo/strates/issues/76), [#77](https://github.com/DavidGiangiacomo/strates/issues/77)).
 - **Mesuré par les joueurs automatiques** ([`strate-2-mesures.md`](strates/strate-2-mesures.md)) :
   - un jeu correct gagne dans les caves 11 points sur 14 avec les objets de la surface, et 14 sans ;
   - avec les 8 points de la surface, s'il creuse avant la fissure, il arrive à l'atelier avec κ = 19 ou 22 ;
@@ -178,7 +178,19 @@ Ce sont les formules des fiches (§ 3 et § 7) : le coût d'un exemplaire, la r�
   - Dans chaque couche, des passes de barycentres réduisent les croisements ; l'ordre des nœuds donnés par la strate départage.
 - **Un test** vérifie que chaque strate du registre expose un graphe bien formé, nommé par ses textes (`tests/graphes.test.ts`). Une strate ajoutée y passera.
 
-**À venir** : l'affichage des formules ([#77](https://github.com/DavidGiangiacomo/strates/issues/77)), et les actes propres des strates 3 à 7, avec leurs fiches.
+**Fait par [#77](https://github.com/DavidGiangiacomo/strates/issues/77)** : l'affichage des formules réelles.
+- **Le palier** est dans le noyau (`formulesAccessibles`, `src/noyau/logique/comprehension.ts`) : les ⌈n × (κ − 50) / 50⌉ premières formules de la strate sont accessibles. Le compte porte sur toutes ses formules, même celles dont le nœud n'a pas encore paru dans le graphe : elles l'y attendent.
+- **Le graphe** écrit chaque formule accessible sur son nœud, s'il est compris (`formulesAffichees`, `noyau/ui/graphe.ts`). La couche d'opacité le dit par la clé du nœud (`CoucheOpacite.cleLisible`).
+  - Le nœud devient une carte : ses formules s'écrivent sous son nom, en chasse fixe, coupées entre les mots à la française. Sa colonne s'élargit avec lui.
+  - Les lecteurs d'écran les lisent après ce qui alimente le nœud : « Récolte — familles × 2,8 boisseaux × … ».
+- **L'écran de fouille** écrit la formule de la conversion à partir de κ = 51, sous le prix d'un point de plus : « Formule points = ⌊log₁₀(crédits gagnés) × 1,4⌋ » (`formuleConversion`, `noyau/ui/fouille.ts`). Le taux est celui du calcul (`TAUX_FOUILLE`) : la formule affichée ne peut pas s'en écarter.
+- **Un test** joue chaque strate du registre jusqu'au seuil, avec son joueur automatique (`tests/graphes.test.ts`).
+  - Chaque formule s'attache à un nœud que le graphe a montré.
+  - Au seuil, les formules s'écrivent au palier décidé : aucune à κ = 50, toutes à κ = 100.
+  - Le chœur et le fond n'en ont pas. Une strate ajoutée au registre y passera, avec son joueur.
+- **En jeu**, aucune formule ne se voit encore : κ vaut au plus 8 dans les caves. Les outils de développement fixent κ pour les voir.
+
+**À venir** : les actes propres des strates 3 à 7, avec leurs fiches.
 
 ## 9. Questions ouvertes
 

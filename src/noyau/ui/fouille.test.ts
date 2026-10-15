@@ -7,6 +7,7 @@ import {
   coutChoix,
   emportes,
   formaterBrut,
+  formuleConversion,
   prenable,
   resteChoix,
   texteReste,
@@ -62,6 +63,13 @@ describe("les textes de l'écran", () => {
   it("écrivent un nombre entier quand la strate ne donne pas sa notation", () => {
     expect(formaterBrut(612_345_678.9)).toBe("612345678");
   });
+
+  it("écrivent la formule de la conversion avec le nom de la valeur, à partir de κ = 51", () => {
+    expect(formuleConversion(0, "Crédits gagnés")).toBeNull();
+    expect(formuleConversion(50, "Crédits gagnés")).toBeNull();
+    expect(formuleConversion(51, "Crédits gagnés")).toBe("points = ⌊log₁₀(crédits gagnés) × 1,4⌋");
+    expect(formuleConversion(100, "Grain récolté")).toBe("points = ⌊log₁₀(grain récolté) × 1,4⌋");
+  });
 });
 
 describe("l'écran de fouille", () => {
@@ -72,13 +80,18 @@ describe("l'écran de fouille", () => {
     document.body.innerHTML = "";
   });
 
-  function monter(props: { occupe?: boolean } = {}, apparence?: EcranFouille["apparence"]) {
+  function monter(
+    props: { occupe?: boolean } = {},
+    apparence?: EcranFouille["apparence"],
+    formule?: string,
+  ) {
     const ecran: EcranFouille = {
       fouille,
       nom: "La surface",
       libelle: "Crédits gagnés",
       formater: (v) => `${(v / 1e6).toFixed(0)} M cr`,
       apparence,
+      formule,
     };
     const ondescendre = vi.fn();
     const onreboucher = vi.fn();
@@ -115,6 +128,24 @@ describe("l'écran de fouille", () => {
     expect(valeur.style.background).toBe("rgb(253, 252, 250)");
     // Le reste de la conversion garde la police du noyau.
     expect(document.querySelector<HTMLElement>("[data-test=points]")!.style.fontFamily).toBe("");
+  });
+
+  it("ne montre pas la formule de la conversion, tant que la Compréhension la cache", () => {
+    monter();
+    expect(document.querySelector("[data-test=formule]")).toBeNull();
+    expect(document.querySelectorAll(".conversion dt")).toHaveLength(3);
+  });
+
+  it("montre la formule de la conversion sous le prix d'un point de plus, quand elle est donnée", () => {
+    monter({}, undefined, "points = ⌊log₁₀(crédits gagnés) × 1,4⌋");
+    expect(texte("formule")).toBe("points = ⌊log₁₀(crédits gagnés) × 1,4⌋");
+    const libelles = [...document.querySelectorAll(".conversion dt")].map((dt) => dt.textContent);
+    expect(libelles).toEqual([
+      "Crédits gagnés",
+      "Points de fouille",
+      "Un point de plus",
+      "Formule",
+    ]);
   });
 
   it("garde la police du noyau quand la strate ne donne pas son apparence", () => {

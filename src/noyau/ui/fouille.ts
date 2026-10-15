@@ -1,6 +1,12 @@
 // L'écran de fouille, commun à toutes les descentes (docs/strates/descente-1-2.md, § 4) : ses textes,
 // ceux du noyau, et le choix des objets. Les textes sont provisoires jusqu'à la bible narrative (#43).
-import type { ArtefactDef, Famille, FouilleOuverte } from "../logique/artefacts";
+import {
+  TAUX_FOUILLE,
+  type ArtefactDef,
+  type Famille,
+  type FouilleOuverte,
+} from "../logique/artefacts";
+import { formulesAccessibles } from "../logique/comprehension";
 import type { NumeroStrate } from "../logique/types";
 
 /** Les noms des strates, tels que les montre le noyau : à l'écran de fouille, puis dans la coupe. */
@@ -19,6 +25,9 @@ export const NOMS_STRATES: Record<NumeroStrate, string> = {
 export const TEXTES_FOUILLE = {
   points: "Points de fouille",
   pointSuivant: "Un point de plus",
+  /** La formule de la conversion, quand la Compréhension la montre : `formuleConversion`. */
+  formule: "Formule",
+  conversion: "points = ⌊log₁₀({valeur}) × {taux}⌋",
   aEmporter: "À emporter",
   laisse: "laissé en haut",
   abandon: "Ce qui n'est pas emporté est abandonné.",
@@ -40,6 +49,19 @@ export const FAMILLES: Record<Famille, string> = {
 /** « Reste 0 point », « Reste 2 points ». */
 export function texteReste(points: number): string {
   return `Reste ${points} ${points > 1 ? "points" : "point"}`;
+}
+
+/**
+ * La formule de la conversion (D-002), écrite avec le nom de la valeur de la strate quittée :
+ * « points = ⌊log₁₀(crédits gagnés) × 1,4⌋ ». C'est une des formules réelles de la Compréhension, la
+ * seule du noyau (docs/comprehension.md, § 5). Comme la première formule de chaque strate, elle est
+ * accessible dès κ = 51 ; avant, elle reste cachée, et l'écran ne montre que le taux (P3).
+ */
+export function formuleConversion(kappa: number, libelle: string): string | null {
+  if (formulesAccessibles(kappa, 1) === 0) return null;
+  const valeur = libelle.charAt(0).toLocaleLowerCase("fr") + libelle.slice(1);
+  const taux = String(TAUX_FOUILLE).replace(".", ",");
+  return TEXTES_FOUILLE.conversion.replace("{valeur}", () => valeur).replace("{taux}", taux);
 }
 
 /** Sans formateur fourni par la strate : le nombre entier, sans unité ni notation. */

@@ -97,7 +97,7 @@ Il se remplit en trois temps, sans défilement de compteur :
 3. **À 1,4 s** : « Un point de plus 1,93 Md cr ».
    - C'est ainsi que **le taux brutal est affiché franchement**. Un résultat seul (612 M cr → 12) montre une conversion ; il faut un deuxième point de l'échelle pour montrer le taux.
    - Le joueur voit qu'il faudrait trois fois plus de crédits pour un seul point. C'est la leçon anti-farm du §4, apprise dès la première descente (fiche 1, § 4).
-   - La formule elle-même reste cachée. Elle fait partie des formules exposées par la Compréhension ([`comprehension.md`](../comprehension.md), § 5).
+   - La formule elle-même reste cachée. Elle fait partie des formules exposées par la Compréhension ([`comprehension.md`](../comprehension.md), § 5) : à partir de κ = 51, une quatrième ligne l'écrit, avec le dernier temps, « Formule points = ⌊log₁₀(crédits gagnés) × 1,4⌋ » ([#77](https://github.com/DavidGiangiacomo/strates/issues/77)).
 
 Pour mémoire, 12 points demandent 373 M cr, 13 points 1,93 Md cr, et 14 points 10 Md cr : chaque point coûte environ cinq fois le précédent. Le joueur correct arrive au seuil avec environ 6 × 10⁸ cr, soit 12 points (fiche 1, § 9).
 
@@ -283,6 +283,7 @@ Ce que P3 et P4 décrivent pour la surface vaut pour toutes les descentes. Voici
   - le nom de la strate quittée ;
   - la valeur convertible, dans la notation de la strate quittée ;
   - les points de fouille, et le prix d'un point de plus ;
+  - à partir de κ = 51, la formule de la conversion ([`comprehension.md`](../comprehension.md), § 5) ;
   - le catalogue par coût croissant : nom d'en haut, coût, famille, avec la présélection cochée ;
   - le reste des points, les deux règles, « descendre » et « reboucher ».
 - **Il ne montre pas** les effets, les noms d'en bas, ni l'usure future des objets déjà portés. Ce dernier point relève de l'inventaire ([#45](https://github.com/DavidGiangiacomo/strates/issues/45)).

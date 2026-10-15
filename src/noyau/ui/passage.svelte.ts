@@ -5,7 +5,7 @@
 import { artefact, type FouilleOuverte } from "../logique/artefacts";
 import type { Noyau } from "../logique/noyau";
 import type { ApparenceValeur, NumeroStrate } from "../logique/types";
-import { formaterBrut, NOMS_STRATES, TEXTES_FOUILLE } from "./fouille";
+import { formaterBrut, formuleConversion, NOMS_STRATES, TEXTES_FOUILLE } from "./fouille";
 
 /**
  * - jeu : la strate se joue ;
@@ -66,6 +66,8 @@ export interface EcranFouille {
   formater: (valeur: number) => string;
   /** Sa police et ses couleurs, pour la valeur : le dernier fragment de la strate quittée. */
   apparence?: ApparenceValeur;
+  /** La formule de la conversion, si la Compréhension la montre déjà (κ > 50). */
+  formule?: string;
 }
 
 /** Ce que le passage signale : au journal de session des playtests (#26), s'il est tenu. */
@@ -156,12 +158,14 @@ export class Passage {
       preselection: [...fouille.preselection],
     });
     const strate = noyau.strate;
+    const libelle = strate.textes["fouille.valeur"] ?? TEXTES_FOUILLE.valeur;
     this.ecran = {
       fouille,
       nom: NOMS_STRATES[fouille.strate],
-      libelle: strate.textes["fouille.valeur"] ?? TEXTES_FOUILLE.valeur,
+      libelle,
       formater: strate.formaterValeur ?? formaterBrut,
       apparence: strate.apparenceValeur,
+      formule: formuleConversion(this.kappa, libelle) ?? undefined,
     };
     this.#passer("pioche");
     await this.#d.attendre(this.#durees.pioche);

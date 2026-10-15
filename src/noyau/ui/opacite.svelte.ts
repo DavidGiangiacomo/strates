@@ -34,13 +34,20 @@ export class CoucheOpacite {
   /** Le texte d'une clé : des glyphes, tant que l'élément qui la couvre est opaque. */
   readonly o = (cle: string): string => {
     const texte = this.#strate.textes[cle] ?? cle;
-    const element = this.#elementDe.get(cle);
-    if (element === undefined || !this.#opaques.has(element)) return texte;
-    return glyphes(cle, texte, this.#strate.glyphes);
+    return this.cleLisible(cle) ? texte : glyphes(cle, texte, this.#strate.glyphes);
   };
 
   /** Un élément est-il levé ? Un élément que la strate ne déclare pas l'est. */
   readonly lisible = (element: string): boolean => !this.#opaques.has(element);
+
+  /**
+   * Une clé est-elle lisible : l'élément qui la couvre est-il levé ? Une clé qu'aucun élément ne
+   * couvre l'est. Le graphe y lit si un nœud est compris, et peut montrer sa formule.
+   */
+  readonly cleLisible = (cle: string): boolean => {
+    const element = this.#elementDe.get(cle);
+    return element === undefined || this.lisible(element);
+  };
 }
 
 function memes(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {

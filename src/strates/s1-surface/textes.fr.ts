@@ -123,8 +123,8 @@ export const textes: Record<string, string> = {
   "amelioration.clic-5": "Objectifs individuels",
   "amelioration.clic-5.description": "Chacun a désormais ses propres chiffres.",
 
-  // ——— Les formules réelles (docs/comprehension.md, § 5), sur le graphe de la strate. Lues à κ ≥ 50
-  // seulement, elles n'entrent pas dans le budget des textes.
+  // ——— Les formules réelles (docs/comprehension.md, § 5), sur le graphe de la strate. Lues au-delà de
+  // κ = 50 seulement, elles n'entrent pas dans le budget des textes.
   "formule.prix": "Prix : {base} × 1,15ⁿ, n étant le nombre déjà en service",
   "formule.production":
     "Production : n × {production} × 2ᵃ × G, a étant ses améliorations, G celles de toute la production",

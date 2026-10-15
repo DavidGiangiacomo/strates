@@ -39,10 +39,13 @@ export const PLAFOND_MULTIPLICATEURS = 4;
 // Tolérance pour les arrondis vers le bas : log₁₀(10¹⁵) × 1,4 ne doit pas donner 20,999…
 const EPSILON = 1e-9;
 
+/** Le taux de la conversion : 1,4 point de fouille par puissance de dix de la valeur (D-002). */
+export const TAUX_FOUILLE = 1.4;
+
 /** Les points de fouille d'une valeur convertible : ⌊log₁₀(valeur) × 1,4⌋, et 0 sous 1 (D-002). */
 export function pointsDeFouille(valeur: number): number {
   if (!Number.isFinite(valeur) || valeur < 1) return 0;
-  return Math.floor(Math.log10(valeur) * 1.4 + EPSILON);
+  return Math.floor(Math.log10(valeur) * TAUX_FOUILLE + EPSILON);
 }
 
 /**
@@ -50,7 +53,7 @@ export function pointsDeFouille(valeur: number): number {
  * celle du point suivant : c'est ainsi que le taux s'affiche franchement (docs/strates/descente-1-2.md, P3).
  */
 export function valeurPourPoints(points: number): number {
-  return points <= 0 ? 0 : 10 ** (points / 1.4);
+  return points <= 0 ? 0 : 10 ** (points / TAUX_FOUILLE);
 }
 
 /** Le niveau d'usure d'un objet à une profondeur, ou null tant qu'il n'est pas descendu. */
