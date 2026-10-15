@@ -42,7 +42,10 @@ describe("l'observateur du noyau", () => {
     (noyau.etatStrate as EtatFactice).unites = 10;
     noyau.agir({ type: "acheter" });
     noyau.tick(0);
-    expect(vus).toEqual([{ type: "acte", acte: "premier-achat" }]);
+    expect(vus).toEqual([
+      { type: "acte", acte: "premier-achat" },
+      { type: "levee", element: "unites" },
+    ]);
     expect(noyau.viderEvenements()).toEqual(vus);
   });
 

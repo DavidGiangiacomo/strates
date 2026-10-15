@@ -4,28 +4,37 @@ import { appliquerMigrations, ErreurVersionPlusRecente, type Migrations } from "
 import type { Meta, NumeroStrate } from "./types";
 
 /** Version du format global ; elle augmente à chaque changement incompatible. */
-export const FORMAT_SAUVEGARDE = 2;
+export const FORMAT_SAUVEGARDE = 3;
 
 /** Migrations du format global : `MIGRATIONS_FORMAT[v]` fait passer du format v au format v + 1. */
 export const MIGRATIONS_FORMAT: Migrations = {
   // Format 2 (#56) : chaque entrée du journal de partie note les actes de compréhension de sa strate.
   // Une partie commencée avant la Compréhension n'en a accompli aucun.
-  1: (sauvegarde) => {
-    if (!estObjet(sauvegarde) || !estObjet(sauvegarde.noyau)) return sauvegarde;
-    const meta = sauvegarde.noyau.meta;
-    if (!estObjet(meta) || !estObjet(meta.journal) || !Array.isArray(meta.journal.strates)) {
-      return { ...sauvegarde, format: 2 };
-    }
-    const strates = meta.journal.strates.map((entree: unknown) =>
-      estObjet(entree) && !("actes" in entree) ? { ...entree, actes: [] } : entree,
-    );
-    return {
-      ...sauvegarde,
-      format: 2,
-      noyau: { ...sauvegarde.noyau, meta: { ...meta, journal: { ...meta.journal, strates } } },
-    };
-  },
+  1: (sauvegarde) => completerJournal(sauvegarde, 2, "actes"),
+  // Format 3 (#66) : chaque entrée note aussi les éléments opaques levés à l'usage. Une partie
+  // commencée avant l'opacité n'en a levé aucun : les objets et le délai lèveront le reste.
+  2: (sauvegarde) => completerJournal(sauvegarde, 3, "leves"),
 };
+
+/**
+ * Passe une sauvegarde au `format` donné, en ajoutant une liste vide `champ` aux entrées du journal
+ * de partie qui ne l'ont pas. Une sauvegarde mal formée passe telle quelle : la validation la refuse.
+ */
+function completerJournal(sauvegarde: unknown, format: number, champ: string): unknown {
+  if (!estObjet(sauvegarde) || !estObjet(sauvegarde.noyau)) return sauvegarde;
+  const meta = sauvegarde.noyau.meta;
+  if (!estObjet(meta) || !estObjet(meta.journal) || !Array.isArray(meta.journal.strates)) {
+    return { ...sauvegarde, format };
+  }
+  const strates = meta.journal.strates.map((entree: unknown) =>
+    estObjet(entree) && !(champ in entree) ? { ...entree, [champ]: [] } : entree,
+  );
+  return {
+    ...sauvegarde,
+    format,
+    noyau: { ...sauvegarde.noyau, meta: { ...meta, journal: { ...meta.journal, strates } } },
+  };
+}
 
 export interface Sauvegarde {
   format: number;
@@ -204,6 +213,8 @@ function problemeDeMeta(meta: unknown): string | null {
       !Array.isArray(entree.actes) ||
       !entree.actes.every((a) => typeof a === "string") ||
       (entree.kappaGagne !== undefined && !estNombre(entree.kappaGagne)) ||
+      !Array.isArray(entree.leves) ||
+      !entree.leves.every((e) => typeof e === "string") ||
       !Array.isArray(entree.perturbations)
     ) {
       return "entrée du journal de partie invalide";

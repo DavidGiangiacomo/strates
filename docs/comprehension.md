@@ -133,8 +133,17 @@ Ce sont les formules des fiches (§ 3 et § 7) : le coût d'un exemplaire, la r�
 - **κ et les actes se sauvegardent** : le journal de partie les porte depuis le format 2 de la sauvegarde. Une partie au format 1 n'a accompli aucun acte.
 - **Le bandeau** affiche « Compréhension N % ». Il suit le spectacle de la descente : κ y monte à l'arrivée, après les objets (`Passage.kappa`).
 
-**À venir** : l'opacité ([#66](https://github.com/DavidGiangiacomo/strates/issues/66)), et les actes des strates 1 et 2 ([#78](https://github.com/DavidGiangiacomo/strates/issues/78)).
-- **L'opacité** : une strate déclare ses éléments opaques et les événements qui les lèvent. La couche générique tient l'état de chaque élément, applique les objets et le délai `L(κ)`, et le donne à la vue.
+**Fait par [#66](https://github.com/DavidGiangiacomo/strates/issues/66)** : la couche d'opacité, écrite une fois pour les huit strates.
+- **Une strate déclare ses éléments opaques** (`opacite`) : pour chacun, les clés de texte qu'il couvre, les objets qui le lèvent, et la part du délai qu'il attend (`delai` : 1 par défaut, null pour l'exempter).
+- **Elle les lève à l'usage** par un événement, comme ses actes : `ctx.emettre({ type: "levee", element: "marque" })`. Le noyau note la levée dans l'entrée de la strate au journal de partie (`leves`), si l'élément est déclaré. Levé, il le reste : le journal se sauvegarde, depuis le format 3.
+- **Le noyau calcule le reste** (`Noyau.elementsOpaques`, `src/noyau/logique/opacite.ts`). Un objet qui agit ici lève dès l'arrivée les éléments qui le nomment. Le délai `L(κ)` se compte sur le temps de la strate, absences comprises selon sa politique hors ligne.
+- **La vue lit à travers la couche** (`CoucheOpacite`, `src/noyau/ui/opacite.svelte.ts`) :
+  - `o(cle)` rend des glyphes tant que l'élément de la clé est opaque, un par mot, tirés de la clé ;
+  - `lisible(element)` dit si un élément est levé, pour ce qui ne s'écrit pas : une jauge sans échelle, un trait ;
+  - une strate peut donner ses propres glyphes (`DefinitionStrate.glyphes`).
+- **La strate factice** montre les trois façons de lever, et un élément exempté du délai. Ses tests suivent les paliers de κ, du noyau jusqu'à sa vue (`opacite-noyau.test.ts`, `opacite.svelte.test.ts`).
+
+**À venir** : l'intégration aux strates 1 et 2 ([#78](https://github.com/DavidGiangiacomo/strates/issues/78)), avec leurs actes et l'opacité des caves (fiche 2, § 7).
 - **Le graphe et les formules** : les accroches `graphe()` et `formules()` existent déjà dans le contrat. Elles attendent l'attache de chaque formule à un élément.
 - **« Creuser avant la fissure »**, l'acte de la surface : le clic sur « creuser » passe par le noyau, et la fissure par l'état de la strate. Il faudra que l'un sache ce que voit l'autre.
 

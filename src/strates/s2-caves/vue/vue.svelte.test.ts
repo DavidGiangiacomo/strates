@@ -33,6 +33,7 @@ function monter(modifs: (etat: EtatCaves) => void = () => {}) {
       agir: (action: ActionCaves) => actions.push(action),
       noyau: commandes,
       o: (cle: string) => strate.textes[cle] ?? `?${cle}`,
+      lisible: () => true,
       mode: "jeu",
     },
   });

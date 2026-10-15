@@ -203,6 +203,7 @@ describe("la fouille", () => {
       tempsHorsLigne: 0,
       aideConsultee: false,
       actes: [],
+      leves: [],
       perturbations: [],
     });
     return etat;

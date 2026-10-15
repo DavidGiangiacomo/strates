@@ -25,6 +25,7 @@ function etatExemple(): EtatNoyau {
       aideConsultee: false,
       actes: ["sans-aide"],
       kappaGagne: 3,
+      leves: [],
       seuil: { le: 1_700_000_004_500 },
       fouille: { points: 13, emportes: ["s1-turbine", "s1-contrat"], abandonnes: ["s1-brevet"] },
       perturbations: [],
@@ -36,6 +37,7 @@ function etatExemple(): EtatNoyau {
       tempsHorsLigne: 0,
       aideConsultee: true,
       actes: ["premier-hiver"],
+      leves: ["marque"],
       perturbations: [{ le: 1_700_000_004_700, recul: 3600 }],
     },
   );
@@ -123,6 +125,7 @@ describe("les migrations du format global", () => {
         const brute = entree as Partial<EntreeJournal>;
         delete brute.actes;
         delete brute.kappaGagne;
+        delete brute.leves;
       }
     });
     const lecture = lireSauvegarde(format1, "0.1.0");
@@ -132,6 +135,24 @@ describe("les migrations du format global", () => {
     expect(lecture.etat.kappa).toBe(9);
     // La migration ne touche pas le texte d'origine : relu, il redonne le même résultat.
     expect(lireSauvegarde(format1, "0.1.0")).toEqual(lecture);
+  });
+
+  it("mènent le format 2 au format 3 : chaque strate du journal, sans élément levé à l'usage", () => {
+    const format2 = modifier(ecrireSauvegarde(etatExemple(), "0.1.0"), (s) => {
+      s.format = 2;
+      for (const entree of s.noyau.meta.journal.strates) {
+        delete (entree as Partial<EntreeJournal>).leves;
+      }
+    });
+    const lecture = lireSauvegarde(format2, "0.1.0");
+    expect(lecture.type).toBe("ok");
+    if (lecture.type !== "ok") return;
+    const strates = lecture.etat.meta.journal.strates;
+    expect(strates.map((e) => e.leves)).toEqual([[], []]);
+    // Les actes du format 2 restent tels quels.
+    expect(strates.map((e) => e.actes)).toEqual([["sans-aide"], ["premier-hiver"]]);
+    expect(strates[0]!.kappaGagne).toBe(3);
+    expect(lireSauvegarde(format2, "0.1.0")).toEqual(lecture);
   });
 });
 
@@ -164,6 +185,11 @@ describe("une sauvegarde illisible", () => {
       "κ gagné non numérique",
       (s) => void (s.noyau.meta.journal.strates[0]!.kappaGagne = "8" as never),
     ],
+    [
+      "levées absentes",
+      (s) => void delete (s.noyau.meta.journal.strates[0] as Partial<EntreeJournal>).leves,
+    ],
+    ["levée non textuelle", (s) => void (s.noyau.meta.journal.strates[1]!.leves = [null as never])],
     ["référence absente", (s) => void delete (s as Partial<Sauvegarde>).reference],
   ])("est reconnue : %s", (_, changement) => {
     expect(lireSauvegarde(modifier(valide(), changement), "0.1.0").type).toBe("illisible");

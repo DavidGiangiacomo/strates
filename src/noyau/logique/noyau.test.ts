@@ -63,6 +63,7 @@ describe("le démarrage", () => {
         tempsHorsLigne: 0,
         aideConsultee: false,
         actes: [],
+        leves: [],
         perturbations: [],
       },
     ]);
@@ -231,7 +232,10 @@ describe("la boucle de tick", () => {
     etatDe(noyau).unites = 10;
     noyau.agir({ type: "acheter" });
     noyau.tick(0);
-    expect(noyau.viderEvenements()).toEqual([{ type: "acte", acte: "premier-achat" }]);
+    expect(noyau.viderEvenements()).toEqual([
+      { type: "acte", acte: "premier-achat" },
+      { type: "levee", element: "unites" },
+    ]);
     expect(noyau.viderEvenements()).toEqual([]);
   });
 

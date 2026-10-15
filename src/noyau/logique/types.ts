@@ -46,6 +46,11 @@ export interface LogiqueStrate<E, A extends ActionBase> {
   /** Accroches de la Compréhension, pour les affichages débloqués par κ (phases 2 et 3). */
   graphe?(etat: E): GrapheDependances;
   formules?(): Formule[];
+  /**
+   * Les éléments d'interface opaques à l'arrivée, que la couche d'opacité du noyau lève par l'usage,
+   * par un objet ou par le délai `L(κ)` (docs/comprehension.md, § 4). Sans elle, tout est lisible.
+   */
+  opacite?: readonly ElementOpaque[];
 
   /**
    * Un relevé de l'état, pour le journal de session des playtests (#26) : quelques grandeurs à plat,
@@ -78,6 +83,28 @@ export type PolitiqueHorsLigne =
 export interface ResumeAbsence {
   /** Lignes déjà rédigées et formatées avec la notation propre à la strate. */
   lignes: string[];
+}
+
+/**
+ * Un élément d'interface opaque à l'arrivée : un nom, une valeur ou un rôle (docs/comprehension.md,
+ * § 4). Il se lève de trois façons, la première venue l'emportant : par l'usage, par un objet, ou par
+ * le délai. Levé, il le reste.
+ */
+export interface ElementOpaque {
+  /**
+   * Son nom : la strate le donne quand elle le lève par l'usage (`{ type: "levee", element }`), et la
+   * vue le demande à la couche (`lisible`) pour ce qui ne s'écrit pas, un trait ou une jauge.
+   */
+  id: string;
+  /** Les clés de texte qu'il couvre : tant qu'il est opaque, `o(cle)` rend des glyphes à leur place. */
+  cles?: readonly string[];
+  /** Les objets d'en haut qui le lèvent dès l'arrivée, s'ils agissent ici, puissants ou utiles. */
+  objets?: readonly string[];
+  /**
+   * La part du délai `L(κ)` au bout de laquelle il se lève de lui-même : 1 par défaut, moins pour ce
+   * qui se comprend plus vite. null : jamais par le délai, seulement par l'usage ou par un objet.
+   */
+  delai?: number | null;
 }
 
 export interface GrapheDependances {
@@ -125,11 +152,13 @@ export interface EffetsActifs {
 /**
  * Ce que la strate signale au noyau :
  * - un acte de compréhension, dont le barème est appliqué par le noyau ;
+ * - une levée : le joueur a pu comprendre un élément opaque de la strate, à l'usage ;
  * - une trace, pour le journal de session des playtests (#26) : ce qu'elle écrit au joueur (un
  *   objectif atteint, une ligne de registre), ou un moment qu'il faut dater (le premier jour d'un hiver).
  */
 export type EvenementStrate =
   | { type: "acte"; acte: string }
+  | { type: "levee"; element: string }
   | { type: "trace"; cle: string; valeurs?: Record<string, number>; objet?: string };
 
 // ——— La vue (§ 5)
@@ -141,8 +170,10 @@ export interface ProprietesVue<E, A extends ActionBase> {
   agir: (action: A) => void;
   /** Les commandes du noyau accessibles à la strate. */
   noyau: CommandesNoyau;
-  /** Texte d'une clé, à travers la couche d'opacité. */
+  /** Texte d'une clé, à travers la couche d'opacité : des glyphes, tant que son élément est opaque. */
   o: (cle: string) => string;
+  /** Un élément déclaré dans `opacite` est-il levé ? Un élément que la strate ne déclare pas l'est. */
+  lisible: (element: string) => boolean;
   /** « remontee » pendant la fin « Remonter » : interface visible, rien à faire. */
   mode: "jeu" | "remontee";
 }
@@ -171,6 +202,11 @@ export interface DefinitionStrate<E, A extends ActionBase> {
    * strate la connaît (I1). Sans elle, l'écran écrit le nombre entier, sans unité.
    */
   formaterValeur?(valeur: number): string;
+  /**
+   * Les glyphes que la couche d'opacité met à la place des textes encore opaques, dans le style de
+   * la strate. Sans eux, ceux du noyau.
+   */
+  glyphes?: string;
   /**
    * L'apparence de la valeur convertible à l'écran de fouille : écrite dans la police et les
    * couleurs de la strate, elle en est le dernier fragment (docs/strates/descente-1-2.md, P3). Sans
@@ -209,6 +245,8 @@ export interface EntreeJournal {
   actes: string[];
   /** Le κ que ces actes ont rapporté, crédité à la descente (à l'arrivée, pour le fond). */
   kappaGagne?: number;
+  /** Les éléments opaques que le joueur a levés à l'usage, une fois chacun (docs/comprehension.md). */
+  leves: string[];
   seuil?: { le: number; issue?: string };
   /** La fouille à la sortie de la strate (D-002). */
   fouille?: { points: number; emportes: string[]; abandonnes: string[] };

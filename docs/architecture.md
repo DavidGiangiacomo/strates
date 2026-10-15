@@ -92,6 +92,12 @@ interface LogiqueStrate<E, A extends ActionBase> {
   formules?(): Formule[];
 
   /**
+   * Les éléments d'interface opaques à l'arrivée (comprehension.md, § 4), que la couche d'opacité du
+   * noyau lève par l'usage, par un objet ou par le délai L(κ). Sans eux, tout est lisible.
+   */
+  opacite?: ElementOpaque[];
+
+  /**
    * Un relevé de l'état, pour le journal de session des playtests (#26) : quelques grandeurs à plat,
    * celles que le protocole observe. Le noyau ne les lit pas.
    */
@@ -130,6 +136,18 @@ interface Formule {
   cle: string;        // l'élément d'interface concerné
   expression: string; // la formule lisible, écrite dans la notation de la strate
 }
+
+/** Un nom, une valeur ou un rôle, opaque à l'arrivée. Levé, il le reste. */
+interface ElementOpaque {
+  /** Son nom : la strate le lève à l'usage (`{ type: "levee", element }`), la vue le demande à `lisible`. */
+  id: string;
+  /** Les clés de texte qu'il couvre : tant qu'il est opaque, `o(cle)` rend des glyphes à leur place. */
+  cles?: string[];
+  /** Les objets d'en haut qui le lèvent dès l'arrivée, s'ils agissent ici, puissants ou utiles. */
+  objets?: string[];
+  /** La part de L(κ) au bout de laquelle il se lève de lui-même : 1 par défaut ; null, jamais. */
+  delai?: number | null;
+}
 ```
 
 ## 4. Ce que le noyau fournit à la logique
@@ -161,6 +179,8 @@ interface EffetsActifs {
 type EvenementStrate =
   /** Acte de compréhension : la strate le signale, le barème est appliqué par le noyau. */
   | { type: "acte"; acte: string }
+  /** Levée d'opacité : le joueur a pu comprendre un élément opaque de la strate, à l'usage. */
+  | { type: "levee"; element: string }
   /**
    * Trace pour le journal de session (#26) : ce que la strate écrit au joueur (un objectif, une
    * ligne de registre), ou un moment à dater (le premier jour d'un hiver).
@@ -191,8 +211,10 @@ interface ProprietesVue<E, A extends ActionBase> {
   agir: (action: A) => void;
   /** Les commandes du noyau accessibles à la strate. */
   noyau: CommandesNoyau;
-  /** Texte d'une clé, à travers la couche d'opacité (phase 2 ; d'ici là, le texte clair). */
+  /** Texte d'une clé, à travers la couche d'opacité : des glyphes, tant que son élément est opaque. */
   o: (cle: string) => string;
+  /** Un élément déclaré dans `opacite` est-il levé ? Un élément que la strate ne déclare pas l'est. */
+  lisible: (element: string) => boolean;
   /** « remontee » pendant la fin « Remonter » : interface visible, rien à faire. */
   mode: "jeu" | "remontee";
 }
@@ -217,13 +239,18 @@ interface DefinitionStrate<E, A extends ActionBase> {
   formaterValeur?(valeur: number): string;
   /** La police et les couleurs de la valeur convertible à l'écran de fouille : le dernier fragment de la strate quittée. */
   apparenceValeur?: { police: string; couleur: string; fond: string };
+  /** Les glyphes de ses textes opaques, dans son style. Sans eux, ceux du noyau. */
+  glyphes?: string;
 }
 ```
 
 - **Réactivité** : côté interface, le noyau enveloppe l'état dans un état réactif Svelte 5 (`rendreStrateReactive`, dans `noyau/ui`). Le rattrapage du chargement et le simulateur travaillent sur un objet brut, sans cette enveloppe.
   - **Piège** : les écritures faites à travers l'enveloppe ne remontent pas dans l'objet d'origine. Une fois l'état enveloppé, le noyau doit travailler sur l'enveloppe (`remplacerEtatStrate`), sinon la logique et la vue divergent. Un test le vérifie.
   - L'état d'une strate doit donc rester un objet ou un tableau simple (pas d'instance de classe) : Svelte n'enveloppe que ceux-là, et c'est aussi ce qu'exige le JSON de la sauvegarde.
-- **Opacité** : tout libellé ou valeur susceptible d'être opaque passe par `o(cle)`. La couche d'opacité ([#66](https://github.com/DavidGiangiacomo/strates/issues/66)) remplacera l'implémentation sans toucher aux strates.
+- **Opacité** ([#66](https://github.com/DavidGiangiacomo/strates/issues/66)) : tout libellé ou valeur susceptible d'être opaque passe par `o(cle)` ; ce qui ne s'écrit pas, une jauge ou un trait, demande `lisible(element)`.
+  - La couche (`CoucheOpacite`, dans `noyau/ui/opacite.svelte.ts`) relit à chaque image les éléments encore opaques (`Noyau.elementsOpaques`). Elle ne réveille la vue que lorsqu'un élément se lève.
+  - À la place d'un texte opaque, elle met un glyphe par mot, tiré de la clé : toujours le même pour la même clé. Une valeur écrite par un modèle (« {n} ») est masquée avec son texte.
+  - La levée elle-même se calcule dans le noyau, sans Svelte (`noyau/logique/opacite.ts`) : voir [`comprehension.md`](comprehension.md), § 8.
 - **Son** : la vue joue ses sons par le moteur audio du noyau ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)), qui les libère au démontage.
 
 ## 6. La boucle du noyau
@@ -247,6 +274,7 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
 - **Après chaque tick** : le noyau lit `seuil()`, et note au journal l'heure où il est atteint (`seuil.le`, avec l'issue). C'est alors que se juge l'acte « sans aide » : l'aide ouverte après le seuil ne coûte plus rien. Si le seuil est atteint et `automatique` vaut vrai, `Noyau.descenteAutomatique` le signale, et l'interface lance la descente sans le joueur, à la fin de l'image. Sinon, le bouton de fouille du bandeau cesse de résister.
 - **Sauvegarde** : selon D-005 (toutes les 30 s, en arrière-plan, après chaque descente). Le format, sa validation et les migrations sont dans `noyau/logique/sauvegarde.ts` et `migrations.ts` ; le stockage, la rotation des deux emplacements et la mise de côté des sauvegardes illisibles, dans `noyau/plateforme/sauvegarde.ts`. Les migrations d'une strate s'appliquent à son démarrage. De vraies sauvegardes de chaque version publiée sont archivées dans `tests/sauvegardes/` et doivent toutes se charger.
   - Le format 2 ([#56](https://github.com/DavidGiangiacomo/strates/issues/56)) ajoute à chaque entrée du journal de partie ses actes de compréhension. La migration du format 1 les laisse vides.
+  - Le format 3 ([#66](https://github.com/DavidGiangiacomo/strates/issues/66)) y ajoute les éléments opaques levés à l'usage (`leves`). La migration du format 2 les laisse vides : les objets et le délai lèveront le reste.
 
 ### La descente
 

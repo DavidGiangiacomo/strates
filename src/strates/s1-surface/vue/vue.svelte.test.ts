@@ -39,6 +39,7 @@ function monter(modifs: (etat: EtatSurface) => void = () => {}) {
       agir: (action: ActionSurface) => actions.push(action),
       noyau: commandes,
       o: (cle: string) => strate.textes[cle] ?? `?${cle}`,
+      lisible: () => true,
       mode: "jeu",
     },
   });
