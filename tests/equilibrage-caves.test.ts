@@ -14,6 +14,8 @@ import {
 } from "../sim/joueurs/caves";
 import { mesurerCaves, TRANCHE, type MesuresCaves } from "../sim/mesures/caves";
 import { artefact, preselection } from "../src/noyau/logique/artefacts";
+import { BAREME, SANS_AIDE, SANS_ARTEFACT } from "../src/noyau/logique/comprehension";
+import { ACTES } from "../src/strates/s2-caves/logique/regles";
 
 const PROFILS: Record<string, ProfilCaves> = {
   reflexe: REFLEXE,
@@ -118,6 +120,19 @@ describe("l'équilibrage des caves", () => {
     chaque((m) => expect(m.plafonne).toBe(false));
   });
 
+  it("donne aux joueurs réguliers tous les actes des caves, sauf le premier hiver manqué et « sans artefact » avec les objets", () => {
+    const tous = Object.values(BAREME[2]).reduce((a, n) => a + n, 0);
+    chaque((m, variante) => {
+      expect(m.actes).toEqual(
+        expect.arrayContaining([SANS_AIDE, ACTES.anneeSansAchatDAutomne, ACTES.seuilAuPlusTot]),
+      );
+      expect(m.actes.includes(ACTES.premierHiver)).toBe(!m.premierHiverManque);
+      expect(m.actes.includes(SANS_ARTEFACT)).toBe(variante === "sans");
+      const manques = (m.premierHiverManque ? 3 : 0) + (variante === "avec" ? 3 : 0);
+      expect(m.kappa).toBe(tous - manques);
+    });
+  });
+
   it("publie ses mesures dans docs/strates/strate-2-mesures.md (sinon : npm run mesures)", async () => {
     await expect(rapport()).toMatchFileSnapshot("../docs/strates/strate-2-mesures.md");
   });
@@ -192,6 +207,22 @@ function decisions(): string {
   );
 }
 
+function comprehension(): string {
+  const kappa = (m: MesuresCaves) => (m.seuil === null ? "—" : `${m.kappa} sur 14`);
+  return tableau(
+    ["Profil", "κ sans objets", "κ avec objets", "Actes, sans objets"],
+    noms.map((nom) => {
+      const sans = MESURES.sans[nom]!;
+      return [
+        nom,
+        kappa(sans),
+        kappa(MESURES.avec[nom]!),
+        sans.seuil === null ? "—" : sans.actes.join(", "),
+      ];
+    }),
+  );
+}
+
 function rapport(): string {
   const profils = tableau(
     ["Profil", "Jeu"],
@@ -228,5 +259,11 @@ ${resultats("avec")}
 Les secondes où le joueur achète ou change les rations, jusqu'au seuil (#163). La dernière tranche est celle que le seuil interrompt.
 
 ${decisions()}
+
+## Compréhension
+
+Les actes de compréhension au seuil, et le κ qu'ils rapporteraient à la descente, sur les 14 points des caves ([\`comprehension.md\`](../comprehension.md), § 2 ; #78). Les joueurs automatiques n'ouvrent jamais l'aide : ils gagnent toujours « sans aide ». Avec les objets de la surface, l'acte « sans artefact » est perdu. Le joueur réflexe n'atteint pas le seuil.
+
+${comprehension()}
 `;
 }

@@ -105,6 +105,8 @@ export const STRATES: Record<string, StrateSimulee> = {
         ["Hivers manqués", `${m.hivers.manques} sur ${m.hivers.juges}`],
         ["Grands hivers manqués", String(m.hivers.grandsManques)],
         ["Familles", String(Math.round(m.familles))],
+        // Ce que les actes de la strate rapporteraient à la descente (docs/comprehension.md, § 2).
+        ["Compréhension gagnée", m.seuil === null ? "—" : `${m.kappa} sur 14`],
       ];
       if (objets.length > 0) details.push(["Plafond × 4 atteint", m.plafonne ? "oui" : "non"]);
       return { seuil: m.seuil, valeur: m.cumul, points: m.points.auSeuil, details };

@@ -11,6 +11,7 @@ import {
 import {
   ARRIVEE,
   BAREME,
+  CREUSER_AVANT_FISSURE,
   crediter,
   gainDesActes,
   poidsActe,
@@ -354,8 +355,9 @@ export class Noyau {
 
   /**
    * Ouvre la fouille (docs/strates/descente-1-2.md, P2) : les actions en attente sont appliquées, la
-   * strate se fige, et sa valeur convertible devient des points de fouille. Rien n'est encore noté.
-   * Refusée avant le seuil, ou s'il n'y a pas de strate dessous.
+   * strate se fige, et sa valeur convertible devient des points de fouille. Rien n'est encore engagé ;
+   * le noyau note seulement si le joueur a creusé avant la fissure du filet. Refusée avant le seuil,
+   * ou s'il n'y a pas de strate dessous.
    */
   ouvrirFouille(): FouilleOuverte {
     if (this.#fouille) return this.#fouille;
@@ -367,6 +369,8 @@ export class Noyau {
     this.#suspendu = true;
     this.#accumulateur = 0;
     const logique = this.strate.logique;
+    // Creuser avant que le filet ne s'en mêle : le joueur n'y a pas été poussé (comprehension.md, § 2).
+    if (logique.filet?.(this.etatStrate) === 0) this.#noterActe(CREUSER_AVANT_FISSURE);
     this.#fouille = ouvrirFouille(logique.numero, logique.valeurConvertible(this.etatStrate));
     return this.#fouille;
   }

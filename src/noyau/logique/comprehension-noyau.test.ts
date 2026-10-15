@@ -6,7 +6,13 @@ import {
   type ActionFactice,
   type EtatFactice,
 } from "../../strates/factice/logique";
-import { BAREME, SANS_AIDE, SANS_ARTEFACT, type Bareme } from "./comprehension";
+import {
+  BAREME,
+  CREUSER_AVANT_FISSURE,
+  SANS_AIDE,
+  SANS_ARTEFACT,
+  type Bareme,
+} from "./comprehension";
 import { creerEtatNoyau, type EtatNoyau } from "./etat";
 import { Noyau, type OptionsNoyau } from "./noyau";
 import { Registre, type StrateQuelconque } from "./registre";
@@ -149,6 +155,55 @@ describe("l'acte « sans aide »", () => {
     expect(entree(noyau).aideConsultee).toBe(true);
     await descendre(noyau);
     expect(noyau.etat.kappa).toBe(3);
+  });
+});
+
+describe("l'acte « creuser avant la fissure »", () => {
+  /** Une surface factice qui tend un filet : sa fissure en est à `avancee.valeur`. */
+  async function surfaceAvecFilet(avancee: { valeur: number }): Promise<Noyau> {
+    const registre = new Registre();
+    for (const n of [1, 2] as const) {
+      const logique = { ...creerLogiqueFactice(n), filet: () => avancee.valeur };
+      registre.enregistrer(n, async () => ({ logique, vue: null, textes: {} }) as StrateQuelconque);
+    }
+    const noyau = new Noyau(registre, creerEtatNoyau(1, DEBUT));
+    await noyau.demarrer(DEBUT);
+    return noyau;
+  }
+
+  it("se gagne en creusant avant que la fissure n'apparaisse", async () => {
+    const noyau = await surfaceAvecFilet({ valeur: 0 });
+    auSeuil(noyau);
+    noyau.ouvrirFouille();
+    expect(entree(noyau).actes).toEqual([SANS_AIDE, CREUSER_AVANT_FISSURE]);
+    await noyau.descendre(DEBUT + 1000, []);
+    // La surface donne alors ses 8 points : 3 sans aide, 5 pour avoir creusé de soi-même.
+    expect(noyau.etat.kappa).toBe(8);
+  });
+
+  it("se perd si le joueur ne creuse qu'une fois la fissure partie", async () => {
+    const noyau = await surfaceAvecFilet({ valeur: 0.1 });
+    auSeuil(noyau);
+    noyau.ouvrirFouille();
+    expect(entree(noyau).actes).toEqual([SANS_AIDE]);
+  });
+
+  it("reste gagné quand on rebouche et qu'on ne descend qu'après la fissure", async () => {
+    const avancee = { valeur: 0 };
+    const noyau = await surfaceAvecFilet(avancee);
+    auSeuil(noyau);
+    noyau.ouvrirFouille();
+    noyau.reboucher();
+    avancee.valeur = 1;
+    noyau.ouvrirFouille();
+    expect(entree(noyau).actes).toEqual([SANS_AIDE, CREUSER_AVANT_FISSURE]);
+  });
+
+  it("ne se juge pas dans une strate sans filet", async () => {
+    const noyau = await partie([1, 2]);
+    auSeuil(noyau);
+    noyau.ouvrirFouille();
+    expect(entree(noyau).actes).toEqual([SANS_AIDE]);
   });
 });
 

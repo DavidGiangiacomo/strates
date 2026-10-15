@@ -120,6 +120,26 @@ export const textes: Record<string, string> = {
   // La valeur convertible, nommée à l'écran de fouille (docs/strates/descente-1-2.md, P3).
   "fouille.valeur": "Grain récolté",
 
+  // ——— Le graphe de dépendances (docs/comprehension.md, § 5) : les noms qui manquent ailleurs
+  familles: "Familles",
+  saisons: "Saisons",
+  stockages: "Stockages",
+  bilan: "Bilan de l'hiver",
+  naissances: "Naissances",
+  departs: "Départs",
+  cycle: "Le grand cycle",
+  // Les formules réelles, sur le graphe. Lues à κ ≥ 50 seulement, elles n'entrent pas dans le budget.
+  "formule.consommation":
+    "1 boisseau par famille et par jour ; l'hiver et pendant la soudure, × les rations",
+  "formule.recolte":
+    "familles × 2,8 boisseaux × outils × sin(π × jour ÷ saison chaude), par jour ; chaque outil ×1,2 ou ×1,25",
+  "formule.pertes":
+    "par jour, 0,2 % du grain d'un grenier, 0,1 % d'un silo, 0,03 % d'une cave, 0,01 % d'une cave profonde",
+  "formule.rations":
+    "maigres ½, réduites ¾, pleines 1, larges 2 ; au bilan, 0, 5, 10 ou 20 % de naissances",
+  "formule.marque":
+    "ce que mangent les familles pendant l'hiver et sa soudure, moins la récolte de la soudure, plus les pertes",
+
   // ——— L'aide : une page du registre, qui décrit la vallée et rien d'autre
   aide: "Aide",
   "aide.titre": "Comment tient la vallée",

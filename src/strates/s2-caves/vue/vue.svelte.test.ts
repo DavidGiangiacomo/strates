@@ -22,9 +22,14 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-function monter(modifs: (etat: EtatCaves) => void = () => {}) {
+/** Les éléments opaques des caves (fiche, § 7), tous opaques à l'arrivée. */
+const OPAQUES = (strate.logique.opacite ?? []).map((e) => e.id);
+
+/** Monte la vue ; la couche d'opacité y a déjà levé les éléments `leves`, et peut en lever d'autres. */
+function monter(modifs: (etat: EtatCaves) => void = () => {}, leves: string[] = []) {
   const etat = $state(etatInitial());
   modifs(etat);
+  const couche = $state({ leves });
   const actions: ActionCaves[] = [];
   composant = mount(Vue, {
     target: document.body,
@@ -33,12 +38,12 @@ function monter(modifs: (etat: EtatCaves) => void = () => {}) {
       agir: (action: ActionCaves) => actions.push(action),
       noyau: commandes,
       o: (cle: string) => strate.textes[cle] ?? `?${cle}`,
-      lisible: () => true,
+      lisible: (element: string) => !OPAQUES.includes(element) || couche.leves.includes(element),
       mode: "jeu",
     },
   });
   flushSync();
-  return { etat, actions };
+  return { etat, actions, couche };
 }
 
 const texte = (selecteur: string) =>
@@ -79,11 +84,14 @@ describe("la vue des caves", () => {
   });
 
   it("désactive ce qui est trop cher, et signale une marque au-delà des stockages", () => {
-    monter((etat) => {
-      etat.reserve = 10;
-      etat.familles = 40;
-      etat.hivers = [{ annee: 1, rupture: false }];
-    });
+    monter(
+      (etat) => {
+        etat.reserve = 10;
+        etat.familles = 40;
+        etat.hivers = [{ annee: 1, rupture: false }];
+      },
+      ["marque"],
+    );
     expect(bouton("Installer une famille")!.disabled).toBe(true);
     expect(bouton("Construire")!.disabled).toBe(true);
     expect(document.querySelector("[data-test=marque-au-dessus]")).not.toBeNull();
@@ -120,7 +128,7 @@ describe("la vue des caves", () => {
         etat.registre.push(...partie);
         etat.historique.reserve = [100, 200, 300, 250];
         etat.historique.achats = [0];
-      });
+      }, OPAQUES);
       expect(document.body.textContent).not.toContain("?");
       expect(document.body.textContent).not.toContain("{");
       expect(bouton("Acheter une charrue")).toBeDefined();
@@ -166,7 +174,7 @@ describe("la vue des caves", () => {
     expect(document.body.textContent).toBe(texteAvant);
   });
 
-  it("ne légende ni la marque d'hiver ni les pertes avant le premier bilan", () => {
+  it("ne légende ni la marque d'hiver ni les pertes tant qu'elles sont opaques", () => {
     monter();
     expect(document.querySelector(".jauge .marque")).not.toBeNull();
     expect(document.querySelector("[data-test=marque]")).toBeNull();
@@ -174,17 +182,16 @@ describe("la vue des caves", () => {
     expect(document.querySelector("[data-test=pertes-grenier]")).toBeNull();
   });
 
-  it("les dévoile au premier bilan, avec les pertes de chaque stockage", () => {
-    monter((etat) => (etat.hivers = [{ annee: 1, rupture: true }]));
+  it("les dévoile quand la couche les lève, avec les pertes de chaque stockage", () => {
+    const { couche } = monter();
+    couche.leves.push("marque");
+    flushSync();
     expect(texte("[data-test=marque]")).toMatch(/^\d+\u00a0boisseaux$/);
+    expect(document.querySelector("[data-test=pertes]")).toBeNull();
+    couche.leves.push("pertes");
+    flushSync();
     expect(texte("[data-test=pertes]")).toMatch(/par jour$/);
     expect(texte("[data-test=pertes-grenier]")).toMatch(/^pertes : \d+\u00a0boisseau/);
-  });
-
-  it("les dévoile dès l'arrivée avec les deux fenêtres", () => {
-    monter((etat) => (etat.objets.fenetres = true));
-    expect(document.querySelector("[data-test=marque]")).not.toBeNull();
-    expect(document.querySelector("[data-test=pertes]")).not.toBeNull();
   });
 
   it("dessine d'avance les années à venir avec l'armoire qui compte les hivers", () => {
@@ -248,8 +255,8 @@ describe("la vue des caves", () => {
     expect(grain.style.transform).toBe("scaleY(0)");
   });
 
-  it("fait flotter la marque d'hiver au-dessus du grenier, sans légende avant le premier bilan", () => {
-    const { etat } = monter();
+  it("fait flotter la marque d'hiver au-dessus du grenier, sans légende tant qu'elle est opaque", () => {
+    const { couche } = monter();
     const trait = document.querySelector<SVGElement>("[data-test=trait-marque]")!;
     // 775 boisseaux pour un grenier de 400 : au-dessus du grenier, sous le haut de la coupe.
     const y = Number(/translateY\(([\d.]+)px\)/.exec(trait.style.transform)![1]);
@@ -257,7 +264,7 @@ describe("la vue des caves", () => {
     expect(y).toBeLessThan(70);
     expect(trait.querySelector(".legende")).toBeNull();
 
-    etat.hivers = [{ annee: 1, rupture: true }];
+    couche.leves.push("marque");
     flushSync();
     expect(trait.querySelector(".legende")?.textContent).toBe("Marque d'hiver");
   });

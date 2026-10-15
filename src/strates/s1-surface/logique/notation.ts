@@ -1,5 +1,6 @@
 // La notation de tableau de bord, propre à la surface (I1 ; docs/strates/strate-1.md, § 1).
-// Aucune autre strate n'emploie les suffixes k, M et Md.
+// Aucune autre strate n'emploie les suffixes k, M et Md. Elle sert à la vue, et aux formules que la
+// logique écrit elle-même (docs/comprehension.md, § 5).
 
 /** Espace insécable, entre le nombre et son unité ou son suffixe. */
 const INSECABLE = " ";

@@ -72,6 +72,11 @@ interface LogiqueStrate<E, A extends ActionBase> {
 
   /** Où en est le seuil de fouille. */
   seuil(etat: E): EtatSeuil;
+  /**
+   * Où en est la fissure du filet, de 0 (pas encore apparue) à 1, pour une strate qui en tend un. Le
+   * noyau la lit quand le joueur creuse : creuser avant elle, c'est un acte (comprehension.md, § 2).
+   */
+  filet?(etat: E): number;
 
   /** Valeur convertible en points de fouille : toujours un cumul sur la strate (D-003). */
   valeurConvertible(etat: E): number;
@@ -87,7 +92,10 @@ interface LogiqueStrate<E, A extends ActionBase> {
   /** Prépare l'état montré pendant la remontée finale (§11). Par défaut : `etatInitial`. */
   remontee?(etatSauvegarde: E, duree: number): E;
 
-  /** Accroches de la Compréhension, pour les affichages débloqués par κ (phases 2 et 3). */
+  /**
+   * Accroches de la Compréhension, pour les affichages débloqués par κ (comprehension.md, § 5) : le
+   * graphe de la strate dans cet état, et ses formules réelles, de la plus simple à la plus profonde.
+   */
   graphe?(etat: E): GrapheDependances;
   formules?(): Formule[];
 
@@ -128,12 +136,12 @@ interface ResumeAbsence {
 }
 
 interface GrapheDependances {
-  noeuds: { id: string; cle: string }[]; // `cle` : clé de texte du libellé
-  liens: { de: string; vers: string }[];
+  noeuds: { id: string; cle: string }[]; // `cle` : clé de texte du nom, lue à travers l'opacité
+  liens: { de: string; vers: string }[]; // `de` alimente `vers`
 }
 
 interface Formule {
-  cle: string;        // l'élément d'interface concerné
+  noeud: string;      // le nœud du graphe où elle s'affiche, dès qu'il est compris
   expression: string; // la formule lisible, écrite dans la notation de la strate
 }
 

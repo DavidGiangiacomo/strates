@@ -6,6 +6,8 @@ import { avanceeFissure } from "../../../noyau/logique/filet";
 import type {
   ContexteTick,
   EffetsActifs,
+  Formule,
+  GrapheDependances,
   LogiqueStrate,
   ResumeAbsence,
 } from "../../../noyau/logique/types";
@@ -20,7 +22,9 @@ import {
 } from "./etat";
 import { remplir } from "./notation";
 import {
+  ACTES,
   ANNEE_RATIONS,
+  ANNEE_SEUIL_AU_PLUS_TOT,
   capacite,
   consommation,
   coutFamille,
@@ -201,7 +205,7 @@ function faireBilan(etat: EtatCaves, ctx: ContexteTick): void {
   const premier = etat.hivers.length === 0;
   const grand = estGrandHiver(hiver);
   const avantSeuil = etat.seuilAtteintA === null;
-  const { rupture, joursDeRupture, departs, rations, jours } = etat.bilan;
+  const { rupture, joursDeRupture, departs, rations, jours, achatAutomne } = etat.bilan;
 
   etat.hivers.push({ annee: hiver, rupture });
   if (etat.hivers.length > TAILLE_HIVERS) etat.hivers.splice(0, etat.hivers.length - TAILLE_HIVERS);
@@ -234,6 +238,9 @@ function faireBilan(etat: EtatCaves, ctx: ContexteTick): void {
       }
       if (etat.serie >= SERIE_SEUIL) {
         etat.seuilAtteintA = etat.temps;
+        if (hiver === ANNEE_SEUIL_AU_PLUS_TOT) {
+          ctx.emettre({ type: "acte", acte: ACTES.seuilAuPlusTot });
+        }
         ecrire(etat, ctx, "registre.seuil", {});
         // La feuille qui annonce : nommée quand elle agit, puis une ligne de l'atelier, d'une autre main.
         if (ctx.effets.niveau(OBJETS.feuille)) {
@@ -249,9 +256,28 @@ function faireBilan(etat: EtatCaves, ctx: ContexteTick): void {
       if (ctx.effets.niveau(id)) ecrire(etat, ctx, "registre.eveil", {}, id);
     }
   }
+  // Les actes de l'hiver (fiche, § 7), muets : le noyau en applique le barème. La première année,
+  // commencée à l'arrivée, n'est pas une année entière.
+  if (!rupture && premier) ctx.emettre({ type: "acte", acte: ACTES.premierHiver });
+  if (!rupture && !premier && !achatAutomne) {
+    ctx.emettre({ type: "acte", acte: ACTES.anneeSansAchatDAutomne });
+  }
+  // Ce que le bilan apprend (fiche, § 7) : le nom de la marque d'hiver, les pertes et, sans rupture,
+  // les naissances. Chaque bilan le redit, pour une partie commencée avant l'opacité ; le noyau ne
+  // note que la première levée.
+  ctx.emettre({ type: "levee", element: "marque" });
+  ctx.emettre({ type: "levee", element: "pertes" });
+  if (!rupture) ctx.emettre({ type: "levee", element: "naissances" });
   etat.soudure = false;
   etat.rations = "pleines";
-  etat.bilan = { rupture: false, joursDeRupture: 0, departs: 0, rations: 0, jours: 0 };
+  etat.bilan = {
+    rupture: false,
+    joursDeRupture: 0,
+    departs: 0,
+    rations: 0,
+    jours: 0,
+    achatAutomne: false,
+  };
 }
 
 /**
@@ -268,6 +294,8 @@ function debutHiver(etat: EtatCaves, ctx: ContexteTick): void {
   if (dureeHiver(annee) > HIVER_COURT && dureeHiver(annee - 1) === HIVER_COURT) {
     ecrire(etat, ctx, "registre.hivers-allongent", { annee, duree: dureeHiver(annee) });
   }
+  // Le grand cycle se découvre quand l'hiver s'allonge (fiche, § 7) ; chaque hiver long le redit.
+  if (dureeHiver(annee) > HIVER_COURT) ctx.emettre({ type: "levee", element: "cycle" });
   if (annee === ANNEE_RATIONS) ecrire(etat, ctx, "registre.rations", { annee });
   if (estGrandHiver(annee) && !estGrandHiver(annee - 1)) {
     ecrire(etat, ctx, "registre.grand-hiver-arrive", { annee });
@@ -331,10 +359,12 @@ function avancer(etat: EtatCaves, duree: number, ctx: ContexteTick): void {
   }
 }
 
-/** Un achat : il est noté sur la courbe de la réserve (fiche, § 5). */
+/** Un achat : il est noté sur la courbe de la réserve (fiche, § 5), et l'automne s'en souvient. */
 function payer(etat: EtatCaves, cout: number): boolean {
   if (cout > etat.reserve) return false;
   etat.reserve -= cout;
+  // L'année ne compte plus pour l'acte « une année sans achat d'automne » (fiche, § 7).
+  if (saison(etat) === "automne") etat.bilan.achatAutomne = true;
   const achats = etat.historique.achats;
   achats.push(etat.temps);
   const oubli = etat.temps - TAILLE_HISTORIQUE * PERIODE_HISTORIQUE;
@@ -379,9 +409,74 @@ function absence(etat: EtatCaves, duree: number, ctx: ContexteTick): ResumeAbsen
   return { lignes };
 }
 
+/**
+ * Le graphe de dépendances (fiche, § 7). Les familles et les outils alimentent la récolte, que règlent
+ * les saisons, et le grand cycle règle les saisons. La réserve reçoit la récolte et le glanage ; elle
+ * perd la consommation et les pertes, et les stockages la bornent. La marque d'hiver la compare à
+ * l'hiver qui vient. Le bilan de l'hiver renvoie aux familles, par les naissances et les départs. Les
+ * rations, dès qu'elles se comptent, règlent la consommation, les naissances et la marque.
+ */
+function graphe(etat: EtatCaves): GrapheDependances {
+  const noeuds: [string, string][] = [
+    ["familles", "familles"],
+    ["outils", "outils"],
+    ["cycle", "cycle"],
+    ["saisons", "saisons"],
+    ["recolte", "recolte"],
+    ["glaner", "glaner"],
+    ["consommation", "consommation"],
+    ["stockages", "stockages"],
+    ["pertes", "pertes"],
+    ["reserve", "reserve"],
+    ["marque", "marque-hiver"],
+    ["bilan", "bilan"],
+    ["naissances", "naissances"],
+    ["departs", "departs"],
+  ];
+  const liens: [string, string][] = [
+    ["familles", "recolte"],
+    ["outils", "recolte"],
+    ["cycle", "saisons"],
+    ["saisons", "recolte"],
+    ["familles", "consommation"],
+    ["recolte", "reserve"],
+    ["glaner", "reserve"],
+    ["consommation", "reserve"],
+    ["stockages", "pertes"],
+    ["pertes", "reserve"],
+    ["stockages", "reserve"],
+    ["reserve", "marque"],
+    ["saisons", "marque"],
+    ["reserve", "bilan"],
+    ["bilan", "naissances"],
+    ["bilan", "departs"],
+    ["naissances", "familles"],
+    ["departs", "familles"],
+  ];
+  if (rationsOuvertes(etat)) {
+    noeuds.push(["rations", "rations"]);
+    liens.push(["rations", "consommation"], ["rations", "naissances"], ["rations", "marque"]);
+  }
+  return {
+    noeuds: noeuds.map(([id, cle]) => ({ id, cle })),
+    liens: liens.map(([de, vers]) => ({ de, vers })),
+  };
+}
+
+/**
+ * Les formules réelles (fiche, § 3), de la plus simple à la plus profonde : la consommation, la
+ * récolte, les pertes, les rations, puis la marque d'hiver, qui les suppose toutes.
+ */
+function formules(): Formule[] {
+  return ["consommation", "recolte", "pertes", "rations", "marque"].map((noeud) => ({
+    noeud,
+    expression: textes[`formule.${noeud}`] ?? noeud,
+  }));
+}
+
 export const logique: LogiqueStrate<EtatCaves, ActionCaves> = {
   numero: 2,
-  versionEtat: 4,
+  versionEtat: 5,
   migrations: {
     // Version 2 (#32) : la série des grands hivers, le seuil et l'historique des hivers.
     1: (etat) => ({ ...(etat as object), hivers: [], serie: 0, seuilAtteintA: null }),
@@ -394,6 +489,12 @@ export const logique: LogiqueStrate<EtatCaves, ActionCaves> = {
     3: (etat) => {
       const e = etat as EtatCaves;
       return { ...e, rations: "pleines", bilan: { ...e.bilan, rations: 0, jours: 0 } };
+    },
+    // Version 5 (#78) : les achats d'automne, pour l'acte « une année sans achat d'automne ». Ceux de
+    // l'année entamée sont inconnus : elle ne compte pas.
+    4: (etat) => {
+      const e = etat as EtatCaves;
+      return { ...e, bilan: { ...e.bilan, achatAutomne: true } };
     },
   },
   // Un jour. Chaque pas est coupé aux bornes des saisons, et la récolte y est intégrée exactement.
@@ -442,8 +543,30 @@ export const logique: LogiqueStrate<EtatCaves, ActionCaves> = {
   },
 
   seuil: (etat) => ({ atteint: etat.seuilAtteintA !== null }),
+  filet: (etat) => avanceeFissure(etat.temps, etat.seuilAtteintA),
+
+  // L'opacité (fiche, § 7) : le sens des choses, qu'on apprend en vivant une année. Le calendrier et le
+  // trait de la marque sur la jauge, dont dépend le seuil, restent toujours visibles.
+  opacite: [
+    // La marque d'hiver : nommée au premier bilan, ou dès l'arrivée par les deux fenêtres.
+    {
+      id: "marque",
+      cles: ["marque-hiver", "marque-hiver.valeur", "marque-hiver.au-dessus"],
+      objets: [OBJETS.fenetres],
+    },
+    // Les pertes des stockages : révélées au premier bilan, ou dès l'arrivée par les deux fenêtres.
+    { id: "pertes", cles: ["pertes", "stockage.pertes"], objets: [OBJETS.fenetres] },
+    // Le grand cycle : découvert en l'an 5, quand l'hiver s'allonge, ou d'avance par l'armoire. Le
+    // délai ne le lève pas : sa découverte est un moment de la strate.
+    { id: "cycle", cles: ["cycle"], objets: [OBJETS.armoire], delai: null },
+    // Les naissances : annoncées au premier bilan réussi.
+    { id: "naissances", cles: ["naissances"] },
+  ],
   valeurConvertible: (etat) => etat.cumul,
   absence,
+
+  graphe,
+  formules,
 
   /**
    * Pour le journal de session : le calendrier, la réserve et sa marque, ce que la vallée possède, et

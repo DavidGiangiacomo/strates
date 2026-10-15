@@ -201,6 +201,7 @@ describe("la rupture et le bilan de l'hiver", () => {
       departs: 0,
       rations: 0,
       jours: 0,
+      achatAutomne: false,
     });
   });
 

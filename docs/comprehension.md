@@ -143,13 +143,32 @@ Ce sont les formules des fiches (§ 3 et § 7) : le coût d'un exemplaire, la r�
   - une strate peut donner ses propres glyphes (`DefinitionStrate.glyphes`).
 - **La strate factice** montre les trois façons de lever, et un élément exempté du délai. Ses tests suivent les paliers de κ, du noyau jusqu'à sa vue (`opacite-noyau.test.ts`, `opacite.svelte.test.ts`).
 
-**À venir** : l'intégration aux strates 1 et 2 ([#78](https://github.com/DavidGiangiacomo/strates/issues/78)), avec leurs actes et l'opacité des caves (fiche 2, § 7).
-- **Le graphe et les formules** : les accroches `graphe()` et `formules()` existent déjà dans le contrat. Elles attendent l'attache de chaque formule à un élément.
-- **« Creuser avant la fissure »**, l'acte de la surface : le clic sur « creuser » passe par le noyau, et la fissure par l'état de la strate. Il faudra que l'un sache ce que voit l'autre.
+**Fait par [#78](https://github.com/DavidGiangiacomo/strates/issues/78)** : les strates 1 et 2 branchées sur κ et sur l'opacité.
+- **« Creuser avant la fissure »** : le clic sur « creuser » passe par le noyau, et la fissure par l'état de la strate. La strate montre donc son filet au noyau (`LogiqueStrate.filet`). Le noyau constate l'acte quand le joueur ouvre la fouille, si la fissure n'est pas encore apparue. Les caves montrent aussi le leur, mais leur barème ne connaît pas cet acte.
+- **Les actes des caves** se signalent au bilan de l'hiver (`ACTES`, dans `logique/regles.ts` des caves) :
+  - le premier hiver passé sans rupture ;
+  - une année sans achat d'automne ni rupture, hors l'année de l'arrivée ;
+  - le seuil atteint au bilan de l'an 16.
+- **L'opacité des caves** suit leur fiche (§ 7) :
+  - la marque d'hiver et les pertes se lèvent au premier bilan, ou dès l'arrivée par les deux fenêtres ;
+  - le grand cycle se lève en l'an 5, ou dès l'arrivée par l'armoire, jamais par le délai ;
+  - les naissances se lèvent au premier hiver réussi.
+
+  Chaque bilan redit ses levées : une partie commencée avant l'opacité les retrouve au bilan suivant.
+- **Le graphe et les formules** : les deux strates les exposent (`graphe`, `formules`), selon leurs fiches (§ 7).
+  - Une formule s'attache à un nœud du graphe (`Formule.noeud`).
+  - Les noms des nœuds passent par l'opacité : un élément opaque y reste un glyphe.
+  - Les affichages restent à faire ([#76](https://github.com/DavidGiangiacomo/strates/issues/76), [#77](https://github.com/DavidGiangiacomo/strates/issues/77)).
+- **Mesuré par les joueurs automatiques** ([`strate-2-mesures.md`](strates/strate-2-mesures.md)) :
+  - un jeu correct gagne dans les caves 11 points sur 14 avec les objets de la surface, et 14 sans ;
+  - avec les 8 points de la surface, s'il creuse avant la fissure, il arrive à l'atelier avec κ = 19 ou 22 ;
+  - ces joueurs n'ouvrent jamais l'aide et ne manquent aucun hiver : leurs chiffres sont un plafond.
+
+**À venir** : les affichages du graphe et des formules, et les actes propres des strates 3 à 7, avec leurs fiches.
 
 ## 9. Questions ouvertes
 
-1. **Le calibrage d'un jeu correct** : environ les deux tiers des actes, κ ≈ 65 au fond. À mesurer strate par strate ; si un jeu correct ne voit jamais le graphe, le palier de 50 est trop haut.
+1. **Le calibrage d'un jeu correct** : environ les deux tiers des actes, κ ≈ 65 au fond. Les joueurs automatiques des caves en gagnent plus (11 points sur 14 avec les objets), parce qu'ils n'ouvrent jamais l'aide et ne manquent aucun hiver. Le vrai calibrage viendra des joueurs du playtest, strate par strate. Si un jeu correct ne voit jamais le graphe, le palier de 50 est trop haut.
 2. **Le délai dans les strates où comprendre est le jeu** : au-delà du chœur, d'autres éléments devront peut-être être exemptés. Chaque fiche le dira.
 3. **Le fond** : il donne 4 points à qui y arrive. Faut-il plutôt porter κ à 100 pour tout le monde, comme un épilogue où tout devient lisible ? À trancher avec la fiche du fond ([#65](https://github.com/DavidGiangiacomo/strates/issues/65)).
 4. **L'acte « sans aide » à la surface** : presque tous les joueurs le font sans le savoir. Il pèse peu (3 points) ; à revoir si le playtest montre que l'aide de la surface sert vraiment.

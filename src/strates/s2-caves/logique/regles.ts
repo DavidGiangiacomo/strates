@@ -28,6 +28,26 @@ export function estGrandHiver(annee: number): boolean {
 /** Le seuil de fouille : trois grands hivers de suite sans rupture, soudure comprise (fiche, § 4). */
 export const SERIE_SEUIL = 3;
 
+/** Le premier grand hiver : l'an 14, quand l'hiver a fini de s'allonger. */
+export const PREMIER_GRAND_HIVER =
+  DERNIERE_ANNEE_COURTE + Math.ceil((GRAND_HIVER - HIVER_COURT) / ALLONGEMENT);
+
+/** Le seuil au plus tôt : à la fin de l'hiver de l'an 16, si aucun grand hiver n'a manqué. */
+export const ANNEE_SEUIL_AU_PLUS_TOT = PREMIER_GRAND_HIVER + SERIE_SEUIL - 1;
+
+/**
+ * Les actes de compréhension propres aux caves (fiche, § 7) : la strate les signale, muets, et le noyau
+ * en applique le barème (docs/comprehension.md, § 2).
+ */
+export const ACTES = {
+  /** Le premier hiver passé sans rupture, soudure comprise : ne pas avoir eu besoin d'échouer. */
+  premierHiver: "premier-hiver",
+  /** Une année entière sans achat en automne et sans rupture : acheter au printemps, stocker à l'automne. */
+  anneeSansAchatDAutomne: "annee-sans-achat-d-automne",
+  /** Le seuil au plus tôt : aucun grand hiver manqué, donc le grand cycle anticipé. */
+  seuilAuPlusTot: "seuil-au-plus-tot",
+} as const;
+
 /**
  * Les objets de la surface que les caves savent recevoir (fiche, § 8 ; docs/artefacts.md, § 8). Les
  * multiplicateurs passent par les leviers ; les caves les nomment seulement à leur éveil.

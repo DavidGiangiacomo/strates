@@ -11,6 +11,11 @@ export const SANS_AIDE = "sans-aide";
 export const SANS_ARTEFACT = "sans-artefact";
 /** Arriver au fond : le fond n'a pas de descente, cet acte est crédité dès l'arrivée. */
 export const ARRIVEE = "arrivee";
+/**
+ * Creuser avant que la fissure du filet n'apparaisse, sans y avoir été poussé : le noyau le constate
+ * quand le joueur ouvre la fouille, sur le filet que la strate lui montre (`LogiqueStrate.filet`).
+ */
+export const CREUSER_AVANT_FISSURE = "creuser-avant-fissure";
 
 /** Pour chaque strate, ses actes et leur poids, en points de κ. */
 export type Bareme = Readonly<Record<NumeroStrate, Readonly<Record<string, number>>>>;
@@ -21,7 +26,7 @@ export type Bareme = Readonly<Record<NumeroStrate, Readonly<Record<string, numbe
  * à 7 viendront avec leurs fiches.
  */
 export const BAREME: Bareme = {
-  1: { [SANS_AIDE]: 3, "creuser-avant-fissure": 5 },
+  1: { [SANS_AIDE]: 3, [CREUSER_AVANT_FISSURE]: 5 },
   2: {
     [SANS_AIDE]: 3,
     [SANS_ARTEFACT]: 3,
