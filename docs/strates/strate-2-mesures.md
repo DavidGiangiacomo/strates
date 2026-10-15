@@ -54,3 +54,15 @@ Les secondes où le joueur achète ou change les rations, jusqu'au seuil (#163).
 | correct, avec objets | 42 | 17 | 20 | 14 | 14 | 11 | 9 | 8 | 4 | 10 | 5 | 2 |
 | prudent, avec objets | 19 | 5 | 9 | 7 | 8 | 8 | 6 | 8 | 5 | 8 | 5 | 2 |
 | distrait, avec objets | 32 | 6 | 8 | 9 | 9 | 9 | 7 | 7 | 4 | 8 | 4 | 2 |
+
+## Compréhension
+
+Les actes de compréhension au seuil, et le κ qu'ils rapporteraient à la descente, sur les 14 points des caves ([`comprehension.md`](../comprehension.md), § 2 ; #78). Les joueurs automatiques n'ouvrent jamais l'aide : ils gagnent toujours « sans aide ». Avec les objets de la surface, l'acte « sans artefact » est perdu. Le joueur réflexe n'atteint pas le seuil.
+
+| Profil | κ sans objets | κ avec objets | Actes, sans objets |
+|---|---|---|---|
+| reflexe | — | — | — |
+| apprend | 11 sur 14 | 8 sur 14 | annee-sans-achat-d-automne, seuil-au-plus-tot, sans-aide, sans-artefact |
+| correct | 14 sur 14 | 11 sur 14 | premier-hiver, annee-sans-achat-d-automne, seuil-au-plus-tot, sans-aide, sans-artefact |
+| prudent | 14 sur 14 | 11 sur 14 | premier-hiver, annee-sans-achat-d-automne, seuil-au-plus-tot, sans-aide, sans-artefact |
+| distrait | 14 sur 14 | 11 sur 14 | premier-hiver, annee-sans-achat-d-automne, seuil-au-plus-tot, sans-aide, sans-artefact |

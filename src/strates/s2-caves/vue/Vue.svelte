@@ -42,16 +42,18 @@
   import { achatsCourbe, saisonsCourbe } from "./courbe";
   import { VARIABLES } from "./theme";
 
-  let { etat, agir, noyau, o }: ProprietesVue<EtatCaves, ActionCaves> = $props();
+  let { etat, agir, noyau, o, lisible }: ProprietesVue<EtatCaves, ActionCaves> = $props();
 
   const t = (cle: string, valeurs: Record<string, number> = {}) => remplir(o(cle), valeurs);
 
   const cap = $derived(capacite(etat));
   const marque = $derived(marqueHiver(etat));
 
-  // L'opacité (fiche, § 7) : la marque d'hiver n'a pas de légende, et les pertes ne s'affichent pas,
-  // jusqu'au premier bilan. Les deux fenêtres, un objet de la surface, les dévoilent dès l'arrivée (§ 8).
-  const devoile = $derived(etat.hivers.length > 0 || etat.objets.fenetres);
+  // L'opacité (fiche, § 7), levée par la couche du noyau : la marque d'hiver reste un trait sans
+  // légende, et les pertes ne s'affichent pas, jusqu'au premier bilan, aux deux fenêtres (§ 8) ou au
+  // délai de la Compréhension.
+  const marqueNommee = $derived(lisible("marque"));
+  const pertesVisibles = $derived(lisible("pertes"));
   const grain = $derived(repartition(etat));
 
   /** Une ligne du registre ; un objet d'en haut y porte son nom d'en bas. */
@@ -141,7 +143,7 @@
             >{t("reserve.capacite", { reserve: etat.reserve, capacite: cap })}</strong
           >
         </p>
-        {#if devoile}
+        {#if marqueNommee}
           <p class="marque-texte">
             {o("marque-hiver")} :
             <strong data-test="marque">{t("marque-hiver.valeur", { marque })}</strong>
@@ -160,7 +162,7 @@
           {o("consommation")} :
           <span data-test="consommation">{t("par-jour", { quantite: consommation(etat) })}</span>
         </li>
-        {#if devoile}
+        {#if pertesVisibles}
           <li>
             {o("pertes")} :
             <span data-test="pertes">{t("par-jour", { quantite: pertes(etat) })}</span>
@@ -187,7 +189,7 @@
         bind:fond={fondCoupe}
         {etat}
         {marque}
-        nommee={devoile}
+        nommee={marqueNommee}
         libelle={o("marque-hiver")}
         nom={(id) => o(`stockage.${id}`)}
         titre={o("reserve")}
@@ -271,7 +273,7 @@
                   nombre: n,
                   capacite: s.capacite * etat.multiplicateurs.conservation,
                 })}
-                {#if devoile && n > 0}
+                {#if pertesVisibles && n > 0}
                   · <span data-test="pertes-{s.id}"
                     >{t("stockage.pertes", { pertes: grain[s.id] * s.pertes })}</span
                   >

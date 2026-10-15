@@ -123,6 +123,14 @@ export const textes: Record<string, string> = {
   "amelioration.clic-5": "Objectifs individuels",
   "amelioration.clic-5.description": "Chacun a désormais ses propres chiffres.",
 
+  // ——— Les formules réelles (docs/comprehension.md, § 5), sur le graphe de la strate. Lues à κ ≥ 50
+  // seulement, elles n'entrent pas dans le budget des textes.
+  "formule.prix": "Prix : {base} × 1,15ⁿ, n étant le nombre déjà en service",
+  "formule.production":
+    "Production : n × {production} × 2ᵃ × G, a étant ses améliorations, G celles de toute la production",
+  "formule.clic":
+    "Par clic : 2ᶜ cr + p × P, c étant les améliorations de « Produire », p leur part de la production P",
+
   // ——— L'aide : une page courte, qui décrit tout le tableau de bord et rien d'autre
   aide: "Aide",
   "aide.titre": "Aide du tableau de bord",

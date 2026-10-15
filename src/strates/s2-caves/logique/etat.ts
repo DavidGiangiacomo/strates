@@ -48,6 +48,8 @@ export interface EtatCaves {
     /** Les rations de chaque jour de cet hiver, soudure comprise, additionnées : leur moyenne. */
     rations: number;
     jours: number;
+    /** Un achat a été fait en automne : l'acte « une année sans achat d'automne » est manqué. */
+    achatAutomne: boolean;
   };
   /** Les derniers hivers jugés, du plus ancien au plus récent. */
   hivers: { annee: number; rupture: boolean }[];
@@ -85,7 +87,14 @@ export function etatInitial(): EtatCaves {
     jour: ARRIVEE.jour,
     soudure: false,
     rations: "pleines",
-    bilan: { rupture: false, joursDeRupture: 0, departs: 0, rations: 0, jours: 0 },
+    bilan: {
+      rupture: false,
+      joursDeRupture: 0,
+      departs: 0,
+      rations: 0,
+      jours: 0,
+      achatAutomne: false,
+    },
     hivers: [],
     serie: 0,
     seuilAtteintA: null,

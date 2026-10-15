@@ -24,7 +24,12 @@
   import Fissure from "../../../noyau/ui/Fissure.svelte";
   import Compteur from "./Compteur.svelte";
   import Graphique from "./Graphique.svelte";
-  import { formaterDebit, formaterMontant, formaterNombre, formaterRepere } from "./notation";
+  import {
+    formaterDebit,
+    formaterMontant,
+    formaterNombre,
+    formaterRepere,
+  } from "../logique/notation";
   import { VARIABLES } from "./theme";
 
   let { etat, agir, noyau, o }: ProprietesVue<EtatSurface, ActionSurface> = $props();

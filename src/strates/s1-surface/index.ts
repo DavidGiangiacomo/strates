@@ -1,7 +1,7 @@
 import type { DefinitionStrate } from "../../noyau/logique/types";
 import { logique, type ActionSurface, type EtatSurface } from "./logique";
 import { textes } from "./textes.fr";
-import { formaterMontant } from "./vue/notation";
+import { formaterMontant } from "./logique/notation";
 import { PALETTE, POLICE } from "./vue/theme";
 import Vue from "./vue/Vue.svelte";
 

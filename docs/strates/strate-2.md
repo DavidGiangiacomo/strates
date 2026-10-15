@@ -369,6 +369,15 @@ On ne cache jamais le calendrier ni la marque d'hiver : ce sont les deux informa
   - Le bilan de l'hiver renvoie aux familles, par les naissances et les départs.
   - Les rations règlent la consommation de l'hiver et les naissances du bilan ; la marque les suit.
 - **Formules exposées** : celles du § 3 (récolte, consommation, pertes, marque d'hiver, rations).
+- **Dans le code** ([#78](https://github.com/DavidGiangiacomo/strates/issues/78)) :
+  - **Les actes** : la strate signale les siens au bilan de l'hiver (`ACTES`, dans `logique/regles.ts`). L'année de l'arrivée, entamée, ne compte pas pour « une année sans achat d'automne ». Le noyau constate « sans aide » et « sans artefact ».
+  - **L'opacité** est déclarée à la couche du noyau (`opacite`) : la marque, les pertes, le grand cycle et les naissances.
+    - Le bilan lève la marque, les pertes et, sans rupture, les naissances ; le premier hiver long lève le grand cycle.
+    - Chaque bilan redit ses levées, pour une partie commencée avant l'opacité.
+    - La vue demande `lisible("marque")` et `lisible("pertes")`.
+    - L'armoire dessine toujours les années à venir (§ 8) : c'est son effet, distinct de la levée.
+  - **Le graphe** suit la liste ci-dessus ; les rations y entrent quand elles se comptent. Les formules sont dans `textes.fr.ts` (`formule.*`), hors budget (§ 11).
+  - **κ mesuré** : un jeu correct gagne 11 points sur 14 avec les objets de la surface, 14 sans ([mesures](strate-2-mesures.md)). Le joueur qui apprend manque le premier hiver : 8 et 11.
 
 ## 8. Artefacts reçus
 
@@ -391,7 +400,7 @@ Seuls les artefacts de la surface peuvent être actifs ici, et ils sont **puissa
 
 Ces lignes de l'arrivée et du seuil sont codées avec l'orchestration de la descente ([#30](https://github.com/DavidGiangiacomo/strates/issues/30)) : la strate reçoit les effets des objets dans son contexte d'arrivée.
 
-**Dans le code** ([#34](https://github.com/DavidGiangiacomo/strates/issues/34)) : les caves reconnaissent les objets de la surface par leur identifiant (`OBJETS`, dans `logique/regles.ts`) et les lisent par `EffetsActifs`. Les multiplicateurs restent à 1 tant qu'aucun hiver n'a été jugé ; les autres objets sont notés dans l'état (`objets`), que la vue lit. L'opacité de la marque et des pertes (§ 7) est codée pour que les deux fenêtres aient quelque chose à lever ; le reste de l'opacité viendra avec la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)).
+**Dans le code** ([#34](https://github.com/DavidGiangiacomo/strates/issues/34)) : les caves reconnaissent les objets de la surface par leur identifiant (`OBJETS`, dans `logique/regles.ts`) et les lisent par `EffetsActifs`. Les multiplicateurs restent à 1 tant qu'aucun hiver n'a été jugé ; les autres objets sont notés dans l'état (`objets`), que la vue lit. Les deux fenêtres et l'armoire lèvent l'opacité du § 7 par la couche du noyau, qui les lit dans la déclaration de la strate (`opacite`, [#78](https://github.com/DavidGiangiacomo/strates/issues/78)).
 
 - **Aucun artefact ne raccourcit la strate** : le calendrier en impose la durée (§ 4). Un artefact rend les hivers plus sûrs et la vallée plus grande. Il rapporte donc des points, pas du temps : en simulation, avec les cinq objets d'un jeu correct, le seuil tombe toujours à 1 h 51, avec 9 points. Sans objets, c'est 8 ou 9 selon le jeu, depuis les rations (§ 9).
 - **I2** : le noyau plafonne le produit des multiplicateurs à × 4. Même à × 4 sur la récolte, le cumul ne gagne qu'un point de fouille au plus (log₁₀ 4 × 1,4 ≈ 0,8).
@@ -446,7 +455,7 @@ Ces lignes de l'arrivée et du seuil sont codées avec l'orchestration de la des
 
 ### Dans le code ([#17](https://github.com/DavidGiangiacomo/strates/issues/17))
 
-Tous les textes sont dans `textes.fr.ts` : 726 mots, dont 209 pour l'aide, 117 pour les notes en marge et 171 pour la chronique. Les rations en ont ajouté 112 ([#163](https://github.com/DavidGiangiacomo/strates/issues/163)). Un test vérifie le budget, l'absence de « creuser » et de point d'exclamation, que le registre ne s'adresse jamais au joueur et que l'aide ne parle ni du bandeau, ni de la profondeur, ni des objets.
+Tous les textes sont dans `textes.fr.ts` : 737 mots, dont 209 pour l'aide, 117 pour les notes en marge et 171 pour la chronique. Les rations en ont ajouté 112 ([#163](https://github.com/DavidGiangiacomo/strates/issues/163)), et les noms du graphe 11 ([#78](https://github.com/DavidGiangiacomo/strates/issues/78)). Les formules (`formule.*`, 66 mots), lues à κ ≥ 50 seulement, n'entrent pas dans le budget. Un test vérifie le budget, l'absence de « creuser » et de point d'exclamation, que le registre ne s'adresse jamais au joueur et que l'aide ne parle ni du bandeau, ni de la profondeur, ni des objets.
 - **Les écritures** disent ce qu'on fait : « Installer une famille », « Construire un grenier », « Aménager une cave », « Acheter une charrue », « Adopter l'assolement ». Aucune ne dit « creuser ».
 - **Les notes en marge** : au survol d'une écriture, ou au clavier, un billet de papier glissé à gauche du registre en donne le sens (« Une tour de terre, à moitié enterrée. Le grain s'y garde mieux. »). Sur un téléphone, il se pose au-dessus de l'écriture. Il est lié au bouton (`aria-describedby`).
 - **L'aide** : un lien « Aide », en haut à droite de la vallée, ouvre une page du registre, « Comment tient la vallée », qu'on referme par « Refermer » ou Échap. Elle décrit le calendrier, la réserve, les stockages, les familles et les écritures. Elle ne nomme pas la marque d'hiver, qui ne prend son nom qu'au premier bilan (§ 7), et ne dit pas quand acheter : c'est la leçon du premier hiver (§ 5). Chaque ouverture est notée, comme à la surface.

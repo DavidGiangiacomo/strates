@@ -148,15 +148,22 @@ describe("le grand cycle au registre", () => {
 });
 
 describe("la migration de l'état", () => {
-  it("mène un état de la version 1 à la version 4 : série, seuil et hivers, objets d'en haut, rations", () => {
+  it("mène un état de la version 1 à la version 5 : série, seuil et hivers, objets d'en haut, rations, achats d'automne", () => {
     const { hivers, serie, seuilAtteintA, objets, rations, ...reste } = etatInitial();
     void [hivers, serie, seuilAtteintA, objets, rations];
     const v1 = { ...reste, bilan: { rupture: false, joursDeRupture: 0, departs: 0 } };
-    expect(logique.versionEtat).toBe(4);
+    expect(logique.versionEtat).toBe(5);
     const v2 = logique.migrations[1]!(v1);
     expect(v2).toMatchObject({ hivers: [], serie: 0, seuilAtteintA: null });
     const v3 = logique.migrations[2]!(v2);
     expect(v3).toMatchObject({ objets: { fenetres: false, armoire: false, feuille: false } });
-    expect(logique.migrations[3]!(v3)).toEqual(etatInitial());
+    const v4 = logique.migrations[3]!(v3);
+    expect(v4).toMatchObject({ rations: "pleines", bilan: { rations: 0, jours: 0 } });
+    // L'année entamée ne compte pas pour l'acte : ses achats d'automne sont inconnus.
+    const initial = etatInitial();
+    expect(logique.migrations[4]!(v4)).toEqual({
+      ...initial,
+      bilan: { ...initial.bilan, achatAutomne: true },
+    });
   });
 });

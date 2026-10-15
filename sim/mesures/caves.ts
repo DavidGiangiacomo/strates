@@ -1,5 +1,6 @@
 // Mesures d'une partie des caves jouée par un joueur automatique, pour l'équilibrage (#36).
 import { pointsDeFouille } from "../../src/noyau/logique/artefacts";
+import { BAREME, gainDesActes, SANS_ARTEFACT } from "../../src/noyau/logique/comprehension";
 import { creerEtatNoyau } from "../../src/noyau/logique/etat";
 import { Noyau } from "../../src/noyau/logique/noyau";
 import { Registre, type StrateQuelconque } from "../../src/noyau/logique/registre";
@@ -36,6 +37,13 @@ export interface MesuresCaves {
   outils: number;
   /** Le plafond × 4 des artefacts a-t-il agi ? */
   plafonne: boolean;
+  /**
+   * Les actes de compréhension au seuil, tels que le noyau les créditerait à la descente : ceux qu'il a
+   * notés, et « sans artefact » si aucun objet n'agissait (docs/comprehension.md, § 2).
+   */
+  actes: string[];
+  /** Le κ que ces actes rapporteraient, sur les 14 points des caves. */
+  kappa: number;
 }
 
 /** Les décisions se comptent par tranches de 10 minutes. */
@@ -93,6 +101,9 @@ export async function mesurerCaves(
 
   const seuil = noyau.seuil.atteint ? t : null;
   const e = etat();
+  const entree = noyau.etat.meta.journal.strates.at(-1)!;
+  const agit = noyau.etat.artefacts.some((id) => noyau.effets.niveau(id) !== null);
+  const actes = agit ? [...entree.actes] : [...entree.actes, SANS_ARTEFACT];
   const mesures = {
     seuil,
     cumul: e.cumul,
@@ -111,6 +122,8 @@ export async function mesurerCaves(
     stockages: { ...e.stockages },
     outils: e.outils,
     plafonne: noyau.effets.plafonne,
+    actes,
+    kappa: gainDesActes(BAREME, 2, actes),
   };
 
   const apres: Record<number, number> = {};

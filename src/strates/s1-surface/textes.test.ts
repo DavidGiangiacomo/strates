@@ -31,8 +31,10 @@ describe("les textes de la surface", () => {
     for (const texte of Object.values(textes)) expect(texte).not.toContain("!");
   });
 
-  it("tiennent dans leur budget, environ 600 mots", () => {
-    const total = Object.values(textes).reduce((n, t) => n + mots(t), 0);
+  it("tiennent dans leur budget, environ 600 mots, hors formules lues à κ ≥ 50", () => {
+    const total = Object.entries(textes)
+      .filter(([cle]) => !cle.startsWith("formule."))
+      .reduce((n, [, t]) => n + mots(t), 0);
     expect(total).toBeGreaterThan(450);
     expect(total).toBeLessThan(750);
   });

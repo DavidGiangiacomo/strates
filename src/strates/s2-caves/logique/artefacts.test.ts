@@ -254,7 +254,11 @@ describe("le journal de session", () => {
     jusquauBilan(etat, 1, ctx);
     // Le premier bilan : le jugement de l'hiver, les pertes, puis l'éveil des trois multiplicateurs.
     const ecrites = etat.registre.slice(4).map((l) => ({ type: "trace", ...l }));
-    const lignes = traces.filter((t) => (t as { cle: string }).cle.startsWith("registre."));
+    // Les actes et les levées du bilan passent par le même canal, sans clé de texte.
+    const lignes = traces.filter((t) => {
+      const e = t as { type: string; cle?: string };
+      return e.type === "trace" && e.cle?.startsWith("registre.");
+    });
     expect(lignes).toEqual(ecrites);
     expect(lignes.map((t) => (t as { cle: string }).cle)).toContain("registre.pertes");
   });
