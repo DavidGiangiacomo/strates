@@ -2,7 +2,7 @@
 
 *Concept n°7 du document « Douze concepts de jeux incrémentaux ».*
 *Format visé : **jeu long, 18 à 25 h**, multi-sessions, **prestige structurel** (la descente), hors-ligne oui. Références de cadrage : Kittens Game et Antimatter Dimensions (la durée, les couches de systèmes), Universal Paperclips (le changement de grammaire en cours de route), Outer Wilds (le plaisir d'archéologue).*
-*Révisions : D-002, modèle des artefacts ; D-003, valeur convertible de chaque strate ; D-005, sauvegarde et horloge (24 septembre 2026) ; D-007, paliers de la Compréhension (6 octobre 2026). Le détail des décisions est dans `docs/decisions.md`.*
+*Révisions : D-002, modèle des artefacts ; D-003, valeur convertible de chaque strate ; D-005, sauvegarde et horloge (24 septembre 2026) ; D-007, paliers de la Compréhension (6 octobre 2026) ; D-008, la suite sans go / no-go (15 octobre 2026). Le détail des décisions est dans `docs/decisions.md`.*
 
 ---
 
@@ -278,6 +278,8 @@ Un mois, pas un week-end — c'est la contrainte de ce concept :
 
 **Le test** : au bout de dix minutes dans la strate 2, le joueur essaie-t-il de jouer comme en strate 1 — et est-ce que le moment où il comprend que ça ne marche pas est agréable ou frustrant ? Si c'est frustrant, le concept ne tient pas, et les six strates suivantes ne le sauveront pas.
 
+*Depuis D-008, le projet continue quel que soit le résultat de ce test : il reste un outil d'observation, et n'est plus une condition.*
+
 ---
 
 ## 15. Notes d'implémentation
@@ -293,7 +295,7 @@ Un mois, pas un week-end — c'est la contrainte de ce concept :
 
 ## À trancher ensuite
 
-1. **Est-ce le bon projet maintenant ?** Réponse honnête : non, pas en premier. C'est le concept le plus ambitieux des douze, et il demande un jeu déjà terminé derrière soi. À garder comme projet n°3. *Tranché par D-006 : le projet va au moins jusqu'au MVP, et la suite se décide au go / no-go.*
+1. **Est-ce le bon projet maintenant ?** Réponse honnête : non, pas en premier. C'est le concept le plus ambitieux des douze, et il demande un jeu déjà terminé derrière soi. À garder comme projet n°3. *Tranché par D-006, puis par D-008 : le projet continue, quel que soit le résultat du test du MVP.*
 2. Verrouiller R1 par écrit : 8 strates, jamais plus, jamais de procédural. *Fait : D-001.*
 3. Concevoir les strates 2 et 5 en détail (les deux plus originales) avant les autres — si celles-là ne tiennent pas, le concept ne tient pas. *Fait : les fiches des strates 2 et 5 sont dans `docs/strates/`, avec celle de la surface.*
-4. Prototyper : strates 1 et 2 seulement, avec la descente. *Fait en phase 1 : le MVP est construit. Il attend son test (§14), puis le go / no-go (D-006).*
+4. Prototyper : strates 1 et 2 seulement, avec la descente. *Fait en phase 1 : le MVP est construit et publié. Depuis D-008, son test (§14) ne conditionne plus la suite.*
