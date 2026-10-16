@@ -41,14 +41,14 @@ La progression du §9 est le **maximum** : le joueur qui accomplit tous les acte
 |---|---|---|---|---|---|
 | 1 · La surface | 0 | 8 | 3 | — | creuser avant la fissure, sans y avoir été poussé : 5 |
 | 2 · Les caves | 8 | 14 | 3 | 3 | le premier hiver sans rupture, soudure comprise : 3 ; une année sans achat d'automne et sans rupture : 2 ; le seuil au plus tôt, sans grand hiver manqué : 3 |
-| 3 · L'atelier | 22 | 16 | 4 | 3 | à définir par sa fiche : 9, dont la gêne de deux pièces voisines défaite avant que l'atelier ne la montre |
+| 3 · L'atelier | 22 | 16 | 4 | 3 | la gêne défaite avant que l'atelier ne la montre : 3 ; le premier plan plein qui tourne : 3 ; le seuil sans limer : 3 |
 | 4 · Le réseau | 38 | 17 | 4 | 3 | à définir par sa fiche : 10, dont le goulot trouvé avant que le réseau ne le signale |
 | 5 · Le chœur | 55 | 15 | 4 | 3 | à définir par sa fiche : 8, dont un rapport juste réglé à l'œil |
 | 6 · La dette | 70 | 15 | 3 | 3 | à définir par sa fiche : 9, dont toutes les dettes soldées, sans défaut |
 | 7 · Le lit | 85 | 11 | 2 | 3 | à définir par sa fiche : 6, dont la patience (peu de gestes jusqu'à la descente) |
 | 8 · Le fond | 96 | 4 | — | — | y arriver |
 
-- Les actes des strates 1 et 2 viennent de leurs fiches (§ 7), revus ici : à la surface, « creuser sans y avoir été poussé » pèse plus que « sans aide », que tout joueur d'incrémentaux fait sans y penser ; dans les caves, « sans artefact » remplace « le premier grand hiver au premier essai », que contient déjà « le seuil au plus tôt ».
+- Les actes des strates 1 à 3 viennent de leurs fiches (§ 7). Ceux des strates 1 et 2 sont revus ici : à la surface, « creuser sans y avoir été poussé » pèse plus que « sans aide », que tout joueur d'incrémentaux fait sans y penser ; dans les caves, « sans artefact » remplace « le premier grand hiver au premier essai », que contient déjà « le seuil au plus tôt ».
 - **Un jeu correct** en gagne environ les deux tiers, et arrive au fond vers κ = 65. C'est une estimation : elle sera mesurée au fil des strates, avec leurs joueurs automatiques.
 
 ## 3. Les paliers
