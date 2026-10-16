@@ -150,13 +150,13 @@ Pour chaque couche : ce qu'elle était, ce qu'elle optimisait, sa fin, sa voix, 
 
 - **Ce qu'il était** : des artisans à l'établi. Des gabarits, des limes, des étaux ; un plan quadrillé où chaque pièce a sa case ; des mécanismes de pièces qui s'emboîtent, comme ceux d'une horloge. C'est l'écho voulu au concept n°8, *L'horloger* (§10), sans en dépendre.
 - **Ce qu'il optimisait** : l'ajustement. Que tout tienne, sans jeu et sans vide : une pièce bien placée aide ses voisines ; mal placée, elle les gêne.
-- **Sa fin** : le plan plein. Plus une case libre, et l'assemblage tourne : il n'y avait plus rien à placer. « Il ne reste aucune case. » La feuille qui annonce en a déjà fait lire une ligne dans les caves : « Il reste soixante-trois cases. »
+- **Sa fin** : le plan plein. Plus une case libre, et l'assemblage tourne : il n'y avait plus rien à placer. « Il ne reste aucune case. » La feuille qui annonce en a déjà fait lire une ligne dans les caves, en base douze comme toutes celles de l'atelier : « Il reste 53 cases. »
 - **Sa voix** : les légendes d'un plan et sa nomenclature. Des noms de pièces, des cotes, des mentions brèves : « ajustée », « gêne sa voisine », « à reprendre ».
 - **Ses mots** : établi, gabarit, plan, case, pièce, cote, jeu, ajuster, roue dentée, ressort, nomenclature.
 - **Ses restes** : des « pièces sans plan », trouvées sous l'établi. Creuses, sans cote, elles ne s'emboîtent avec rien. Ce sont les conduites et les vannes du réseau.
 - **Ses traces** : « Il ne reste aucune case. », le compte des pièces du dernier assemblage, une pièce sans plan mise de côté.
 - **Les objets d'en haut** : des pièces et des outils, nommés par leur forme et leur place : « la lame courbe », « le caisson froid ».
-- **À fixer par sa fiche** ([#61](https://github.com/DavidGiangiacomo/strates/issues/61)) : sa notation (I1). Proposition : les artisans comptent à la douzaine et à la grosse.
+- **Sa notation** (I1), fixée par sa [fiche](strates/strate-3.md) : la base douze. Après 9 viennent ↊ et ↋, puis 10, une douzaine ; 100 est une grosse.
 
 ### 4 · Le réseau — relier, Flux
 
@@ -364,7 +364,7 @@ Jamais de résumé de la civilisation, d'indice, ni de « vous ». Les lignes «
 
 ## 12. Questions ouvertes
 
-1. **Les notations proposées** : la douzaine pour l'atelier, la crue pour les échéances de la dette. Leurs fiches trancheront (I1).
+1. **Les notations proposées** : la crue pour les échéances de la dette, que sa fiche tranchera (I1). La douzaine de l'atelier est devenue la base douze ([fiche](strates/strate-3.md), § 1).
 2. **Les noms des objets au fond** : un nombre d'encoches, ou pas de nom du tout.
 3. **La dernière phrase du lit** : si ses deux sens se gênent au playtest, garder celui de la descente.
 4. **Les restes dessinés** : le pavement du chœur et les encoches sous le limon ne s'écrivent pas. Il faudra qu'on les voie, sans qu'ils attirent plus l'œil qu'un détail.

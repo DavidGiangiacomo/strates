@@ -139,16 +139,16 @@ Six objets, 17 points au total. Les noms d'en bas sont ceux des caves : une vall
 | 4 | `s1-turbine` | La turbine | la roue chaude | multiplicateur, principal |
 | 5 | `s1-plan` | Plan stratégique | la feuille qui annonce | unique |
 
-**Effets.** Puissants dans les caves (strate 2), utiles dans l'atelier (strate 3). Les effets utiles des familles autres que multiplicateur seront écrits avec la fiche de la strate 3 ([#61](https://github.com/DavidGiangiacomo/strates/issues/61)) ; ce qui suit en fixe le principe.
+**Effets.** Puissants dans les caves (strate 2), utiles dans l'atelier (strate 3). Les effets utiles sont fixés par la [fiche de l'atelier](strates/strate-3.md), § 8 : ses multiplicateurs tendent le ressort, et ne valent que pour les pièces qu'il entraîne directement.
 
 | Objet | Puissant, dans les caves | Utile, dans l'atelier |
 |---|---|---|
-| les bras en plus | récolte × 1,2 | levier principal × 1,1 |
-| les deux fenêtres | dès l'arrivée, la marque d'hiver porte son nom et les pertes des stockages sont affichées : l'opacité du § 7 de la fiche est levée pour ces deux éléments | une part plus petite de l'opacité de l'atelier, levée à l'arrivée |
-| l'armoire qui compte les hivers | dès l'arrivée, l'anneau du grand cycle dessine d'avance les années à venir, avec la longueur de leurs hivers | une grandeur future de l'atelier, dévoilée d'avance, moins loin |
-| le grenier d'ailleurs | capacité de tous les stockages × 1,5 (levier `conservation`) | levier secondaire de l'atelier, ou principal s'il n'en a pas, × 1,25 |
-| la roue chaude | récolte × 1,5 | levier principal × 1,25 |
-| la feuille qui annonce | au seuil, le registre écrit une ligne de plus, d'une autre main : une ligne de l'atelier, avant d'y descendre. Proposition : « Il reste soixante-trois cases. » | au seuil de l'atelier, la moitié d'une ligne du réseau (strate 4), coupée au milieu |
+| les bras en plus | récolte × 1,2 | levier principal `ressort` × 1,1 |
+| les deux fenêtres | dès l'arrivée, la marque d'hiver porte son nom et les pertes des stockages sont affichées : l'opacité du § 7 de la fiche est levée pour ces deux éléments | les noms de la nomenclature, levés à l'arrivée |
+| l'armoire qui compte les hivers | dès l'arrivée, l'anneau du grand cycle dessine d'avance les années à venir, avec la longueur de leurs hivers | la nomenclature montre d'avance la pièce suivante, avec son profil et son prix |
+| le grenier d'ailleurs | capacité de tous les stockages × 1,5 (levier `conservation`) | levier secondaire `plan` : les agrandissements du plan ÷ 1,25 |
+| la roue chaude | récolte × 1,5 | levier principal `ressort` × 1,25 |
+| la feuille qui annonce | au seuil, le registre écrit une ligne de plus, d'une autre main : une ligne de l'atelier, avant d'y descendre, dans sa base douze : « Il reste 53 cases. » | au seuil de l'atelier, la moitié d'une ligne du réseau (strate 4), coupée au milieu. Proposition : « Vanne 3 : ouverte d'un » |
 
 Dans les caves, les **multiplicateurs ne s'éveillent qu'au bilan du premier hiver**. Les affichages et les raccourcis agissent dès l'arrivée ; l'effet unique, au seuil.
 
