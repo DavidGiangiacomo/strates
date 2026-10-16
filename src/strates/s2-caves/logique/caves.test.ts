@@ -286,13 +286,13 @@ describe("les artefacts", () => {
   });
 });
 
-describe("l'absence : l'hiver vous attend", () => {
+describe("l'absence : l'hiver attend", () => {
   const absence = (etat: EtatCaves, secondes: number) => logique.absence!(etat, secondes, CTX);
 
   it("ne compte pas en hiver : le calendrier s'arrête", () => {
     const etat = { ...etatInitial(), jour: 360 };
     const avant = JSON.stringify(etat);
-    expect(absence(etat, 8 * 3600).lignes).toEqual(["L'hiver vous attendait : rien n'a bougé."]);
+    expect(absence(etat, 8 * 3600).lignes).toEqual(["L'hiver attendait : rien n'a bougé."]);
     expect(JSON.stringify(etat)).toBe(avant);
   });
 
@@ -311,7 +311,7 @@ describe("l'absence : l'hiver vous attend", () => {
     expect(etat.jour).toBe(350);
     expect(etat.temps).toBeCloseTo(280, 6);
     expect(etat.bilan.rupture).toBe(false);
-    expect(lignes.at(-1)).toBe("Les premiers froids sont là. L'hiver vous attend.");
+    expect(lignes.at(-1)).toBe("Les premiers froids sont là. L'hiver attend.");
   });
 
   it("s'arrête à la veille d'une rupture, et n'en provoque jamais", () => {

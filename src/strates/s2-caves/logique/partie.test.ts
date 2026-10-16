@@ -151,7 +151,7 @@ describe("les premières années, à travers le noyau", () => {
     const reprise = noyau.rattraper(3600 * 1000);
     expect(reprise).toMatchObject({ type: "absence", politique: "propre", comptee: 3600 });
     if (reprise.type !== "absence") throw new Error("absence attendue");
-    expect(reprise.lignes.at(-1)).toBe("Les premiers froids sont là. L'hiver vous attend.");
+    expect(reprise.lignes.at(-1)).toBe("Les premiers froids sont là. L'hiver attend.");
     expect(etat.jour).toBe(350);
     expect(noyau.etat.meta.journal.strates.at(-1)!.tempsHorsLigne).toBe(3600);
   });

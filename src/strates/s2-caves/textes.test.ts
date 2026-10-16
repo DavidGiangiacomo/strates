@@ -4,6 +4,9 @@ import { OUTILS, STOCKAGES } from "./logique/regles";
 import { textes } from "./textes.fr";
 
 const mots = (texte: string) => texte.split(/\s+/).filter((m) => /\p{L}/u.test(m)).length;
+// Les mots que la bible interdit partout, et « artefact », réservé au bandeau (docs/bible.md, § 2).
+const interdits =
+  /ancien|ancêtre|civilisation|prophétie|mystère|secret|(?<!\p{L})destins?(?!\p{L})|magie|bravo|félicitation|artefact/iu;
 
 describe("les textes des caves", () => {
   it("nomment chaque stockage et chaque outil, avec une écriture et une note en marge", () => {
@@ -29,14 +32,19 @@ describe("les textes des caves", () => {
     expect(aide).not.toMatch(/bandeau|profondeur|artefact|objet/i);
   });
 
-  it("ne laissent pas le registre s'adresser au joueur, ni s'exclamer", () => {
-    for (const [cle, texte] of Object.entries(textes)) {
+  it("ne s'adressent jamais au joueur, ne s'exclament pas, et n'écrivent aucun mot que la bible interdit", () => {
+    for (const texte of Object.values(textes)) {
       expect(texte).not.toContain("!");
-      if (cle.startsWith("registre.")) expect(texte).not.toMatch(/\bvous\b|\bvotre\b|\bvos\b/i);
+      expect(texte).not.toMatch(/\bvous\b|\bvotre\b|\bvos\b/i);
+      expect(texte).not.toMatch(interdits);
     }
   });
 
-  it("tiennent dans leur budget, environ 600 mots, hors formules lues au-delà de κ = 50", () => {
+  it("plantent leur reste (bible, § 3) : les roues sans moulin, dans la cave profonde", () => {
+    expect(textes["stockage.caveProfonde.note"]).toContain("les roues sans moulin");
+  });
+
+  it("tiennent dans leur budget, 750 mots depuis les rations, hors formules lues au-delà de κ = 50", () => {
     const total = Object.entries(textes)
       .filter(([cle]) => !cle.startsWith("formule."))
       .reduce((n, [, t]) => n + mots(t), 0);

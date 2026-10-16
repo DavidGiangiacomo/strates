@@ -236,8 +236,8 @@ Sans objet : aucun artefact n'arrive jamais à la surface, puisqu'aucune strate 
 
 ## 11. Textes
 
-- **Budget** : environ 600 mots, soit un huitième des quelque 5 000 mots du jeu. La rédaction est l'objet de [#16](https://github.com/DavidGiangiacomo/strates/issues/16). Ces textes sont provisoires et seront révisés d'après la bible narrative ([#60](https://github.com/DavidGiangiacomo/strates/issues/60)).
-- **Ton** : celui d'un logiciel bien fait. Des phrases courtes et polies, sans point d'exclamation ni humour appuyé : « Objectif atteint. » plutôt que « Bravo ! ».
+- **Budget** : environ 600 mots, soit un huitième des quelque 5 000 mots du jeu. La rédaction est l'objet de [#16](https://github.com/DavidGiangiacomo/strates/issues/16), et la révision d'après la bible narrative celui de [#60](https://github.com/DavidGiangiacomo/strates/issues/60).
+- **Ton** : celui d'un logiciel bien fait. Des phrases courtes et polies, sans point d'exclamation ni humour appuyé : « Objectif atteint. » plutôt que « Bravo ! ». Aucun texte ne s'adresse au joueur, pas même l'aide ([`bible.md`](../bible.md), § 2).
 - **À écrire** :
   - le nom et une ligne de description de chaque générateur (7) et de chaque amélioration (29) ;
   - les 10 objectifs et le message final, « Tous les objectifs sont atteints. » ;
@@ -248,11 +248,12 @@ Sans objet : aucun artefact n'arrive jamais à la surface, puisqu'aucune strate 
 
 ### Dans le code ([#16](https://github.com/DavidGiangiacomo/strates/issues/16))
 
-Tous les textes sont dans `textes.fr.ts` : 604 mots, dont 259 pour les descriptions et 182 pour l'aide. Un test vérifie le budget, l'absence de « creuser » et de point d'exclamation, et que l'aide ne parle ni du bandeau, ni de la profondeur, ni des artefacts.
+Tous les textes sont dans `textes.fr.ts` : 609 mots, dont 264 pour les descriptions et 182 pour l'aide. Un test vérifie le budget, l'absence de « creuser », de point d'exclamation et des mots que la bible interdit (§ 2), qu'aucun texte ne s'adresse au joueur, et que l'aide ne parle ni du bandeau, ni de la profondeur, ni des artefacts.
 - **Les infobulles** : au survol d'un moyen de production ou d'une amélioration, ou au clavier, sa description paraît au-dessus de la ligne. Elle est liée au bouton d'achat (`aria-describedby`).
 - **« Objectif atteint. »** s'affiche trois secondes sous l'objectif suivant, dans le vert des objectifs atteints, à chaque objectif atteint pendant qu'on regarde.
 - **L'aide** : un lien « Aide », discret, en haut à droite du tableau de bord, ouvre un panneau qu'on referme par « Fermer » ou Échap. Le tableau de bord continue de tourner. Chaque ouverture est notée au journal de partie (`Noyau.noterAide`, pour l'acte « sans aide » du § 7) et au journal de session des playtests.
 - **Les moyens de production** disent « 32 en service » : « Possédés » ne s'accordait pas avec les usines ou les turbines.
+- **Le reste** ([`bible.md`](../bible.md), § 3) : la description du serveur le place « au sous-sol, au frais ». Ce sont les caves de la vallée ; aucun texte ne le dit.
 - **Les traces pour le fond** (`trace.1` à `trace.3`) attendent la strate 8 ([#109](https://github.com/DavidGiangiacomo/strates/issues/109)).
 - Les noms « Double écran » et « Plan stratégique », comme ceux des moyens de production, sont aussi des noms d'en haut du catalogue des objets ([`artefacts.md`](../artefacts.md), § 8) : les deux listes doivent rester d'accord.
 
