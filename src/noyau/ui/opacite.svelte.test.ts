@@ -12,6 +12,7 @@ import { Registre, type StrateQuelconque } from "../logique/registre";
 import type { ActionBase, NumeroStrate, ProprietesVue } from "../logique/types";
 import { CoucheOpacite } from "./opacite.svelte";
 import { rendreStrateReactive } from "./reactivite.svelte";
+import { SILENCE } from "../plateforme/audio";
 
 const DEBUT = 1_000 * 3600 * 1000;
 
@@ -53,6 +54,7 @@ function monter(noyau: Noyau): CoucheOpacite {
       o: opacite.o,
       lisible: opacite.lisible,
       mode: "jeu",
+      son: SILENCE,
     },
   });
   flushSync();

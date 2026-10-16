@@ -270,7 +270,7 @@ Vertical, coloré, sonore (§5). C'est la strate la moins écrite du jeu, et la 
 - **Mouvement** : vertical et lent. Les barres glissent, elles ne sautent pas.
 - **Sons** :
   - chaque pupitre est une voix tenue, de synthèse, avec un timbre de voyelle ; le bourdon est grave, et le pupitre le plus haut reste dans le médium ;
-  - le battement s'entend parce qu'il est réel : deux sons presque justes battent d'eux-mêmes, et rien n'est simulé ;
+  - le battement s'entend parce qu'il est réel : deux sons presque justes battent d'eux-mêmes, et rien n'est simulé. Le moteur audio ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)) en donne les moyens : des voix tenues de synthèse, aux timbres de voyelles, qui glissent et respirent (`son.voix`, [architecture](../architecture.md), § 5) ;
   - une paire pure fait sonner un harmonique léger ;
   - les voix respirent, le volume général reste bas, et le chœur se tait quand l'onglet est caché. Deux heures de notes tenues fatiguent : c'est un risque (§ 13) ;
   - un navigateur ne joue aucun son avant un geste : le chœur commence au premier clic après un rechargement.

@@ -8,6 +8,7 @@
   import { Noyau } from "../logique/noyau";
   import type { StrateQuelconque } from "../logique/registre";
   import type { ActionBase, CommandesNoyau, ProprietesVue } from "../logique/types";
+  import { MoteurAudio, type BanqueSons } from "../plateforme/audio";
   import { demarrerAutosauvegarde } from "../plateforme/autosauvegarde";
   import { demarrerBoucle } from "../plateforme/boucle";
   import { graineAleatoire, maintenant } from "../plateforme/horloge";
@@ -27,6 +28,7 @@
   import { DUREES, DUREES_REDUITES, Passage } from "./passage.svelte";
   import Pioche from "./Pioche.svelte";
   import { resumerReprise } from "./reprise";
+  import { SONS_NOYAU } from "./sons";
 
   type VueStrate = Component<ProprietesVue<object, ActionBase>>;
 
@@ -42,11 +44,15 @@
   }
   /** Multiplie le temps de jeu : réglée par les outils de développement, toujours 1 sinon. */
   let vitesse = $state(1);
-  /** La strate montée, son état réactif et sa couche d'opacité : ils changent à la descente. */
+  /**
+   * La strate montée, son état réactif, sa couche d'opacité et sa banque de sons : ils changent à la
+   * descente.
+   */
   let courante = $state.raw<{
     strate: StrateQuelconque;
     etat: object;
     opacite: CoucheOpacite;
+    son: BanqueSons;
   } | null>(null);
   /** L'élément de la strate à l'écran : la fente en prend une copie. */
   let elementStrate: HTMLElement | undefined = $state();
@@ -115,11 +121,19 @@
     };
     // Rattrape le temps passé depuis la dernière sauvegarde, avant de rendre l'état réactif.
     reprendre(noyau.rattraper(maintenant()));
-    const monter = () => {
+    // Le son (#46) s'ouvre au premier geste du joueur. Le noyau a sa banque, celle du sol ; chaque
+    // strate a la sienne, ouverte au montage de sa vue et libérée quand elle est quittée.
+    const moteur = new MoteurAudio();
+    arrets.push(() => moteur.arreter());
+    const sol = moteur.banque(SONS_NOYAU);
+    /** Monte la strate courante. Pendant la descente, elle arrive figée, et muette. */
+    const monter = (pendantLaDescente = false) => {
+      courante?.son.liberer();
       courante = {
         strate: noyau.strate,
         etat: rendreStrateReactive(noyau),
         opacite: new CoucheOpacite(noyau),
+        son: moteur.banque(noyau.strate.sons ?? {}, pendantLaDescente),
       };
       // Le graphe ouvert était celui de la strate quittée.
       grapheOuvert = false;
@@ -132,10 +146,15 @@
       maintenant,
       attendre,
       sauvegarder,
-      changerStrate: monter,
+      changerStrate: () => monter(true),
       resister: () => bandeau?.resister(),
+      sonner: (son, duree) => sol.jouer(son, { duree }),
       signaler: (message) => (avis = message),
-      surEvenement: (evenement) => session?.journal.noter(evenement),
+      surEvenement: (evenement) => {
+        session?.journal.noter(evenement);
+        // Figée pendant tout le passage, la strate se tait aussi (docs/strates/descente-1-2.md).
+        if (evenement.type === "phase") courante?.son.etouffer(evenement.phase !== "jeu");
+      },
       durees: sansMouvement() ? DUREES_REDUITES : DUREES,
     });
 
@@ -176,7 +195,7 @@
       location.reload();
     }
 
-    const dev = { gestionnaire, profondeurs: registre.numeros(), remplacerPartie };
+    const dev = { gestionnaire, profondeurs: registre.numeros(), remplacerPartie, moteur, sol };
     return { noyau, passage, commandes, dev, session };
   }
 
@@ -265,7 +284,7 @@
     aria-hidden={phase === "fouille" ? "true" : undefined}
   >
     {#if courante}
-      {@const { strate, etat, opacite } = courante}
+      {@const { strate, etat, opacite, son } = courante}
       {@const Vue = strate.vue as VueStrate}
       {#key strate}
         <Vue
@@ -275,6 +294,7 @@
           o={opacite.o}
           lisible={opacite.lisible}
           mode="jeu"
+          {son}
         />
       {/key}
     {/if}

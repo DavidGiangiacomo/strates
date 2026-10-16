@@ -59,6 +59,7 @@ Avec `npm run dev`, un bouton « dev » en bas à droite ouvre le panneau des ou
 - **Horloge** : absence simulée (1 min à 3 jours) et recul d'horloge (2 min à 2 h), pour tester le hors-ligne et les perturbations du journal.
 - **Parties** : les [sauvegardes nommées](sauvegardes-nommees/README.md), le saut direct à une strate, une nouvelle partie, le téléchargement et l'import d'une sauvegarde.
 - **État** : l'état de la strate courante en JSON, les artefacts et κ, à modifier à la main.
+- **Son** : le volume et le son coupé ; les trois sons du sol ; deux voix, un bourdon et sa quinte, à désaccorder pour entendre leurs battements ; un accord.
 
 Tout ce qui change la partie passe par une sauvegarde, puis un rechargement : le vrai chemin de chargement, migrations comprises. La partie repart alors de l'heure courante.
 

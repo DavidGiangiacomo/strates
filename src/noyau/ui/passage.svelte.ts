@@ -6,6 +6,7 @@ import { artefact, type FouilleOuverte } from "../logique/artefacts";
 import type { Noyau } from "../logique/noyau";
 import type { ApparenceValeur, NumeroStrate } from "../logique/types";
 import { formaterBrut, formuleConversion, NOMS_STRATES, TEXTES_FOUILLE } from "./fouille";
+import type { SonNoyau } from "./sons";
 
 /**
  * - jeu : la strate se joue ;
@@ -90,6 +91,11 @@ export interface DependancesPassage {
   changerStrate: () => void;
   /** Le sol résiste : le bandeau tressaille. */
   resister: () => void;
+  /**
+   * Fait entendre le sol (#46) : le coup sourd quand il résiste, le coup de pioche et l'éboulement,
+   * le grondement de la descente. `duree` : le son se coupe à la fin de sa phase.
+   */
+  sonner?: (son: SonNoyau, duree?: number) => void;
   /** Un message au joueur. */
   signaler: (message: string) => void;
   /** Ce qui se passe, pour le journal de session. */
@@ -142,6 +148,7 @@ export class Passage {
     if (!noyau.demanderFouille()) {
       this.#signaler({ type: "creuser", reponse: "resiste" });
       this.#d.resister();
+      this.#d.sonner?.("resiste");
       return;
     }
     if (noyau.strateSuivante === null) {
@@ -167,6 +174,7 @@ export class Passage {
       apparence: strate.apparenceValeur,
       formule: formuleConversion(this.kappa, libelle) ?? undefined,
     };
+    this.#d.sonner?.("pioche");
     this.#passer("pioche");
     await this.#d.attendre(this.#durees.pioche);
     this.#passer("fouille");
@@ -213,6 +221,8 @@ export class Passage {
     const sauvegarde = this.#d.sauvegarder().catch(() => false);
 
     const d = this.#durees;
+    // Le grondement dure le travelling : moins long, sans mouvement, il est coupé à sa fin.
+    this.#d.sonner?.("descente", d.descente / 1000);
     this.#passer("descente");
     await this.#d.attendre(d.miCourse);
     this.profondeur = noyau.etat.profondeur;

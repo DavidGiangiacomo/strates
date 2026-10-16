@@ -10,6 +10,7 @@ import { Noyau } from "../logique/noyau";
 import { Registre, type StrateQuelconque } from "../logique/registre";
 import type { LogiqueStrate } from "../logique/types";
 import { DUREES, PAS_DE_SUITE, Passage, type EvenementPassage, type Phase } from "./passage.svelte";
+import type { SonNoyau } from "./sons";
 
 type LogiqueFactice = LogiqueStrate<EtatFactice, ActionFactice>;
 
@@ -43,6 +44,7 @@ async function partie(
     sauvegarder: 0,
     messages: [] as string[],
     evenements: [] as EvenementPassage[],
+    sons: [] as [SonNoyau, number | undefined][],
   };
   const passage = new Passage({
     noyau,
@@ -56,6 +58,7 @@ async function partie(
       }),
     changerStrate: () => appels.changer++,
     resister: () => appels.resister++,
+    sonner: (son, duree) => appels.sons.push([son, duree]),
     signaler: (m) => appels.messages.push(m),
     surEvenement: (e) => appels.evenements.push(e),
   });
@@ -75,10 +78,11 @@ afterEach(() => {
 });
 
 describe("le coup de pioche", () => {
-  it("fait résister le sol avant le seuil", async () => {
+  it("fait résister le sol avant le seuil : le bandeau tressaille, le sol sonne sourd", async () => {
     const { passage, appels } = await partie();
     await passage.creuser();
     expect(appels.resister).toBe(1);
+    expect(appels.sons).toEqual([["resiste", undefined]]);
     expect(passage.phase).toBe("jeu");
   });
 
@@ -92,10 +96,12 @@ describe("le coup de pioche", () => {
   });
 
   it("ouvre la fouille au seuil : la strate se fend, puis l'écran de fouille", async () => {
-    const { noyau, passage } = await partie();
+    const { noyau, passage, appels } = await partie();
     auSeuil(noyau);
     const creuse = passage.creuser();
     expect(passage.phase).toBe("pioche");
+    // Le coup de pioche s'entend dès le clic : le coup sourd, puis l'éboulement.
+    expect(appels.sons).toEqual([["pioche", undefined]]);
     expect(noyau.suspendu).toBe(true);
     expect(passage.ecran).toMatchObject({
       nom: "La surface",
@@ -173,6 +179,8 @@ describe("la descente", () => {
     expect(noyau.etat.profondeur).toBe(2);
     expect(appels).toMatchObject({ changer: 1, sauvegarder: 1 });
     expect(passage.phase).toBe("descente");
+    // Le sol gronde pendant tout le travelling.
+    expect(appels.sons.at(-1)).toEqual(["descente", DUREES.descente / 1000]);
     expect(passage.transportes).toEqual(["L'équipe", "La turbine"]);
     // Le bandeau suit le spectacle : la Profondeur change à mi-course, les objets à l'arrivée, puis
     // la Compréhension. La surface a été passée sans aide : 3 points, déjà crédités au noyau.

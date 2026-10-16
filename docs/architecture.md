@@ -22,6 +22,7 @@ src/strates/s2-caves/
     migrations.ts   migrations de l'état (D-005)
   vue/
     Vue.svelte      composant racine, monté sous le bandeau
+    sons.ts         sa banque de sons, si elle en a (§ 5, « Le son »)
   textes.fr.ts      libellés, infobulles, aide, traces pour le fond
   index.ts          export const strate: DefinitionStrate<EtatCaves, ActionCaves>
 ```
@@ -226,6 +227,8 @@ interface ProprietesVue<E, A extends ActionBase> {
   lisible: (element: string) => boolean;
   /** « remontee » pendant la fin « Remonter » : interface visible, rien à faire. */
   mode: "jeu" | "remontee";
+  /** Ce que la strate fait entendre : ses sons, ses voix, ses notes (voir « Le son », plus bas). */
+  son: SonStrate;
 }
 
 interface CommandesNoyau {
@@ -250,6 +253,8 @@ interface DefinitionStrate<E, A extends ActionBase> {
   apparenceValeur?: { police: string; couleur: string; fond: string };
   /** Les glyphes de ses textes opaques, dans son style. Sans eux, ceux du noyau. */
   glyphes?: string;
+  /** Sa banque de sons, que sa vue joue par `son` : chargée au montage, libérée au démontage. */
+  sons?: Record<string, SourceSon>;
 }
 ```
 
@@ -261,7 +266,48 @@ interface DefinitionStrate<E, A extends ActionBase> {
   - À la place d'un texte opaque, elle met un glyphe par mot, tiré de la clé : toujours le même pour la même clé. Une valeur écrite par un modèle (« {n} ») est masquée avec son texte.
   - La levée elle-même se calcule dans le noyau, sans Svelte (`noyau/logique/opacite.ts`) : voir [`comprehension.md`](comprehension.md), § 8.
   - Le graphe de dépendances y lit aussi si un nœud est compris, par sa clé (`cleLisible(cle)`) : un nœud ne montre sa formule qu'alors.
-- **Son** : la vue joue ses sons par le moteur audio du noyau ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)), qui les libère au démontage.
+- **Son** : la vue joue ses sons par le moteur audio du noyau, qui les libère au démontage (voir ci-dessous).
+
+### Le son
+
+La vue fait entendre la strate par `son`, le moteur audio du noyau ([#46](https://github.com/DavidGiangiacomo/strates/issues/46), `noyau/plateforme/audio.ts`). Le moteur est partagé, pas les sons : chaque strate a sa banque, et aucun son n'est commun à deux strates (§12).
+
+```ts
+interface SonStrate {
+  /** Joue une fois l'effet `nom` de la banque : volume, vitesse, panoramique, délai, durée. */
+  jouer(nom: string, reglage?: ReglageEffet): void;
+  /** Règle une ambiance de la banque, en boucle : elle part à un volume non nul, et s'arrête à 0. */
+  ambiance(nom: string, reglage: { volume: number; fondu?: number }): void;
+  /** Règle une voix tenue de synthèse : hauteur en hertz, volume, timbre, glissement, souffle. */
+  voix(id: string, reglage: ReglageVoix): void;
+  /** Joue une note de synthèse, ou un accord : une note sur chaque rapport de la fréquence. */
+  note(reglage: ReglageNote): void;
+}
+
+/** Un son de la banque : un fichier (une adresse donnée par Vite), ou des échantillons calculés. */
+type SourceSon =
+  | { fichier: string }
+  | {
+      duree: number;
+      stereo?: boolean;
+      calculer(canaux: Float32Array[], frequence: number): void;
+      /** Pour une ambiance : la fin fondue dans le début, sur `raccord` secondes, sans couture. */
+      raccord?: number;
+    };
+```
+
+- **La banque** se déclare dans `DefinitionStrate.sons`. Le noyau l'ouvre au montage de la vue : ses fichiers se téléchargent tout de suite, et ses sons calculés se calculent quand le son s'ouvre. Il la libère quand la strate est quittée : tout se tait en un bref fondu.
+- **Les ambiances et les voix se règlent.** La vue redit ce qui doit sonner à chaque changement (dans un `$effect`, par exemple), et le moteur s'y rend en douceur.
+  - Une voix glisse vers sa nouvelle hauteur, et peut respirer : une houle lente de son volume.
+  - Deux voix presque justes battent d'elles-mêmes, car rien n'est simulé : c'est ce dont le chœur a besoin ([fiche](strates/strate-5.md), § 6).
+  - Les timbres sont cinq voyelles chantées (`a`, `e`, `i`, `o`, `ou`), le sinus et le triangle.
+- **Les effets et les notes se jouent une fois.** Une banque n'en fait pas sonner plus de 32 à la fois.
+- **Le son s'ouvre au premier geste du joueur**, car aucun navigateur n'en joue avant. Un effet ou une note demandés plus tôt sont perdus ; une ambiance ou une voix partent au geste. Le son se tait quand l'onglet est caché.
+- **Pendant le passage**, la strate figée est aussi muette : sa banque s'étouffe au coup de pioche, et revient quand le temps repart. La strate qui arrive commence muette.
+- **Le volume global et le son coupé** se gardent dans le navigateur (`strates.son`) ; le menu système les réglera ([#48](https://github.com/DavidGiangiacomo/strates/issues/48)). Un limiteur protège la sortie.
+- **Un appel ne lève jamais d'erreur** : ni son coupé, ni sans Web Audio, ni après le démontage, ni quand le navigateur en lève une. Celle-ci est signalée une fois dans la console, comme un nom absent de la banque.
+- **Le sol a ses sons**, ceux du noyau, calculés (`noyau/ui/sons.ts`) : le coup sourd du sol qui résiste ; le coup de pioche, avec la fissure qui craque et un éboulement ; le grondement de la descente ([storyboard](strates/descente-1-2.md), P2 et P5).
+- **Tests** : une vue montée dans un test reçoit `SILENCE`. Le moteur se teste sur un contexte simulé (`noyau/plateforme/audio.test.ts`). Son rendu réel a été vérifié dans Chromium, hors ligne : deux voix à une quinte juste ne battent pas ; décalées de 10 cents, elles battent à 2 Hz, comme le veut l'acoustique.
 
 ## 6. La boucle du noyau
 
@@ -274,7 +320,7 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
   - Tant que l'onglet est caché, la boucle passe les images que le navigateur lui donne encore (Firefox en donne quelques-unes, de plus en plus rares). L'absence est rattrapée en une fois, à la première image du retour : un seul plafond, un seul résumé.
   - La sauvegarde écrit la référence sans la déplacer : une sauvegarde faite pendant que l'onglet est caché garde l'absence à rattraper.
 - **Hors-ligne standard** : le noyau simule 80 % de l'absence, plafonnée à 12 h, par ticks de `pasMax` au plus. En politique propre, il appelle `absence()`. Le temps rattrapé s'ajoute à `tempsHorsLigne`, pas à `tempsDeJeu`. Le rattrapage du chargement se fait avant l'enveloppe réactive, sur l'objet brut ; en session, il passe par l'enveloppe, comme les ticks (12 h de la strate factice : moins de 0,1 s dans Chromium).
-- **Bandeau** (`noyau/ui/Bandeau.svelte`, §12) : 24 px en haut de l'écran, identique quelle que soit la strate montée, avec la Profondeur, les artefacts, la Compréhension (« Compréhension 22 % ») et le bouton « creuser ». À partir de κ = 50, un bouton « graphe » ouvre le graphe de dépendances de la strate. Au-delà, les formules réelles s'y écrivent une à une, et celle de la conversion sur l'écran de fouille ([`comprehension.md`](comprehension.md), § 8). Le bouton « creuser » a le même aspect avant et après le seuil ; seule sa réponse change. Avant le seuil, `demanderFouille()` refuse et le bandeau tressaille, sans texte ni pénalité (un bref assombrissement si le joueur préfère moins de mouvement ; le son sourd viendra avec le moteur audio, [#46](https://github.com/DavidGiangiacomo/strates/issues/46)). Le bouton d'une strate qui appellerait `CommandesNoyau.demanderFouille()` a la même réponse.
+- **Bandeau** (`noyau/ui/Bandeau.svelte`, §12) : 24 px en haut de l'écran, identique quelle que soit la strate montée, avec la Profondeur, les artefacts, la Compréhension (« Compréhension 22 % ») et le bouton « creuser ». À partir de κ = 50, un bouton « graphe » ouvre le graphe de dépendances de la strate. Au-delà, les formules réelles s'y écrivent une à une, et celle de la conversion sur l'écran de fouille ([`comprehension.md`](comprehension.md), § 8). Le bouton « creuser » a le même aspect avant et après le seuil ; seule sa réponse change. Avant le seuil, `demanderFouille()` refuse : le bandeau tressaille et le sol sonne sourd, sans texte ni pénalité (un bref assombrissement si le joueur préfère moins de mouvement). Le bouton d'une strate qui appellerait `CommandesNoyau.demanderFouille()` a la même réponse.
 - **Résumé au retour** : `noyau/ui/reprise.ts` rédige le résumé d'une absence d'au moins une minute (durée, taux, plafond atteint, ou les lignes de la strate en politique propre). L'interface l'affiche sous le bandeau, dans sa palette, jusqu'à ce que le joueur le ferme.
 - **Actions** : mises en file, appliquées au début du tick suivant dans l'ordre d'arrivée.
 - **Journal de session** ([#26](https://github.com/DavidGiangiacomo/strates/issues/26), `src/playtest/`) : pour les playtests, et seulement si l'observateur l'a demandé (`?journal=T3` dans l'adresse).

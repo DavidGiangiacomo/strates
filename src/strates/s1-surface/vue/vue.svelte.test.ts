@@ -7,6 +7,7 @@ import type { CommandesNoyau } from "../../../noyau/logique/types";
 import type { ActionSurface, EtatSurface } from "../logique";
 import { etatInitial } from "../logique/etat";
 import Vue from "./Vue.svelte";
+import { SILENCE } from "../../../noyau/plateforme/audio";
 
 let aides = 0;
 const commandes: CommandesNoyau = {
@@ -41,6 +42,7 @@ function monter(modifs: (etat: EtatSurface) => void = () => {}) {
       o: (cle: string) => strate.textes[cle] ?? `?${cle}`,
       lisible: () => true,
       mode: "jeu",
+      son: SILENCE,
     },
   });
   flushSync();

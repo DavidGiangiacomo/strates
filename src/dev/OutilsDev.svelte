@@ -5,11 +5,13 @@
   // - Par la sauvegarde : saut de strate, édition de l'état, sauvegardes nommées, import. La partie
   //   modifiée est écrite comme une sauvegarde, puis la page se recharge : tout passe par le vrai
   //   chemin de chargement, migrations comprises.
-  import { untrack } from "svelte";
+  // - Le son (#46) : volume, sons du sol, et deux voix pour entendre le moteur accorder et battre.
+  import { onDestroy, untrack } from "svelte";
   import { creerEtatNoyau, type EtatNoyau } from "../noyau/logique/etat";
   import type { Noyau } from "../noyau/logique/noyau";
   import { lireSauvegarde } from "../noyau/logique/sauvegarde";
-  import type { NumeroStrate } from "../noyau/logique/types";
+  import type { NumeroStrate, SonStrate, Timbre } from "../noyau/logique/types";
+  import type { MoteurAudio } from "../noyau/plateforme/audio";
   import { telechargerSauvegarde } from "../noyau/plateforme/export";
   import { graineAleatoire, maintenant } from "../noyau/plateforme/horloge";
   import type { GestionnaireSauvegarde } from "../noyau/plateforme/sauvegarde";
@@ -32,12 +34,17 @@
     gestionnaire,
     profondeurs,
     remplacerPartie,
+    moteur,
+    sol,
   }: {
     noyau: Noyau;
     vitesse?: number;
     gestionnaire: GestionnaireSauvegarde;
     profondeurs: NumeroStrate[];
     remplacerPartie: (etat: EtatNoyau) => Promise<void>;
+    moteur: MoteurAudio;
+    /** La banque du noyau : les sons du sol. */
+    sol: SonStrate;
   } = $props();
 
   const VITESSES = [1, 10, 100, 1000];
@@ -126,6 +133,22 @@
   }
 
   const minutes = (s: number) => `${Math.floor(s / 60)} min ${Math.floor(s % 60)} s`;
+
+  // Le son : le volume du moteur, et une banque d'essai pour deux voix, un bourdon et sa quinte,
+  // qu'on désaccorde pour entendre battre leurs harmoniques.
+  let volume = $state(untrack(() => moteur.volume));
+  let muet = $state(untrack(() => moteur.muet));
+  const TIMBRES: Timbre[] = ["a", "e", "i", "o", "ou", "sinus", "triangle"];
+  let timbre = $state<Timbre>("a");
+  let ecart = $state(12);
+  let voixTenues = $state(false);
+  const essai = untrack(() => moteur.banque({}));
+  onDestroy(() => essai.liberer());
+  $effect(() => {
+    const reglage = { volume: voixTenues ? 0.3 : 0, timbre, souffle: 0.2, glissement: 0.08 };
+    essai.voix("bourdon", { ...reglage, frequence: 110 });
+    essai.voix("quinte", { ...reglage, frequence: 165 * 2 ** (ecart / 1200), panoramique: 0.3 });
+  });
 </script>
 
 <button class="bascule" onclick={basculer} data-test="outils-dev">
@@ -175,6 +198,51 @@
           {minutes(journal.horsLigne)}, perturbations {journal.perturbations}
         </p>
       {/if}
+    </section>
+
+    <section>
+      <h2>Son</h2>
+      <label>
+        Volume {Math.round(volume * 100)} %
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.05"
+          bind:value={volume}
+          oninput={() => (moteur.volume = volume)}
+        />
+      </label>
+      <label class="case"
+        ><input type="checkbox" bind:checked={muet} onchange={() => (moteur.muet = muet)} /> Son coupé</label
+      >
+      <p>
+        Sol
+        <button onclick={() => sol.jouer("resiste")}>résiste</button>
+        <button onclick={() => sol.jouer("pioche")}>pioche</button>
+        <button onclick={() => sol.jouer("descente")}>descente</button>
+      </p>
+      <p>
+        Voix
+        <select bind:value={timbre} disabled={voixTenues}>
+          {#each TIMBRES as t (t)}
+            <option value={t}>{t}</option>
+          {/each}
+        </select>
+        <button class:actif={voixTenues} onclick={() => (voixTenues = !voixTenues)}>
+          bourdon et quinte
+        </button>
+        <button
+          onclick={() =>
+            essai.note({ frequence: 220, rapports: [1, 5 / 4, 3 / 2], duree: 1.5, timbre })}
+        >
+          accord
+        </button>
+      </p>
+      <label>
+        Quinte {ecart > 0 ? "+" : ""}{ecart} cents
+        <input type="range" min="-40" max="40" step="1" bind:value={ecart} />
+      </label>
     </section>
 
     <section>
@@ -302,7 +370,8 @@
     width: 100%;
     font: inherit;
   }
-  .fichier input {
+  .fichier input,
+  .case input {
     display: inline;
     width: auto;
   }
