@@ -39,7 +39,7 @@ Il optimisait **la justesse**. Un chœur juste attirait des voix, les voix nouve
 
 Il a fini par saturation. Un jour, l'accord a été plein : huit pupitres, tous liés, plus rien de faux. Y ajouter une voix l'aurait défait. Ils l'ont tenu, et ils n'ont plus rien ajouté. C'est la première civilisation du jeu dont le dernier geste a été de s'abstenir.
 
-À reprendre dans la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)).
+La bible narrative ([`bible.md`](../bible.md), § 4) en donne la suite : sa voix, ses mots, ses traces, et ce qu'il a trouvé sous la nef, des tablettes dont il a pavé le sol, face écrite contre la terre.
 
 ## 3. Boucle courte
 

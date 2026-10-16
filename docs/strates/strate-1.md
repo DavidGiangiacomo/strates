@@ -25,9 +25,9 @@ La surface, c'est le présent, ou presque : une petite exploitation dont on ne s
 
 Elle optimisait un **débit** : des crédits par seconde. Son tableau de bord lui fixait des objectifs de plus en plus ronds, et elle les atteignait.
 
-Elle a fini par saturation. Une fois le dernier objectif atteint, le tableau de bord n'en propose plus : « Tous les objectifs sont atteints. » La production continue, les chiffres montent, et il n'y a plus rien à décider. C'est la première fois que le joueur voit une fin de ce genre ; il en verra six autres.
+Elle a fini par saturation. Une fois le dernier objectif atteint, le tableau de bord n'en propose plus : « Tous les objectifs sont atteints. » La production continue, les chiffres montent, et il n'y a plus rien à décider. C'est la première fois que le joueur voit une fin de ce genre ; il en verra sept autres.
 
-Le flou sur ce qui est produit est voulu : un présent compétent et tiède, qu'on reconnaît sans pouvoir le nommer. À reprendre dans la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)).
+Le flou sur ce qui est produit est voulu : un présent compétent et tiède, qu'on reconnaît sans pouvoir le nommer. La bible narrative ([`bible.md`](../bible.md), § 4) en donne la suite : sa voix, ses mots, ses traces, et ce qu'elle a trouvé sous elle, « le sous-sol ».
 
 ## 3. Boucle courte
 

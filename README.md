@@ -30,6 +30,7 @@ Réglage unique du dépôt, déjà nécessaire au premier déploiement : *Settin
 | [`docs/architecture.md`](docs/architecture.md) | Contrat entre le noyau et les strates (types, boucle, descente, journal) |
 | [`docs/artefacts.md`](docs/artefacts.md) | Modèle des artefacts (points de fouille, usure, plafond, écran de choix) et catalogue |
 | [`docs/comprehension.md`](docs/comprehension.md) | Design de la Compréhension : actes, paliers, levée de l'opacité, graphe, formules, aide |
+| [`docs/bible.md`](docs/bible.md) | Bible narrative : le ton, les huit couches, les restes, les traces, les noms d'en bas, la répartition des mots |
 
 ## Développement
 

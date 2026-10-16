@@ -128,7 +128,7 @@ Répartition indicative des 34 artefacts, vérifiée par simulation (présélect
 
 ### Strate 1 — La surface
 
-Six objets, 17 points au total. Les noms d'en bas sont ceux des caves : une vallée de paysans qui compte en récoltes et ne comprend pas ce qu'elle reçoit (fiche de la [strate 2](strates/strate-2.md), § 2). Les noms et les effets sont provisoires jusqu'à la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)).
+Six objets, 17 points au total. Les noms d'en bas sont ceux des caves : une vallée de paysans qui compte en récoltes et ne comprend pas ce qu'elle reçoit (fiche de la [strate 2](strates/strate-2.md), § 2). Ils suivent la convention de la [bible narrative](bible.md), § 6 ; les effets restent provisoires jusqu'au catalogue complet ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)).
 
 | Coût | Id | Nom d'en haut | Nom d'en bas | Famille |
 |---|---|---|---|---|
