@@ -1,8 +1,8 @@
-// Les textes de la surface (#16 ; fiche, § 11). Ils seront révisés d'après la bible narrative (#43, #60).
+// Les textes de la surface (#16 ; fiche, § 11), révisés d'après la bible narrative (#60).
 // Ton : celui d'un logiciel bien fait. Des phrases courtes et polies, sans point d'exclamation ni
 // humour appuyé : « Objectif atteint. » plutôt que « Bravo ! ». On ne sait pas ce que l'exploitation
-// produit, seulement ce qu'elle rapporte. Aucun texte ne mentionne « creuser », et l'aide ne dit rien
-// du bandeau.
+// produit, seulement ce qu'elle rapporte. Aucun texte ne mentionne « creuser » ni ne s'adresse au
+// joueur, et l'aide ne dit rien du bandeau.
 export const textes: Record<string, string> = {
   // ——— Le tableau de bord
   titre: "Tableau de bord",
@@ -48,7 +48,8 @@ export const textes: Record<string, string> = {
   "generateur.equipe": "Équipe",
   "generateur.equipe.description": "Plusieurs postes, un responsable, des objectifs communs.",
   "generateur.serveur": "Serveur",
-  "generateur.serveur.description": "Il traite ce qu'on lui confie, jour et nuit.",
+  "generateur.serveur.description":
+    "Installé au sous-sol, au frais, il traite ce qu'on lui confie, jour et nuit.",
   "generateur.chaine": "Chaîne",
   "generateur.chaine.description": "Chaque étape alimente la suivante.",
   "generateur.turbine": "Turbine",
@@ -137,16 +138,16 @@ export const textes: Record<string, string> = {
   "aide.fermer": "Fermer",
   "aide.credits.titre": "Crédits",
   "aide.credits":
-    "Les crédits sont la ressource de l'exploitation. Vous en gagnez en produisant, et vous les dépensez en achats.",
+    "Les crédits sont la ressource de l'exploitation. Ils se gagnent en produisant et se dépensent en achats.",
   "aide.produire.titre": "Produire",
   "aide.produire":
     "Chaque clic sur « Produire » rapporte des crédits. Le montant est indiqué sous le bouton.",
   "aide.generateurs.titre": "Moyens de production",
   "aide.generateurs":
-    "Chaque moyen de production rapporte des crédits à chaque seconde, sans intervention. Son prix augmente de 15 % à chaque achat. « ×10 » en achète dix d'un coup, et « Max » autant que vos crédits le permettent. Un nouveau moyen apparaît quand vos gains approchent de son prix.",
+    "Chaque moyen de production rapporte des crédits à chaque seconde, sans intervention. Son prix augmente de 15 % à chaque achat. « ×10 » en achète dix d'un coup, et « Max » autant que les crédits le permettent. Un nouveau moyen apparaît quand les gains approchent de son prix.",
   "aide.ameliorations.titre": "Améliorations",
   "aide.ameliorations":
-    "Une amélioration s'achète une seule fois. Elle double la production d'un moyen, augmente toute la production, ou améliore « Produire ». Les améliorations d'un moyen apparaissent quand vous en avez 10, 25 puis 50 en service.",
+    "Une amélioration s'achète une seule fois. Elle double la production d'un moyen, augmente toute la production, ou améliore « Produire ». Les améliorations d'un moyen apparaissent quand il y en a 10, 25 puis 50 en service.",
   "aide.production.titre": "Production",
   "aide.production":
     "La production totale, en crédits par seconde. Le graphique montre son évolution sur les 15 dernières minutes.",
@@ -155,7 +156,7 @@ export const textes: Record<string, string> = {
     "L'objectif courant indique la prochaine étape, et sa barre, le chemin qui reste. Les objectifs atteints restent dans la liste.",
   "aide.absence.titre": "Absence",
   "aide.absence":
-    "Quand vous fermez le tableau de bord, la production continue, à 80 %, pendant 12 heures au plus.",
+    "Quand le tableau de bord est fermé, la production continue, à 80 %, pendant 12 heures au plus.",
   "aide.notation.titre": "Notation",
   "aide.notation": "cr : crédit. k : mille. M : million. Md : milliard.",
 

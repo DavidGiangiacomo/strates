@@ -377,7 +377,7 @@ function t(cle: string, valeurs: Record<string, number> = {}): string {
 }
 
 /**
- * « L'hiver vous attend » (fiche, § 10) : l'absence compte à 80 % pendant la saison chaude, jusqu'au
+ * « L'hiver attend » (fiche, § 10) : l'absence compte à 80 % pendant la saison chaude, jusqu'au
  * premier jour de l'hiver ou jusqu'à la veille d'une rupture ; en hiver, elle ne compte pas.
  * Aucune rupture ne peut donc arriver pendant l'absence.
  */

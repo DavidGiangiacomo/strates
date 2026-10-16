@@ -4,6 +4,9 @@ import { AMELIORATIONS, GENERATEURS, OBJECTIFS } from "./logique/regles";
 import { textes } from "./textes.fr";
 
 const mots = (texte: string) => texte.split(/\s+/).filter((m) => /\p{L}/u.test(m)).length;
+// Les mots que la bible interdit partout, et « artefact », réservé au bandeau (docs/bible.md, § 2).
+const interdits =
+  /ancien|ancêtre|civilisation|prophétie|mystère|secret|(?<!\p{L})destins?(?!\p{L})|magie|bravo|félicitation|artefact/iu;
 
 describe("les textes de la surface", () => {
   it("nomment et décrivent chaque moyen de production et chaque amélioration", () => {
@@ -25,6 +28,17 @@ describe("les textes de la surface", () => {
       .map(([, texte]) => texte)
       .join(" ");
     expect(aide).not.toMatch(/bandeau|profondeur|artefact/i);
+  });
+
+  it("ne s'adressent jamais au joueur, et n'écrivent aucun mot que la bible interdit", () => {
+    for (const texte of Object.values(textes)) {
+      expect(texte).not.toMatch(/\bvous\b|\bvotre\b|\bvos\b/i);
+      expect(texte).not.toMatch(interdits);
+    }
+  });
+
+  it("plantent leur reste (bible, § 3) : les serveurs sont au sous-sol", () => {
+    expect(textes["generateur.serveur.description"]).toContain("au sous-sol");
   });
 
   it("parlent comme un logiciel bien fait : sans point d'exclamation", () => {

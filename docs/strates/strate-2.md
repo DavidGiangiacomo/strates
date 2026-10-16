@@ -4,7 +4,7 @@
 
 *Choix tranchés le 27 septembre 2026 :*
 - *le seuil demande trois **grands** hivers de suite sans rupture ;*
-- *l'absence ne fait passer aucun hiver : « l'hiver vous attend » ;*
+- *l'absence ne fait passer aucun hiver : « l'hiver attend » ;*
 - *les familles s'installent par le joueur, et naissent après un hiver réussi ;*
 - *le grain se compte en boisseaux entiers, jamais abrégés.*
 
@@ -209,8 +209,8 @@ La boucle moyenne du §3, c'est l'année : 7 minutes, avec au milieu un hiver qu
   - Il faut **comprendre la saison** : grandir au printemps, garder à l'automne, et creuser pour les grands hivers.
 - **Issues** : une seule.
 - **L'objectif n'est jamais affiché comme tel.**
-  - Au premier hiver long (an 5), le registre note : « Les hivers s'allongent. Les anciens se souviennent des grands hivers. »
-  - Au premier grand hiver : « Le grand hiver est là. Les anciens disent qu'une vallée qui en passe trois de suite n'a plus rien à craindre. »
+  - Au premier hiver long (an 5), le registre note : « Les hivers s'allongent. Les vieux se souviennent des grands hivers. »
+  - Au premier grand hiver : « Le grand hiver est là. Les vieux disent qu'une vallée qui en passe trois de suite n'a plus rien à craindre. »
   - Le registre compte ensuite la série.
 
 ### Le calendrier comme minuteur
@@ -417,14 +417,14 @@ Ces lignes de l'arrivée et du seuil sont codées avec l'orchestration de la des
 
 ## 10. Hors-ligne
 
-**Politique propre : « l'hiver vous attend ».** Elle répond à la question laissée ouverte par [`architecture.md`](../architecture.md), § 9 : **aucune rupture ne peut arriver pendant l'absence**, et l'absence ne peut donc pas faire perdre le seuil.
+**Politique propre : « l'hiver attend ».** Elle répond à la question laissée ouverte par [`architecture.md`](../architecture.md), § 9 : **aucune rupture ne peut arriver pendant l'absence**, et l'absence ne peut donc pas faire perdre le seuil.
 
 - **Pendant la saison chaude**, l'absence compte comme ailleurs, à 80 %. Le temps compté fait avancer le calendrier, avec récolte, consommation et pertes normales. Il s'arrête :
   - au **premier jour de l'hiver** ;
   - ou à la veille d'une rupture, si elle venait avant.
 - **En hiver**, l'absence ne compte pas : le calendrier s'arrête.
 - **Pas de plafond** : une saison chaude dure au plus 350 jours, soit moins de 6 minutes. Une nuit d'absence ne fait donc jamais passer plus d'une saison.
-- **Au retour**, le résumé de la strate dit où en est l'année. Par exemple : « Pendant votre absence (8 h) : la récolte a continué jusqu'aux premiers froids. L'hiver vous attend. »
+- **Au retour**, le résumé de la strate dit où en est l'année. Par exemple : « Pendant votre absence (8 h) : la récolte a continué jusqu'aux premiers froids. L'hiver attend. »
 
 **Pourquoi.** Un hiver est une épreuve, et il se joue en présence du joueur. Si l'absence pouvait faire passer un hiver, elle pourrait faire perdre la série des grands hivers sans que le joueur puisse réagir. Pire, elle pourrait la faire gagner sans qu'il la joue.
 
@@ -437,8 +437,8 @@ Ces lignes de l'arrivée et du seuil sont codées avec l'orchestration de la des
 
 ## 11. Textes
 
-- **Budget** : environ 600 mots au départ, 750 depuis les rations ([`bible.md`](../bible.md), § 9). La rédaction est l'objet de [#17](https://github.com/DavidGiangiacomo/strates/issues/17). Ces textes sont provisoires : ils seront révisés d'après la bible narrative ([#60](https://github.com/DavidGiangiacomo/strates/issues/60)).
-- **Ton** : celui d'un registre de village. Des phrases courtes, datées, constatées plutôt que racontées, sans émotion affichée : « Hiver de l'an 3 : passé sans rupture. 6 familles sont nées. » Le registre ne s'adresse jamais au joueur.
+- **Budget** : environ 600 mots au départ, 750 depuis les rations ([`bible.md`](../bible.md), § 9). La rédaction est l'objet de [#17](https://github.com/DavidGiangiacomo/strates/issues/17), et la révision d'après la bible narrative celui de [#60](https://github.com/DavidGiangiacomo/strates/issues/60).
+- **Ton** : celui d'un registre de village. Des phrases courtes, datées, constatées plutôt que racontées, sans émotion affichée : « Hiver de l'an 3 : passé sans rupture. 6 familles sont nées. » Aucun texte ne s'adresse au joueur, pas même le résumé d'absence, et l'on dit « les vieux », jamais « les anciens » ([`bible.md`](../bible.md), § 2).
 - **À écrire** :
   - les noms et une ligne de description des 4 stockages et des 4 outils ;
   - les libellés : réserve, marque d'hiver, familles, « Glaner », « Installer une famille », « Construire », « Acheter », les saisons, « jour N de l'an N », et le début d'une année sur la courbe (« an 2 ») ;
@@ -455,11 +455,12 @@ Ces lignes de l'arrivée et du seuil sont codées avec l'orchestration de la des
 
 ### Dans le code ([#17](https://github.com/DavidGiangiacomo/strates/issues/17))
 
-Tous les textes sont dans `textes.fr.ts` : 737 mots, dont 209 pour l'aide, 117 pour les notes en marge et 171 pour la chronique. Les rations en ont ajouté 112 ([#163](https://github.com/DavidGiangiacomo/strates/issues/163)), et les noms du graphe 11 ([#78](https://github.com/DavidGiangiacomo/strates/issues/78)). Les formules (`formule.*`, 66 mots), lues au-delà de κ = 50 seulement, n'entrent pas dans le budget. Un test vérifie le budget, l'absence de « creuser » et de point d'exclamation, que le registre ne s'adresse jamais au joueur et que l'aide ne parle ni du bandeau, ni de la profondeur, ni des objets.
+Tous les textes sont dans `textes.fr.ts` : 742 mots, dont 209 pour l'aide, 124 pour les notes en marge et 171 pour la chronique. Les rations en ont ajouté 112 ([#163](https://github.com/DavidGiangiacomo/strates/issues/163)), les noms du graphe 11 ([#78](https://github.com/DavidGiangiacomo/strates/issues/78)), et la révision d'après la bible 5 ([#60](https://github.com/DavidGiangiacomo/strates/issues/60)). Les formules (`formule.*`, 66 mots), lues au-delà de κ = 50 seulement, n'entrent pas dans le budget. Un test vérifie le budget, l'absence de « creuser », de point d'exclamation et des mots que la bible interdit (§ 2, dont « ancien »), qu'aucun texte ne s'adresse au joueur, et que l'aide ne parle ni du bandeau, ni de la profondeur, ni des objets.
 - **Les écritures** disent ce qu'on fait : « Installer une famille », « Construire un grenier », « Aménager une cave », « Acheter une charrue », « Adopter l'assolement ». Aucune ne dit « creuser ».
 - **Les notes en marge** : au survol d'une écriture, ou au clavier, un billet de papier glissé à gauche du registre en donne le sens (« Une tour de terre, à moitié enterrée. Le grain s'y garde mieux. »). Sur un téléphone, il se pose au-dessus de l'écriture. Il est lié au bouton (`aria-describedby`).
 - **L'aide** : un lien « Aide », en haut à droite de la vallée, ouvre une page du registre, « Comment tient la vallée », qu'on referme par « Refermer » ou Échap. Elle décrit le calendrier, la réserve, les stockages, les familles et les écritures. Elle ne nomme pas la marque d'hiver, qui ne prend son nom qu'au premier bilan (§ 7), et ne dit pas quand acheter : c'est la leçon du premier hiver (§ 5). Chaque ouverture est notée, comme à la surface.
 - **Les rations** : l'écriture « Rations de l'hiver », ses quatre mots et ce que chacun donne (« Une demi-ration ; personne ne naît. »), avec sa note en marge. Le registre les annonce au premier hiver long (« An 5 : on compte désormais les rations de l'hiver. »), et note un hiver sans naissance (« Aucune naissance. »). L'aide leur ajoute une page à partir de l'an 5. Celle-ci nomme la marque d'hiver, dévoilée depuis longtemps.
+- **Le reste** ([`bible.md`](../bible.md), § 3) : la note en marge de la cave profonde nomme les roues sans moulin, « On y trouve les roues sans moulin. » Ce sont des engrenages de l'atelier ; aucun texte ne le dit.
 - **Les traces pour le fond** (`trace.hivers`, `trace.profondeur.*`) attendent la strate 8 ([#109](https://github.com/DavidGiangiacomo/strates/issues/109)).
 - **Les noms d'en bas** des objets de la surface restent dans le catalogue du noyau (`src/noyau/logique/catalogue.ts` ; [`artefacts.md`](../artefacts.md), § 8), comme le veut le modèle des artefacts : le registre les lit de là.
 

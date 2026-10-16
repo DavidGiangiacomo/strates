@@ -320,8 +320,8 @@ Environ 5 000 mots pour tout le jeu (§2). Chaque fiche reprend son budget dans 
 | Où | Mots | Ce qui compte le plus |
 |---|---|---|
 | Le noyau | 450 | le bandeau, l'écran de fouille, l'inventaire, la coupe, le menu, les fins |
-| 1 · La surface | 600 | les descriptions et l'aide ; 604 écrits |
-| 2 · Les caves | 750 | le registre, les notes en marge, l'aide ; 737 écrits, rations comprises |
+| 1 · La surface | 600 | les descriptions et l'aide ; 609 écrits |
+| 2 · Les caves | 750 | le registre, les notes en marge, l'aide ; 742 écrits, rations comprises |
 | 3 · L'atelier | 700 | la nomenclature et les légendes du plan |
 | 4 · Le réseau | 600 | le carnet de relevés et la légende du schéma |
 | 5 · Le chœur | 300 | des indications, et pas une phrase |
@@ -355,12 +355,7 @@ Jamais de résumé de la civilisation, d'indice, ni de « vous ». Les lignes «
 
 ## 11. Ce que la bible demande ensuite
 
-- **Les textes des strates 1 et 2** ([#60](https://github.com/DavidGiangiacomo/strates/issues/60)) :
-  - remplacer « les anciens » par « les vieux », dans les trois lignes du registre qui les citent ;
-  - retirer les « vous » : quatre passages de l'aide de la surface (« Vous en gagnez en produisant… ») et deux lignes du résumé d'absence des caves (« L'hiver vous attend. ») s'écrivent sans s'adresser au joueur ;
-  - planter les restes : « le sous-sol » dans une description de la surface (les serveurs, au frais), « les roues sans moulin » dans une note des caves (la cave profonde) ;
-  - relire les traces (§ 5) ;
-  - ajouter « ancien » et « vous » aux mots que les tests interdisent, comme « creuser ».
+- **Les textes des strates 1 et 2** ([#60](https://github.com/DavidGiangiacomo/strates/issues/60)) : faits. Les vieux remplacent les anciens, plus aucun texte ne dit « vous », les deux restes sont plantés (le serveur « au sous-sol, au frais », la cave profonde où « on trouve les roues sans moulin »), et les traces suivent le § 5. Les tests interdisent désormais « vous » et les mots du § 2, comme « creuser ».
 - **Le catalogue** ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : les noms d'en bas selon le § 6, dont « la pierre qui oblige », et les noms au fond.
 - **Le rappel de reprise** ([#58](https://github.com/DavidGiangiacomo/strates/issues/58)) : le § 10, et le titre du résumé d'absence, sans « votre ».
 - **Les fiches** des strates 3, 4, 6, 7 et 8, et la révision de celle du chœur ([#61](https://github.com/DavidGiangiacomo/strates/issues/61), [#62](https://github.com/DavidGiangiacomo/strates/issues/62), [#63](https://github.com/DavidGiangiacomo/strates/issues/63), [#64](https://github.com/DavidGiangiacomo/strates/issues/64), [#65](https://github.com/DavidGiangiacomo/strates/issues/65), [#75](https://github.com/DavidGiangiacomo/strates/issues/75)) : leur § 2 part du § 4, leur § 11 du § 5 et du § 9.

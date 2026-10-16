@@ -1,7 +1,8 @@
-// Les textes des caves (#17 ; fiche, § 11). Ils seront révisés d'après la bible narrative (#43, #60).
+// Les textes des caves (#17 ; fiche, § 11), révisés d'après la bible narrative (#60).
 // Ton : celui d'un registre de village. Des phrases courtes, datées, constatées plutôt que racontées,
-// sans émotion affichée ; le registre ne s'adresse jamais au joueur. Aucun texte ne mentionne
-// « creuser », bien que la vallée n'ait fait que ça, et l'aide ne dit rien du bandeau.
+// sans émotion affichée ; aucun texte ne s'adresse au joueur. On dit « les vieux », jamais « les
+// anciens ». Aucun texte ne mentionne « creuser », bien que la vallée n'ait fait que ça, et l'aide
+// ne dit rien du bandeau.
 // `{n}` est un nombre, `{n:mot}` un nombre suivi du mot accordé (logique/notation.ts).
 export const textes: Record<string, string> = {
   // ——— La vallée
@@ -63,7 +64,7 @@ export const textes: Record<string, string> = {
   "stockage.silo.note": "Une tour de terre, à moitié enterrée. Le grain s'y garde mieux.",
   "stockage.cave.note": "Une salle sous la vallée, au frais. Le grain n'y bouge presque plus.",
   "stockage.caveProfonde.note":
-    "Sous la cave, plus bas encore. On y garde ce qui doit passer les grands hivers.",
+    "Sous la cave, plus bas encore. On y garde ce qui doit passer les grands hivers. On y trouve les roues sans moulin.",
   "stockage.detail": "{nombre:construit} · {capacite:boisseau} chacun",
   "stockage.pertes": "pertes : {pertes:boisseau} par jour",
 
@@ -94,27 +95,27 @@ export const textes: Record<string, string> = {
   "registre.rupture":
     "Hiver de l'an {annee} : le grain a manqué {jours:jour}. Départs : {departs:famille}.",
   "registre.hivers-allongent":
-    "An {annee} : l'hiver durera {duree:jour}. Les hivers s'allongent ; les anciens se souviennent des grands hivers.",
+    "An {annee} : l'hiver durera {duree:jour}. Les hivers s'allongent ; les vieux se souviennent des grands hivers.",
   "registre.rations": "An {annee} : on compte désormais les rations de l'hiver.",
   "registre.grand-hiver-arrive":
-    "An {annee} : le grand hiver est là. Les anciens disent qu'une vallée qui en passe trois de suite n'a plus rien à craindre.",
+    "An {annee} : le grand hiver est là. Les vieux disent qu'une vallée qui en passe trois de suite n'a plus rien à craindre.",
   "registre.grand-hiver":
     "Grand hiver de l'an {annee} : passé sans rupture. Grands hivers de suite : {serie}.",
   "registre.grand-hiver-rupture":
     "Grand hiver de l'an {annee} : le grain a manqué {jours:jour}. Départs : {departs:famille}.",
-  "registre.serie-rompue": "Les anciens recommencent à compter.",
+  "registre.serie-rompue": "Les vieux recommencent à compter.",
   "registre.seuil": "Trois grands hivers sans rupture. La vallée n'a plus rien à craindre.",
   "registre.pertes": "Grain pourri dans les stockages depuis l'arrivée : {pourri:boisseau}.",
   "registre.eveil": "Les familles ont compris {objet}.",
   "registre.attente": "{objets} objets venus d'en haut, que personne ne sait employer.",
   "registre.attente.un": "Un objet venu d'en haut, que personne ne sait employer.",
-  // La feuille qui annonce : une ligne de l'atelier (strate 3), d'une autre main. Provisoire (#68, #43).
+  // La feuille qui annonce : une ligne de l'atelier (strate 3), d'une autre main (bible, § 4 ; #68).
   "registre.feuille": "Il reste soixante-trois cases.",
 
-  // ——— Le retour d'une absence (fiche, § 10) : l'hiver attend le joueur
-  "absence.hiver": "L'hiver vous attendait : rien n'a bougé.",
+  // ——— Le retour d'une absence (fiche, § 10) : l'hiver attend
+  "absence.hiver": "L'hiver attendait : rien n'a bougé.",
   "absence.recolte": "La récolte a continué {jours:jour} : {recolte:boisseau}.",
-  "absence.premiers-froids": "Les premiers froids sont là. L'hiver vous attend.",
+  "absence.premiers-froids": "Les premiers froids sont là. L'hiver attend.",
   "absence.rupture": "Le grain allait manquer : le calendrier s'est arrêté.",
 
   // La valeur convertible, nommée à l'écran de fouille (docs/strates/descente-1-2.md, P3).
