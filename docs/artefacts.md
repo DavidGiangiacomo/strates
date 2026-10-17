@@ -118,7 +118,7 @@ Répartition indicative des 34 artefacts, vérifiée par simulation (présélect
 À l'arrivée dans une strate, le joueur a ainsi **5 à 9 artefacts actifs** (puissants ou utiles), plus 4 ou 5 décoratifs à partir de la strate 4.
 
 **Cas particuliers** :
-- **Strate 6** : en défaut, on convertit ce qui a été honoré avant le défaut. Un défaut en fin de strate donne environ 25 points, soit un objet de moins.
+- **Strate 6** : on convertit le prix des promesses honorées en entier, sans les intérêts, soit 28 points pour une strate soldée. En défaut, ce qui a été honoré avant le défaut : un défaut à la grande crue, à la toute fin, donne 24 points au plus, soit un objet de moins ([fiche](strates/strate-6.md), § 9).
 - **Strate 7** : la descente est automatique et la quantité de sédiments presque fixe, donc le budget aussi (4 points). Le catalogue coûte au plus 4 au total : **tout est toujours emporté**, et le fond reçoit les mêmes clés pour tous les joueurs.
 - **Pour le catalogue ([#57](https://github.com/DavidGiangiacomo/strates/issues/57))** : les artefacts de la strate 7 ne sont puissants qu'au fond, où rien n'est produit. Ce sont donc des effets uniques ou des clés de lecture pour la salle de lecture ([#65](https://github.com/DavidGiangiacomo/strates/issues/65)). De même, les artefacts de la strate 6 n'ont pas d'effet mécanique au fond, où ils sont « utiles ».
 

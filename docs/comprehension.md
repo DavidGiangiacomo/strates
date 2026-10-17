@@ -44,7 +44,7 @@ La progression du §9 est le **maximum** : le joueur qui accomplit tous les acte
 | 3 · L'atelier | 22 | 16 | 4 | 3 | la gêne défaite avant que l'atelier ne la montre : 3 ; le premier plan plein qui tourne : 3 ; le seuil sans limer : 3 |
 | 4 · Le réseau | 38 | 17 | 4 | 3 | à définir par sa fiche : 10, dont le goulot trouvé avant que le réseau ne le signale |
 | 5 · Le chœur | 55 | 15 | 4 | 3 | à définir par sa fiche : 8, dont un rapport juste réglé à l'œil |
-| 6 · La dette | 70 | 15 | 3 | 3 | à définir par sa fiche : 9, dont toutes les dettes soldées, sans défaut |
+| 6 · La dette | 70 | 15 | 3 | 3 | la grande crue honorée, sans défaut : 4 ; toute la strate sans une échéance reportée : 3 ; la grande crue fixée au plus juste, puis honorée : 2 |
 | 7 · Le lit | 85 | 11 | 2 | 3 | à définir par sa fiche : 6, dont la patience (peu de gestes jusqu'à la descente) |
 | 8 · Le fond | 96 | 4 | — | — | y arriver |
 

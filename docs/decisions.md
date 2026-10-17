@@ -89,6 +89,7 @@ Le modèle complet (données, usure, plafond, écran, calibrage) est décrit dan
 
 - Règle générale : on convertit toujours un **cumul** sur la strate, jamais le stock au moment de descendre. Dépenser ne coûte rien, et thésauriser avant de creuser ne rapporte rien.
 - Le défaut de la strate 6 coûte en proportion de ce qui restait à honorer, jamais tout. Grâce au log, un défaut en fin de strate ne coûte que 3 points, soit environ un objet. Ce n'est ni une sanction, ni une stratégie gagnante.
+  - *Précision de la fiche de la dette ([#64](https://github.com/DavidGiangiacomo/strates/issues/64), octobre 2026)* : « ce qui a été honoré » est le prix des promesses honorées en entier, sans les intérêts. Payer plus cher la même chose ne rapporte pas de points. Le livre entier vaut 28 points ; un défaut à la grande crue, à la toute fin, en vaut 24 au plus, soit 4 de moins, et non 3 ([fiche](strates/strate-6.md), § 9).
 
 **Conséquences.**
 - Le contrat de module ([#13](https://github.com/DavidGiangiacomo/strates/issues/13)) expose une valeur convertible cumulée, et l'issue de la strate quand il y en a plusieurs (strate 6).
