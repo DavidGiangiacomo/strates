@@ -304,7 +304,7 @@ Bois, registres, calendrier circulaire (§5). Tout ce que la surface n'était pa
   - **Le registre**, à droite : un livre de comptes. En tête, les achats, présentés comme des écritures (« Installer une famille — 31 boisseaux »). En dessous, les dernières lignes de la chronique.
   - **La courbe de la réserve**, en bas : les trois dernières années, en échelle linéaire, avec une encoche à chaque achat. C'est une sinusoïde, là où la surface avait une exponentielle.
 - **Mouvement** : lent. L'aiguille tourne en continu et le grain coule dans la coupe. Rien ne défile par à-coups.
-- **Sons** (phase 2, [#46](https://github.com/DavidGiangiacomo/strates/issues/46)) : du grain versé, du bois, et le vent en hiver. Le MVP peut être muet.
+- **Sons** ([#59](https://github.com/DavidGiangiacomo/strates/issues/59)) : du grain versé, du bois, et le vent en hiver, par le moteur audio du noyau ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)).
 - **Ce qui la distingue** : c'est la seule strate où le temps est un cercle visible. C'est aussi la première où l'écran n'est pas un logiciel.
 
 ### Dans le code ([#33](https://github.com/DavidGiangiacomo/strates/issues/33))

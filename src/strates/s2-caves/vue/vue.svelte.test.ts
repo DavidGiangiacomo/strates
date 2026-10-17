@@ -7,6 +7,7 @@ import type { ActionCaves, EtatCaves } from "../logique";
 import { etatInitial, type LigneRegistre } from "../logique/etat";
 import { VALLEE } from "../logique/regles";
 import Vue from "./Vue.svelte";
+import { SILENCE } from "../../../noyau/plateforme/audio";
 
 let aides = 0;
 const commandes: CommandesNoyau = {
@@ -40,6 +41,7 @@ function monter(modifs: (etat: EtatCaves) => void = () => {}, leves: string[] = 
       o: (cle: string) => strate.textes[cle] ?? `?${cle}`,
       lisible: (element: string) => !OPAQUES.includes(element) || couche.leves.includes(element),
       mode: "jeu",
+      son: SILENCE,
     },
   });
   flushSync();

@@ -165,7 +165,7 @@ Un tableau de bord moderne, propre, tiède. C'est la référence : toutes les st
 - **Typographie** : une sans-serif système, avec des chiffres tabulaires pour que les compteurs ne tremblent pas.
 - **Disposition** : des cartes à coins arrondis sur une grille. En haut, les indicateurs : crédits, production, objectif courant. Au centre, le graphique de production. À côté, la carte « Produire », la liste des générateurs et les améliorations disponibles.
 - **Mouvement** : des transitions courtes et douces ; les compteurs défilent au lieu de sauter.
-- **Sons** : un clic feutré, une note discrète à chaque objectif atteint, aucun fond sonore. Le moteur audio n'arrive qu'en phase 2 ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)) : la surface du MVP peut être muette.
+- **Sons** : un clic feutré, une note discrète à chaque objectif atteint, aucun fond sonore. Ils viendront avec l'ambiance des strates 1 et 2 ([#59](https://github.com/DavidGiangiacomo/strates/issues/59)), par le moteur audio du noyau ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)).
 - **Ce qui la distingue** : c'est la seule strate qui ressemble à un logiciel.
 
 ### Dans le code ([#31](https://github.com/DavidGiangiacomo/strates/issues/31))
@@ -270,7 +270,7 @@ Elle dure 1 h 15 et non 2 h : pour elle, le critère se juge sur la qualité plu
 1. **Une nuit d'absence après le seuil** rapporte 2 points sans jouer. À garder si l'équilibrage ([#35](https://github.com/DavidGiangiacomo/strates/issues/35)) le juge acceptable ; sinon, plafonner ce que l'absence ajoute au cumul une fois le seuil atteint.
 2. **Délai du filet** (5 minutes avant la fissure) : à régler d'après le test du MVP ([#37](https://github.com/DavidGiangiacomo/strates/issues/37)).
 3. ~~**Aucune opacité**~~ : confirmée par le design de la Compréhension ([`comprehension.md`](../comprehension.md), § 4 ; D-007).
-4. ~~**Le sol qui résiste**~~ : fait dans le bandeau ([#22](https://github.com/DavidGiangiacomo/strates/issues/22)), comportement commun à toutes les strates. Il manque le son sourd, qui attend le moteur audio ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)).
+4. ~~**Le sol qui résiste**~~ : fait dans le bandeau ([#22](https://github.com/DavidGiangiacomo/strates/issues/22)), comportement commun à toutes les strates, avec son coup sourd ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)).
 5. ~~**Budget du catalogue**~~ : calibré sur 12 à 14 points par [#10](https://github.com/DavidGiangiacomo/strates/issues/10) (six objets, 17 points au total ; voir [`artefacts.md`](../artefacts.md), § 8).
 6. **Remontée à 100 %, sans plafond** : c'est une proposition, à confirmer avec la fin « Remonter » ([#128](https://github.com/DavidGiangiacomo/strates/issues/128)).
 

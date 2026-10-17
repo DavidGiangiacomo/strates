@@ -42,7 +42,7 @@
   // Sans mouvement : un bref assombrissement.
   const ATTENUATION = [{ opacity: 1 }, { opacity: 0.6 }, { opacity: 1 }];
 
-  /** Le sol résiste : un bref tressaillement, sans texte. Le son sourd viendra avec le moteur audio (#46). */
+  /** Le sol résiste : un bref tressaillement, sans texte. Le coup sourd est joué par le passage. */
   export function resister(): void {
     const sansMouvement =
       typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;

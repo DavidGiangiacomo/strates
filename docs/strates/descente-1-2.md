@@ -62,7 +62,7 @@ Le clic sur « creuser », une fois le seuil atteint, ouvre la fouille **tout de
 - **De 0 à 0,4 s.** Une fissure part du bouton « creuser » et traverse le tableau de bord jusqu'au bas de l'écran. Si le filet avait déjà paru, c'est sa fissure qui se prolonge. Le dessin est celui de `src/noyau/ui/fissure.ts` : fixe, irrégulier, ramifié.
 - **De 0,4 à 1 s.** Le tableau de bord se fend le long de la fissure. Ses deux moitiés glissent vers le bas et s'effacent. Dessous, il y a le sol, c'est-à-dire l'écran de fouille.
 - **La surface se fige au clic.** Elle ne reçoit plus de tick, ni d'absence, tant que la fouille est ouverte. Sa valeur convertible est lue à cet instant.
-- **Son** (phase 2, [#46](https://github.com/DavidGiangiacomo/strates/issues/46)) : le coup sourd du sol qui résiste, mais suivi cette fois d'un éboulement bref. Le MVP est muet.
+- **Son** ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)) : le coup sourd du sol qui résiste, mais suivi cette fois de la fissure qui craque et d'un éboulement bref (`noyau/ui/sons.ts`). Figée, la surface se tait aussi.
 
 ```
  P2, à 0,4 s : la fissure part du bouton et traverse le tableau de bord
@@ -174,6 +174,7 @@ C'est un **travelling vertical vers le bas** : la caméra descend, et le décor 
   - Trois ou quatre couches de sol défilent, avec une accélération puis un ralentissement. Ce sont les couches de la coupe ([#47](https://github.com/DavidGiangiacomo/strates/issues/47)), dans la palette du noyau, et le même dessin servira aux sept descentes.
   - À mi-course (vers 1,8 s), la Profondeur du bandeau passe de 1 à 2. C'est le seul changement du bandeau pendant le mouvement.
 - **De 3,2 à 4 s.** L'écran des caves monte d'en bas et se met en place. La coupe des stockages arrive là où le sol traversé s'arrête : le grenier, et rien dessous.
+- **Son** : le grondement du sol qui défile. Il monte, tient pendant le travelling, et s'éteint quand les caves se mettent en place ; sans mouvement, il s'arrête avec la descente. Les sons des caves partent avec leur temps, à la fin de l'arrivée (P6).
 
 La descente ne se passe pas : avec l'arrivée, elle dure 5 secondes, sept fois par partie. Un clic pendant la descente ne fait rien.
 
@@ -373,7 +374,7 @@ Ces durées sont des cibles de départ, réglables au playtest. La descente et l
   - puis les dix premières minutes, du premier achat au premier bilan.
 - **Le journal de session ([#26](https://github.com/DavidGiangiacomo/strates/issues/26))** enregistre les gestes de la fouille : ouverture (avec les points), cases cochées et décochées, « reboucher », « descendre » (avec les objets emportés).
 - **Les textes ([#16](https://github.com/DavidGiangiacomo/strates/issues/16), [#17](https://github.com/DavidGiangiacomo/strates/issues/17))** : ceux de l'écran de fouille appartiennent au noyau ; les lignes du registre du § 6 appartiennent aux caves.
-- **Le son ([#46](https://github.com/DavidGiangiacomo/strates/issues/46))** : le coup sourd et l'éboulement de P2, le grondement du sol de P5, puis les premiers sons des caves.
+- **Le son ([#46](https://github.com/DavidGiangiacomo/strates/issues/46))** joue le coup sourd et l'éboulement de P2, et le grondement du sol de P5. Les premiers sons des caves viendront avec leur ambiance ([#59](https://github.com/DavidGiangiacomo/strates/issues/59)).
 
 ### Dans le code (#30)
 

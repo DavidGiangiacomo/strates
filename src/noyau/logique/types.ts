@@ -192,6 +192,8 @@ export interface ProprietesVue<E, A extends ActionBase> {
   lisible: (element: string) => boolean;
   /** « remontee » pendant la fin « Remonter » : interface visible, rien à faire. */
   mode: "jeu" | "remontee";
+  /** Ce que la strate fait entendre, par le moteur audio du noyau : ses sons, ses voix, ses notes. */
+  son: SonStrate;
 }
 
 export interface CommandesNoyau {
@@ -204,6 +206,114 @@ export interface CommandesNoyau {
   ouvrirAide(): void;
   /** Termine la partie. Seulement au fond. */
   terminer(fin: "remonter" | "rester"): void;
+}
+
+// ——— Le son (§ 5, #46)
+
+/**
+ * Ce que la vue d'une strate fait entendre, par le moteur audio du noyau. Les sons viennent de la
+ * banque de la strate (`DefinitionStrate.sons`) ; les voix et les notes sont synthétisées.
+ * - Les ambiances et les voix se règlent : la vue dit ce qui doit sonner, à chaque changement, et le
+ *   moteur s'y rend en douceur. Elles se taisent d'elles-mêmes au démontage de la vue.
+ * - Les effets et les notes se jouent une fois.
+ * - Avant le premier geste du joueur, aucun navigateur ne joue de son : un effet ou une note demandés
+ *   alors sont perdus ; les ambiances et les voix partent au premier geste.
+ * - Un appel ne lève jamais d'erreur, même son coupé ou sans Web Audio.
+ */
+export interface SonStrate {
+  /** Joue une fois l'effet `nom` de la banque. */
+  jouer(nom: string, reglage?: ReglageEffet): void;
+  /** Règle l'ambiance `nom` de la banque, jouée en boucle : elle part à un volume non nul, et s'arrête à 0. */
+  ambiance(nom: string, reglage: ReglageAmbiance): void;
+  /**
+   * Règle la voix tenue `id`, de synthèse : elle naît à un volume non nul, glisse vers chaque nouveau
+   * réglage, et s'éteint à 0. Deux voix presque justes battent d'elles-mêmes : rien n'est simulé.
+   */
+  voix(id: string, reglage: ReglageVoix): void;
+  /** Joue une note de synthèse, ou un accord : une note sur chaque rapport de la fréquence. */
+  note(reglage: ReglageNote): void;
+}
+
+export interface ReglageEffet {
+  /** De 0 à 1 ; 1 par défaut. */
+  volume?: number;
+  /** Vitesse de lecture : 2 joue l'effet une octave plus haut, deux fois plus court ; 1 par défaut. */
+  vitesse?: number;
+  /** De −1 (à gauche) à 1 (à droite) ; 0 par défaut. */
+  panoramique?: number;
+  /** Délai avant de jouer, en secondes : pour caler des effets entre eux, à l'échantillon près. */
+  dans?: number;
+  /** Coupe l'effet après `duree` secondes, par un bref fondu ; sans elle, il se joue en entier. */
+  duree?: number;
+}
+
+export interface ReglageAmbiance {
+  /** De 0 à 1. À 0, l'ambiance s'arrête, à la fin du fondu. */
+  volume: number;
+  /** Durée du fondu vers ce volume, en secondes ; 1 par défaut. */
+  fondu?: number;
+}
+
+/** Une voyelle chantée (`a`, `e`, `i`, `o`, `ou`), ou une onde simple. */
+export type Timbre = "a" | "e" | "i" | "o" | "ou" | "sinus" | "triangle";
+
+export interface ReglageVoix {
+  /** La hauteur, en hertz. */
+  frequence: number;
+  /** De 0 à 1. À 0, la voix s'éteint. */
+  volume: number;
+  /** Le timbre, fixé à la naissance de la voix ; `sinus` par défaut. */
+  timbre?: Timbre;
+  /** Temps pour rejoindre la nouvelle hauteur et le nouveau volume, en secondes ; 0,05 par défaut. */
+  glissement?: number;
+  /** La respiration : une lente houle du volume, de 0 (aucune, par défaut) à 1 (profonde). */
+  souffle?: number;
+  /** De −1 (à gauche) à 1 (à droite) ; 0 par défaut. */
+  panoramique?: number;
+}
+
+export interface ReglageNote {
+  /** La hauteur, en hertz : la fondamentale de l'accord. */
+  frequence: number;
+  /** Un accord : une note sur chaque rapport de la fréquence (`[1, 5 / 4, 3 / 2]`) ; `[1]` par défaut. */
+  rapports?: readonly number[];
+  /** Durée de la note, attaque comprise, en secondes. */
+  duree: number;
+  /** De 0 à 1, pour chaque note de l'accord ; 1 par défaut. */
+  volume?: number;
+  /** `sinus` par défaut. */
+  timbre?: Timbre;
+  /** Durée de l'attaque, en secondes ; 0,01 par défaut. Ensuite, la note s'éteint peu à peu. */
+  attaque?: number;
+  /** De −1 (à gauche) à 1 (à droite) ; 0 par défaut. */
+  panoramique?: number;
+  /** Délai avant de jouer, en secondes. */
+  dans?: number;
+}
+
+/** Un son de la banque d'une strate : un fichier, ou des échantillons calculés. */
+export type SourceSon = SonFichier | SonCalcule;
+
+export interface SonFichier {
+  /** L'adresse du fichier, donnée par Vite : `import vent from "./sons/vent.ogg"`. */
+  fichier: string;
+}
+
+export interface SonCalcule {
+  /** Durée, en secondes. */
+  duree: number;
+  /** Deux canaux, plutôt qu'un. */
+  stereo?: boolean;
+  /**
+   * Écrit les échantillons, de −1 à 1, dans `canaux` (un tableau par canal), à `frequence`
+   * échantillons par seconde. Appelé une fois, quand le son s'ouvre.
+   */
+  calculer(canaux: Float32Array[], frequence: number): void;
+  /**
+   * Pour une ambiance : fond la fin du son dans son début, sur `raccord` secondes, pour qu'il boucle
+   * sans couture. Le son en est raccourci d'autant.
+   */
+  raccord?: number;
 }
 
 /** Ce qu'exporte `src/strates/<strate>/index.ts`. */
@@ -229,6 +339,11 @@ export interface DefinitionStrate<E, A extends ActionBase> {
    * elle, la valeur prend la police du noyau.
    */
   apparenceValeur?: ApparenceValeur;
+  /**
+   * La banque de sons de la strate, que sa vue joue par `son` : le noyau la charge au montage de la
+   * vue, et la libère au démontage. Aucun son n'est commun à deux strates (§ 12).
+   */
+  sons?: Readonly<Record<string, SourceSon>>;
 }
 
 /** Des valeurs CSS, prises dans la palette de la strate. */
