@@ -26,6 +26,7 @@ Réglage unique du dépôt, déjà nécessaire au premier déploiement : *Settin
 | [`docs/strates/strate-2-mesures.md`](docs/strates/strate-2-mesures.md) | Mesures d'équilibrage des caves, générées par la CI |
 | [`docs/strates/strate-3.md`](docs/strates/strate-3.md) | Fiche de design de la strate 3, l'atelier |
 | [`docs/strates/strate-5.md`](docs/strates/strate-5.md) | Fiche de design de la strate 5, le chœur |
+| [`docs/strates/strate-6.md`](docs/strates/strate-6.md) | Fiche de design de la strate 6, la dette |
 | [`docs/strates/descente-1-2.md`](docs/strates/descente-1-2.md) | Storyboard du passage de la surface aux caves : fouille, choix des objets, descente, arrivée |
 | [`docs/playtest-mvp.md`](docs/playtest-mvp.md) | Protocole et critères du test du MVP (§14), écrits avant le test ; puis son compte rendu |
 | [`docs/architecture.md`](docs/architecture.md) | Contrat entre le noyau et les strates (types, boucle, descente, journal) |

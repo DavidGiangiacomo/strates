@@ -62,7 +62,7 @@ Ce que le jeu ne dit jamais :
 | 3 · L'atelier | les légendes d'un plan et sa nomenclature : nominales, techniques | « Pièce 14 : ajustée. » |
 | 4 · Le réseau | un carnet de relevés : la vanne, le bassin, le niveau | « Bassin haut : stable. » |
 | 5 · Le chœur | des indications de partition : des infinitifs, des adverbes | « tenir », « plus haut » |
-| 6 · La dette | un livre de comptes : des formules d'obligation, datées | « Dû à la douzième crue. Honoré. » |
+| 6 · La dette | un livre de comptes : des formules d'obligation, datées | « Dû à la 12ᵉ crue. Honoré. » |
 | 7 · Le lit | aucune : ce peuple n'écrivait pas. Le jeu y parle au joueur (§ 8) | « Rien ne presse. » |
 | 8 · Le fond | aucune : des encoches, et les traces des autres | — |
 
@@ -194,12 +194,12 @@ Pour chaque couche : ce qu'elle était, ce qu'elle optimisait, sa fin, sa voix, 
 - **Sa fin** : deux issues, sans jugement (§ 7). Dans les deux cas, il n'y a plus de coup à jouer.
   - **Soldée** : tout ce qui avait été promis a été honoré, et il ne restait rien à promettre.
   - **En défaut** : tout l'avenir était déjà promis, et l'on ne pouvait plus rien engager.
-- **Sa voix** : un livre de comptes. Des formules d'obligation, datées, à la troisième personne : « Dû à la douzième crue. », « Honoré. », « Échu. » Le rouge et le noir.
+- **Sa voix** : un livre de comptes. Des formules d'obligation, datées, à la troisième personne : « Dû à la 12ᵉ crue. », « Honoré. », « Échu. » Le rouge et le noir.
 - **Ses mots** : promettre, devoir, dû, échéance, intérêt, gage, sceau, témoin, honorer, échu, solder, défaut.
 - **Ses restes** : « le compte des crues ». En creusant ses fosses à archives, elle a trouvé les couches du lit, fines et régulières. Elle les a lues comme un compte des années, une couche par crue, et y a fixé ses échéances.
 - **Ses traces** : la ligne de son issue, et le compte de ce qui a été honoré (§ 7).
 - **Les objets d'en haut** : des gages, nommés par ce qu'ils valent ou ce qu'ils garantissent : « le gage qui chante », « la caution de bois ».
-- **À fixer par sa fiche** ([#64](https://github.com/DavidGiangiacomo/strates/issues/64)) : sa notation (I1). Proposition : les échéances se comptent en crues.
+- **Sa notation** (I1), fixée par sa [fiche](strates/strate-6.md) : les sceaux. Chaque groupe de trois zéros, à la fin d'un montant, devient un sceau : « 125 ●●● » vaut 125 milliards. Les échéances se datent en crues, de trente secondes, écrites en chiffres : « Dû à la 42ᵉ crue ».
 
 ### 7 · Le lit — attendre, Sédiments
 
@@ -358,13 +358,13 @@ Jamais de résumé de la civilisation, d'indice, ni de « vous ». Les lignes «
 - **Les textes des strates 1 et 2** ([#60](https://github.com/DavidGiangiacomo/strates/issues/60)) : faits. Les vieux remplacent les anciens, plus aucun texte ne dit « vous », les deux restes sont plantés (le serveur « au sous-sol, au frais », la cave profonde où « on trouve les roues sans moulin »), et les traces suivent le § 5. Les tests interdisent désormais « vous » et les mots du § 2, comme « creuser ».
 - **Le catalogue** ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : les noms d'en bas selon le § 6, dont « la pierre qui oblige », et les noms au fond.
 - **Le rappel de reprise** ([#58](https://github.com/DavidGiangiacomo/strates/issues/58)) : le § 10, et le titre du résumé d'absence, sans « votre ».
-- **Les fiches** des strates 3, 4, 6, 7 et 8, et la révision de celle du chœur ([#61](https://github.com/DavidGiangiacomo/strates/issues/61), [#62](https://github.com/DavidGiangiacomo/strates/issues/62), [#63](https://github.com/DavidGiangiacomo/strates/issues/63), [#64](https://github.com/DavidGiangiacomo/strates/issues/64), [#65](https://github.com/DavidGiangiacomo/strates/issues/65), [#75](https://github.com/DavidGiangiacomo/strates/issues/75)) : leur § 2 part du § 4, leur § 11 du § 5 et du § 9.
+- **Les fiches** des strates 4, 7 et 8, et la révision de celle du chœur ([#62](https://github.com/DavidGiangiacomo/strates/issues/62), [#63](https://github.com/DavidGiangiacomo/strates/issues/63), [#65](https://github.com/DavidGiangiacomo/strates/issues/65), [#75](https://github.com/DavidGiangiacomo/strates/issues/75)) : leur § 2 part du § 4, leur § 11 du § 5 et du § 9. Celles de l'atelier et de la dette sont faites ([`strate-3.md`](strates/strate-3.md), [`strate-6.md`](strates/strate-6.md)).
 - **Les textes du lit** ([#92](https://github.com/DavidGiangiacomo/strates/issues/92)) : le § 8.
 - **Les traces du fond** ([#109](https://github.com/DavidGiangiacomo/strates/issues/109)) : les § 5 et 7.
 
 ## 12. Questions ouvertes
 
-1. **Les notations proposées** : la crue pour les échéances de la dette, que sa fiche tranchera (I1). La douzaine de l'atelier est devenue la base douze ([fiche](strates/strate-3.md), § 1).
+1. **Les notations proposées** : tranchées par les fiches (I1). La douzaine de l'atelier est devenue la base douze ([fiche](strates/strate-3.md), § 1) ; la dette date ses échéances en crues, et écrit ses montants en sceaux ([fiche](strates/strate-6.md), § 1).
 2. **Les noms des objets au fond** : un nombre d'encoches, ou pas de nom du tout.
 3. **La dernière phrase du lit** : si ses deux sens se gênent au playtest, garder celui de la descente.
 4. **Les restes dessinés** : le pavement du chœur et les encoches sous le limon ne s'écrivent pas. Il faudra qu'on les voie, sans qu'ils attirent plus l'œil qu'un détail.
