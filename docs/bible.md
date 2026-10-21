@@ -155,7 +155,7 @@ Pour chaque couche : ce qu'elle était, ce qu'elle optimisait, sa fin, sa voix, 
 - **Ses mots** : établi, gabarit, plan, case, pièce, cote, jeu, ajuster, roue dentée, ressort, nomenclature.
 - **Ses restes** : des « pièces sans plan », trouvées sous l'établi. Creuses, sans cote, elles ne s'emboîtent avec rien. Ce sont les conduites et les vannes du réseau.
 - **Ses traces** : « Il ne reste aucune case. », le compte des pièces du dernier assemblage, une pièce sans plan mise de côté.
-- **Les objets d'en haut** : des pièces et des outils, nommés par leur forme et leur place : « la lame courbe », « le caisson froid ».
+- **Les objets d'en haut** : des pièces et des outils, nommés par leur forme et leur place : « la lame courbe », « la roue de pierre ».
 - **Sa notation** (I1), fixée par sa [fiche](strates/strate-3.md) : la base douze. Après 9 viennent ↊ et ↋, puis 10, une douzaine ; 100 est une grosse.
 
 ### 4 · Le réseau — relier, Flux
@@ -223,7 +223,7 @@ Pour chaque couche : ce qu'elle était, ce qu'elle optimisait, sa fin, sa voix, 
 - **Sa fin** : la paroi pleine. Les encoches s'arrêtent au bord : il n'y avait plus de place pour une de plus. On ne sait pas ce qu'elles comptaient.
 - **Sa voix** : aucune. C'est la salle de lecture : les traces des sept couches, superposées au-dessus de la paroi, lisibles dans n'importe quel ordre (§10).
 - **Ses traces** : il est lui-même la dernière.
-- **Les objets d'en haut** : les objets du lit, qui sont des clés de lecture ([`artefacts.md`](artefacts.md), § 7). Le fond ne parle pas. Proposition : ils s'y distinguent par un nombre d'encoches. À trancher avec le catalogue ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) et la fiche du fond ([#65](https://github.com/DavidGiangiacomo/strates/issues/65)).
+- **Les objets d'en haut** : les objets du lit, qui sont des clés de lecture ([`artefacts.md`](artefacts.md), § 8). Le fond ne parle pas : ils s'y distinguent par un nombre d'encoches, une, deux ou trois. La fiche du fond ([#65](https://github.com/DavidGiangiacomo/strates/issues/65)) dira comment la salle de lecture les reçoit.
 
 ## 5. Le fil des traces
 
@@ -266,12 +266,12 @@ Un objet emporté prend en bas le nom que lui donnent ceux d'en bas (§7). Ce no
 | Reçus par | Venus de | Nommés comme | Exemples |
 |---|---|---|---|
 | 2 · Les caves | la surface | des choses de la ferme et de la maison | la roue chaude, les deux fenêtres |
-| 3 · L'atelier | les caves | des pièces et des outils, par leur forme et leur place | la lame courbe, le caisson froid |
+| 3 · L'atelier | les caves | des pièces et des outils, par leur forme et leur place | la lame courbe, la roue de pierre |
 | 4 · Le réseau | l'atelier | des pièces du réseau, par ce qu'elles font au flux | la vanne qui compte, la roue qui retient |
 | 5 · Le chœur | le réseau | un son ou un geste, sans écriture | le grave qui dure, ce qui tient |
 | 6 · La dette | le chœur | des gages, par ce qu'ils valent | le gage qui chante, la caution de bois |
 | 7 · Le lit | la dette | des mots simples, par ce que l'objet fait à qui le tient | la pierre qui oblige |
-| 8 · Le fond | le lit | aucun mot : un nombre d'encoches, à trancher | — |
+| 8 · Le fond | le lit | aucun mot : un nombre d'encoches | une encoche, deux, trois |
 
 **L'éveil** : la première fois qu'un objet agit, la couche qui écrit le note dans sa voix (« Les familles ont compris la roue chaude. ») ; celle qui n'écrit pas le montre. Le chœur pose l'objet au pied du bourdon (fiche 5, § 8).
 
@@ -356,7 +356,7 @@ Jamais de résumé de la civilisation, d'indice, ni de « vous ». Les lignes «
 ## 11. Ce que la bible demande ensuite
 
 - **Les textes des strates 1 et 2** ([#60](https://github.com/DavidGiangiacomo/strates/issues/60)) : faits. Les vieux remplacent les anciens, plus aucun texte ne dit « vous », les deux restes sont plantés (le serveur « au sous-sol, au frais », la cave profonde où « on trouve les roues sans moulin »), et les traces suivent le § 5. Les tests interdisent désormais « vous » et les mots du § 2, comme « creuser ».
-- **Le catalogue** ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : les noms d'en bas selon le § 6, dont « la pierre qui oblige », et les noms au fond.
+- **Le catalogue** ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : fait ([`artefacts.md`](artefacts.md), § 8). Les noms d'en bas suivent le § 6, dont « la pierre qui oblige » ; au fond, des encoches.
 - **Le rappel de reprise** ([#58](https://github.com/DavidGiangiacomo/strates/issues/58)) : le § 10, et le titre du résumé d'absence, sans « votre ».
 - **Les fiches** des strates 4, 7 et 8, et la révision de celle du chœur ([#62](https://github.com/DavidGiangiacomo/strates/issues/62), [#63](https://github.com/DavidGiangiacomo/strates/issues/63), [#65](https://github.com/DavidGiangiacomo/strates/issues/65), [#75](https://github.com/DavidGiangiacomo/strates/issues/75)) : leur § 2 part du § 4, leur § 11 du § 5 et du § 9. Celles de l'atelier et de la dette sont faites ([`strate-3.md`](strates/strate-3.md), [`strate-6.md`](strates/strate-6.md)).
 - **Les textes du lit** ([#92](https://github.com/DavidGiangiacomo/strates/issues/92)) : le § 8.
@@ -365,6 +365,6 @@ Jamais de résumé de la civilisation, d'indice, ni de « vous ». Les lignes «
 ## 12. Questions ouvertes
 
 1. **Les notations proposées** : tranchées par les fiches (I1). La douzaine de l'atelier est devenue la base douze ([fiche](strates/strate-3.md), § 1) ; la dette date ses échéances en crues, et écrit ses montants en sceaux ([fiche](strates/strate-6.md), § 1).
-2. **Les noms des objets au fond** : un nombre d'encoches, ou pas de nom du tout.
+2. **Les noms des objets au fond** : tranchés par le catalogue, un nombre d'encoches ([`artefacts.md`](artefacts.md), § 8). La fiche du fond ([#65](https://github.com/DavidGiangiacomo/strates/issues/65)) peut encore y revenir.
 3. **La dernière phrase du lit** : si ses deux sens se gênent au playtest, garder celui de la descente.
 4. **Les restes dessinés** : le pavement du chœur et les encoches sous le limon ne s'écrivent pas. Il faudra qu'on les voie, sans qu'ils attirent plus l'œil qu'un détail.

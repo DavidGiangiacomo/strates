@@ -351,7 +351,7 @@ Le seuil dépend de trois choses visibles, qu'on ne cache jamais : les dents, le
 
 ## 8. Artefacts reçus
 
-Les objets des caves sont **puissants** ici, ceux de la surface **utiles**. Le catalogue des caves n'existe pas encore ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : leur réception est décrite par famille. Celle des objets de la surface est fixée ici, comme le demandait [`artefacts.md`](../artefacts.md), § 8. Elle sera codée par [#81](https://github.com/DavidGiangiacomo/strates/issues/81).
+Les objets des caves sont **puissants** ici, ceux de la surface **utiles**. Les deux catalogues sont dans [`artefacts.md`](../artefacts.md), § 8 ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) ; leurs effets suivent la réception par famille ci-dessous, et seront codés par [#81](https://github.com/DavidGiangiacomo/strates/issues/81).
 
 | Famille d'effet | Réception dans l'atelier |
 |---|---|
@@ -359,6 +359,16 @@ Les objets des caves sont **puissants** ici, ceux de la surface **utiles**. Le c
 | affichage | des pièces dévoilées d'avance : la nomenclature montre celles qui viennent, avec leur profil et leur prix |
 | raccourci | les noms et les rôles levés à l'arrivée, sans attendre le délai (§ 7) |
 | unique | au cas par cas ; jamais une pièce posée, tournée ou limée à la place du joueur |
+
+**Les objets des caves, puissants dans l'atelier :**
+
+| Objet | Effet |
+|---|---|
+| la lame courbe | levier `ressort` × 1,3 |
+| la roue peinte | la nomenclature montre d'avance les deux pièces suivantes, avec leur profil et leur prix |
+| le cahier à lignes | toute l'opacité levée à l'arrivée : les noms, les valeurs et le rôle de la lime (§ 7) |
+| la roue de pierre | levier `ressort` × 1,5 |
+| le fil qui descend | au seuil, sous le plan plein, le tracé du réseau paraît un instant : des conduites, des bassins |
 
 **Les objets de la surface, utiles dans l'atelier :**
 
@@ -379,13 +389,13 @@ Les objets des caves sont **puissants** ici, ceux de la surface **utiles**. Le c
 | joueur prudent | 2 h 55 | 2 h 40 | 2 h 27 | 2 h 11 |
 | joueur parfait | 2 h 29 | 2 h 27 | 2 h 10 | 1 h 39 |
 
-*× 1,375 : les seuls objets de la surface (les bras en plus et la roue chaude). × 2,7 : avec deux multiplicateurs parmi les objets des caves, à confirmer par le catalogue. Dès qu'il y a des objets, le grenier d'ailleurs rend aussi le plan moins cher.*
+*× 1,375 : les seuls objets de la surface (les bras en plus et la roue chaude). × 2,7 : avec les deux multiplicateurs des caves, la lame courbe et la roue de pierre ; c'est ce qu'emporte un jeu correct. Dès qu'il y a des objets, le grenier d'ailleurs rend aussi le plan moins cher.*
 
 - **Durée** : avec les objets d'un jeu correct, de 2 h 17 à 2 h 36 pour le joueur naturel. La cible de 2 h 30 est tenue.
 - **Les objets ne rapportent pas de points** : 16 avec ou sans (§ 9). Ils rapportent du temps.
 - **I2** : le noyau plafonne le produit des multiplicateurs à × 4. Au plafond, tout sur le ressort, la strate dure encore 1 h 39 pour le joueur parfait, 2 h pour le naturel.
 - **I5** : toute la simulation du § 4 est faite sans aucun artefact. Les joueurs réguliers finissent entre 2 h 26 et 2 h 55, sous les 3 h 15. Le joueur qui ne range jamais son plan, lui, les dépasse (§ 13, question 6).
-- **L'éveil** : un objet agit dès l'arrivée, et la légende le note, une ligne par objet, sous « Hors plan » : « Hors plan : la roue chaude. » Les objets des caves y prennent leur nom d'en bas, celui que leur donne l'atelier, par leur forme et leur place (« la lame courbe », « le caisson froid »). Ceux de la surface gardent celui que les caves leur ont donné, comme un mot étranger ([bible](../bible.md), § 6).
+- **L'éveil** : un objet agit dès l'arrivée, et la légende le note, une ligne par objet, sous « Hors plan » : « Hors plan : la roue chaude. » Les objets des caves y prennent leur nom d'en bas, celui que leur donne l'atelier, par leur forme et leur place (« la lame courbe », « la roue de pierre »). Ceux de la surface gardent celui que les caves leur ont donné, comme un mot étranger ([bible](../bible.md), § 6).
 - **Pas d'éveil retardé** : dans les caves, il protégeait le choc du premier hiver. Ici, le choc est de placer, et aucun multiplicateur ne fait tourner une pièce mal posée.
 
 ## 9. Valeur convertible

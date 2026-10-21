@@ -324,7 +324,7 @@ C'est « le pic de la mécanique de Compréhension » (§5), et pour une raison 
 
 ## 8. Artefacts reçus
 
-Les objets du réseau sont **puissants**, ceux de l'atelier **utiles**, ceux des caves **décoratifs** ; ceux de la surface sont des cailloux. Les catalogues des strates 2 à 4 n'existent pas encore ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : la réception est donc décrite par famille. Elle sera précisée par [#87](https://github.com/DavidGiangiacomo/strates/issues/87).
+Les objets du réseau sont **puissants**, ceux de l'atelier **utiles**, ceux des caves **décoratifs** ; ceux de la surface sont des cailloux. Les catalogues sont dans [`artefacts.md`](../artefacts.md), § 8 ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : leurs effets suivent la réception par famille ci-dessous, et seront codés par [#87](https://github.com/DavidGiangiacomo/strates/issues/87).
 
 | Famille d'effet | Réception dans le chœur |
 |---|---|
@@ -333,18 +333,33 @@ Les objets du réseau sont **puissants**, ceux de l'atelier **utiles**, ceux des
 | raccourci | les noms et les rôles levés à l'arrivée, sans attendre le délai (§ 7) |
 | unique | au cas par cas, au seuil ou à l'entrée d'un pupitre |
 
+**Les objets du réseau, puissants, et ceux de l'atelier, utiles :**
+
+| Objet | Venu de | Effet dans le chœur |
+|---|---|---|
+| le grave qui dure | le réseau | levier `bourdon` × 1,4 |
+| ce qui tient | le réseau | levier `tenue` × 1,5 |
+| ce qui monte | le réseau | les repères du double et d'une fois et demie, posés d'avance |
+| le doigt qui montre | le réseau | les noms et les rôles levés à l'arrivée |
+| le battement sec | le réseau | au seuil, les Voix venues s'inscrivent une fois dans la nef, en sceaux, puis s'effacent : le seul nombre du chœur, quand plus rien n'est à régler |
+| la roue qui retient | l'atelier | levier `bourdon` × 1,25 |
+| le collier qui serre | l'atelier | levier `tenue` × 1,25 |
+| la vanne qui compte | l'atelier | le repère du double, posé d'avance |
+| le regard qui grossit | l'atelier | les noms levés à l'arrivée : les pupitres, le rang, l'écoute et le point d'orgue |
+| la conduite qui chante | l'atelier | au seuil, un stylet sur l'argile, entendu une fois |
+
 **Pourquoi le bourdon, et pas tout le chœur.** Les prix de la strate sont fixes : un multiplicateur sur toutes les Voix la raccourcit presque d'autant. En simulation, × 2,5 sur tout le chœur fait passer la strate de 2 h 20 à 1 h 02. Le bourdon porte environ un tiers du chœur, parce qu'il est juste avec tous : le renforcer aide franchement, sans emporter la strate.
 
 | Multiplicateur sur le bourdon | aucun | × 1,5 | × 1,8 | × 2,5 | × 4 (plafond) |
 |---|---|---|---|---|---|
 | Seuil du joueur naturel | 2 h 20 | 2 h 01 | 1 h 53 | 1 h 36 | 1 h 16 |
 
-- **Durée** : avec les objets d'un jeu correct, entre × 1,5 et × 1,8, la strate dure 2 heures.
+- **Durée** : avec les objets d'un jeu correct, entre × 1,5 et × 1,8, la strate dure 2 heures. Le catalogue donne × 1,75 : la roue qui retient et le grave qui dure.
 - **Le levier `tenue`** agit dès la première minute : à × 2, un pupitre glisse de 12 à 30 cents, et reste parfois dans la marge. Le réglage devient plus rare. Il ne touche pas aux Voix.
 - **Les objets ne rapportent pas de points** : 14 avec ou sans (§ 9). Ils rapportent du temps.
 - **I2** : le noyau plafonne le produit des multiplicateurs à × 4. Au plafond, tout sur le bourdon, la strate dure encore 1 h 16.
 - **I5** : toute la simulation du § 4 est faite **sans aucun artefact**. Le joueur naturel finit en 2 h 20, les joueurs distrait et prudent en 2 h 40, sous les 3 h 15. Un accord pauvre peut dépasser (§ 4, « hasard ») : c'est le premier réglage à surveiller à l'équilibrage (§ 13).
-- **Les noms d'en bas** : un peuple qui n'écrit pas ne peut pas noter « les chanteurs ont compris la roue chaude ». Le nom d'en bas se lit dans l'inventaire du noyau ([#45](https://github.com/DavidGiangiacomo/strates/issues/45)) ; dans la nef, un objet qui agit est posé au pied du bourdon. À préciser avec le catalogue.
+- **Les noms d'en bas** : un peuple qui n'écrit pas ne peut pas noter « les chanteurs ont compris la roue chaude ». Le nom d'en bas se lit dans l'inventaire du noyau ([#45](https://github.com/DavidGiangiacomo/strates/issues/45)) ; dans la nef, un objet qui agit est posé au pied du bourdon. Le catalogue les a donnés : le grave qui dure, ce qui tient, ce qui monte, le doigt qui montre, le battement sec.
 - Les effets uniques ne doivent ni accorder un pupitre à la place du joueur, ni tenir l'accord pour lui.
 
 ## 9. Valeur convertible

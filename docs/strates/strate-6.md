@@ -321,7 +321,7 @@ Le joueur arrive avec κ = 70 au mieux, et plutôt de 55 à 65 pour un jeu corre
 
 ## 8. Artefacts reçus
 
-Les objets du chœur sont **puissants**, ceux du réseau **utiles**, ceux de l'atelier **décoratifs** ; ceux des caves et de la surface sont des cailloux. Les catalogues des strates 4 et 5 n'existent pas encore ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : la réception est donc décrite par famille. Elle sera précisée par [#90](https://github.com/DavidGiangiacomo/strates/issues/90).
+Les objets du chœur sont **puissants**, ceux du réseau **utiles**, ceux de l'atelier **décoratifs** ; ceux des caves et de la surface sont des cailloux. Les catalogues sont dans [`artefacts.md`](../artefacts.md), § 8 ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : leurs effets suivent la réception par famille ci-dessous, et seront codés par [#90](https://github.com/DavidGiangiacomo/strates/issues/90).
 
 Ce sont des **gages** (bible, § 6) : on les nomme par ce qu'ils valent ou ce qu'ils garantissent, « le gage qui chante », « la caution de bois ». Un gage ne produit rien : il fait qu'on a crédit.
 
@@ -331,6 +331,21 @@ Ce sont des **gages** (bible, § 6) : on les nomme par ce qu'ils valent ou ce qu
 | affichage | la caisse prévue : à chacune des prochaines échéances pour un objet puissant, à la prochaine seulement pour un objet utile |
 | raccourci | les noms des promesses et la valeur de la confiance, levés à l'arrivée |
 | unique | au cas par cas ; jamais la grande crue honorée à la place du joueur |
+
+**Les objets du chœur, puissants, et ceux du réseau, utiles :**
+
+| Objet | Venu de | Effet dans la dette |
+|---|---|---|
+| la caution de bois | le chœur | levier `confiance` × 1,25 |
+| le gage patient | le chœur | levier `report` : la majoration divisée par √1,5 |
+| le gage qui revient | le chœur | la caisse prévue à chacune des prochaines échéances |
+| le gage qui souffle | le chœur | les noms des promesses et la valeur de la confiance, levés à l'arrivée |
+| le gage qui chante | le chœur | pendant les douze crues de la grande crue, une voix tient une note ; elle se tait à la grande crue, ou une crue plus tôt si la caisse ne doit pas y suffire |
+| le grave qui dure | le réseau | levier `confiance` × 1,2 |
+| ce qui tient | le réseau | levier `report` : la majoration divisée par √1,25 |
+| ce qui monte | le réseau | la caisse prévue à la prochaine échéance |
+| le doigt qui montre | le réseau | les noms des promesses, levés à l'arrivée |
+| le battement sec | le réseau | au seuil, une couche de limon passe sur le livre |
 
 - **Quand** : les gages s'éveillent quand la première tablette est brisée, vers 28 minutes. Le livre l'écrit, un objet par ligne : « Les témoins ont reconnu le gage qui chante. » La première tablette se joue donc sans objet, et le choc d'arrivée reste entier (§ 5).
 
@@ -344,7 +359,7 @@ Ce sont des **gages** (bible, § 6) : on les nomme par ce qu'ils valent ou ce qu
 - **Un gage est un cadeau à double tranchant.** Plus de confiance, c'est plus de corde : le joueur réflexe tombe plus tôt avec × 1,5 qu'avec rien, à 40 minutes au lieu de 51.
 - **Les gages ne rendent pas le crédit rentable.** Un joueur qui promet tout ce que la confiance permet, sans regarder ses échéances, puis joue la dernière tablette avec prudence, n'arrive jamais jusqu'à elle : à toutes les valeurs du tableau, il tombe comme le réflexe. C'est la règle de la confiance qui l'en empêche (§ 3). Un jeu plus hardi gagne un peu : le joueur qui compte sur un rapport qui croît de 8 % par crue, puis joue la dernière tablette avec prudence, solde en 2 h 13 avec × 1,5 sur la confiance et sur le report, 23 minutes avant le joueur naturel. Sans gage, il tombe dans la troisième tablette.
 - **Le levier `report`** ne sert qu'à qui reporte. Il ne raccourcit pas la strate du joueur naturel, qui ne reporte jamais ; il aide à se relever d'une erreur : au plafond, le joueur naïf tient jusqu'à 2 h 30, au lieu de 46 minutes. Il divise la majoration par √m, et non par m : à 6 %, au plafond, promettre à crédit redevenait rentable, et le joueur qui promet tout sans regarder soldait en 2 h 14.
-- **Durée** : avec les objets d'un jeu correct, une confiance entre × 1,25 et × 1,5, la strate dure de 2 h 36 à 2 h 46.
+- **Durée** : avec les objets d'un jeu correct, une confiance entre × 1,25 et × 1,5, la strate dure de 2 h 36 à 2 h 46. Le catalogue donne × 1,5 : le grave qui dure et la caution de bois.
 - **Les objets ne rapportent pas de points** : 28 avec ou sans (§ 9). Ils rapportent du temps.
 - **I2** : le noyau plafonne le produit des multiplicateurs à × 4. Au plafond, tout sur la confiance, la strate dure encore 2 h 10.
 - **I5** : toute la simulation du § 4 est faite **sans aucun artefact**. Le joueur naturel solde de 2 h 51 à 3 h 02, le joueur hésitant jusqu'à 3 h 05 : sous les 3 h 15, avec dix minutes de marge. C'est le premier réglage à surveiller à l'équilibrage (§ 13).
@@ -416,6 +431,6 @@ Pourquoi la dette tient comme jeu autonome de deux heures :
 7. **Les termes** : le joueur naturel prend le terme long six fois sur dix. Faut-il le majorer davantage (× 1,8) pour équilibrer le choix ?
 8. **La dernière tablette, 24 promesses d'un coup** : un geste pour toutes les faire, sauf la dernière ?
 9. **Les noms des promesses** (§ 3) : à trancher avec les textes ([#74](https://github.com/DavidGiangiacomo/strates/issues/74)).
-10. **La réception des objets** (§ 8) : décrite par famille, à préciser avec le catalogue ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) et [#90](https://github.com/DavidGiangiacomo/strates/issues/90).
+10. **La réception des objets** (§ 8) : fixée par le catalogue ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)), à coder par [#90](https://github.com/DavidGiangiacomo/strates/issues/90).
 11. **Le compte des crues et le lit** : les mêmes couches, vues d'en haut puis d'en bas. La fiche du lit ([#75](https://github.com/DavidGiangiacomo/strates/issues/75)) dira comment elles se répondent, et où la grande crue s'y voit.
 12. **La confiance et les reports** (§ 3) : une échéance reportée, une fois honorée, rend sa confiance d'origine, mais rien de ce que ses reports ont coûté. Le livre doit le montrer, sans quoi la règle paraîtra arbitraire : peut-être en écrivant, sous « Honoré. », ce que la confiance y gagne.
