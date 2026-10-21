@@ -12,6 +12,7 @@ import {
 } from "./artefacts";
 import { CATALOGUE } from "./catalogue";
 import { creerEtatNoyau } from "./etat";
+import type { Leviers } from "./types";
 
 const CAVES = { principal: "recolte", secondaires: ["conservation"] };
 
@@ -257,9 +258,104 @@ describe("le catalogue", () => {
     }
   });
 
-  it("compte six objets et 17 points pour la surface (docs/artefacts.md, § 8)", () => {
-    const surface = catalogueDe(1);
-    expect(surface).toHaveLength(6);
-    expect(surface.reduce((total, a) => total + a.cout, 0)).toBe(17);
+  it("compte 34 objets, de 3 à 6 par strate d'origine, aux coûts du calibrage (docs/artefacts.md, § 7)", () => {
+    expect(CATALOGUE).toHaveLength(34);
+    const parStrate = [1, 2, 3, 4, 5, 6, 7].map((s) => {
+      const objets = catalogueDe(s);
+      return [s, objets.length, objets.reduce((total, a) => total + a.cout, 0)];
+    });
+    expect(parStrate).toEqual([
+      [1, 6, 17],
+      [2, 5, 13],
+      [3, 5, 21],
+      [4, 5, 26],
+      [5, 5, 17],
+      [6, 5, 32],
+      [7, 3, 4],
+    ]);
+  });
+
+  it("a six effets uniques, un par catalogue de la surface à la dette ; ceux du lit sont des clés de lecture", () => {
+    const uniques = CATALOGUE.filter((a) => a.famille === "unique").map((a) => a.origine);
+    expect(uniques).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(catalogueDe(7).every((a) => a.famille === "affichage")).toBe(true);
+  });
+
+  it("donne à chaque objet un nom d'en bas de cinq mots au plus (docs/bible.md, § 6)", () => {
+    for (const a of CATALOGUE) {
+      expect(a.nomDEnBas.split(" ").length).toBeLessThanOrEqual(5);
+      expect(a.nomDEnBas).toBe(a.nomDEnBas.toLowerCase());
+    }
+    expect(new Set(CATALOGUE.map((a) => a.nomDEnBas)).size).toBe(CATALOGUE.length);
+  });
+});
+
+describe("les parcours types", () => {
+  /** Les points d'un jeu correct, strate par strate (D-003 ; docs/artefacts.md, § 7). */
+  const CORRECT: Record<number, number> = { 1: 12, 2: 8, 3: 16, 4: 21, 5: 14, 6: 28, 7: 4 };
+  /**
+   * Les leviers des strates d'arrivée, d'après leur code ou leur fiche. Ceux du réseau et du lit
+   * viennent de l'architecture (§ 8) : leurs fiches les fixeront.
+   */
+  const LEVIERS: Record<2 | 3 | 4 | 5 | 6 | 7, Leviers> = {
+    2: { principal: "recolte", secondaires: ["conservation"] },
+    3: { principal: "ressort", secondaires: ["plan"] },
+    4: { principal: "debit" },
+    5: { principal: "bourdon", secondaires: ["tenue"] },
+    6: { principal: "confiance", secondaires: ["report"] },
+    7: { principal: "depot" },
+  };
+  const correct = (origine: number) => preselection(CORRECT[origine]!, origine);
+  /** Ce qu'emporte un jeu correct depuis la surface jusqu'à la strate `s`. */
+  const emportes = (s: number) => [1, 2, 3, 4, 5, 6, 7].filter((o) => o < s).flatMap(correct);
+  /** Le produit de tous les multiplicateurs actifs à une profondeur. */
+  const produit = (possedes: string[], s: keyof typeof LEVIERS) => {
+    const effets = effetsActifs(possedes, s, LEVIERS[s]);
+    const leviers = [LEVIERS[s].principal, ...(LEVIERS[s].secondaires ?? [])];
+    return { effets, total: leviers.reduce((p, l) => p * effets.multiplicateur(l), 1) };
+  };
+
+  it("laissent en haut l'objet étrange de chaque catalogue, sauf au lit, où tout est emporté", () => {
+    expect([1, 2, 3, 4, 5, 6, 7].map((o) => correct(o).length)).toEqual([5, 4, 4, 4, 4, 4, 3]);
+    for (const o of [1, 2, 3, 4, 5, 6]) {
+      const laisses = catalogueDe(o).filter((a) => !correct(o).includes(a.id));
+      expect(laisses.map((a) => a.famille)).toEqual(["unique"]);
+    }
+  });
+
+  it("donnent les artefacts actifs du rythme cible du design doc (§9)", () => {
+    const actifs = (s: number) =>
+      emportes(s).filter((id) => {
+        const a = CATALOGUE.find((x) => x.id === id)!;
+        return s - a.origine === 1 || s - a.origine === 2;
+      }).length;
+    expect([2, 3, 4, 5, 6, 7, 8].map(actifs)).toEqual([5, 9, 8, 8, 8, 8, 7]);
+  });
+
+  it("donnent les multiplicateurs que supposent les fiches, et restent sous le plafond × 4", () => {
+    const atelier = produit(emportes(3), 3);
+    expect(atelier.effets.multiplicateur("ressort")).toBeCloseTo(1.1 * 1.25 * 1.3 * 1.5, 12);
+    const choeur = produit(emportes(5), 5);
+    expect(choeur.effets.multiplicateur("bourdon")).toBeCloseTo(1.25 * 1.4, 12);
+    const dette = produit(emportes(6), 6);
+    expect(dette.effets.multiplicateur("confiance")).toBeCloseTo(1.2 * 1.25, 12);
+    for (const s of [2, 3, 4, 5, 6, 7] as const) {
+      const { effets, total } = produit(emportes(s), s);
+      expect(effets.plafonne).toBe(false);
+      expect(total).toBeLessThan(3.5);
+    }
+  });
+
+  it("restent sous le plafond même avec les deux catalogues du dessus entiers", () => {
+    for (const s of [2, 3, 4, 5, 6, 7] as const) {
+      const tout = CATALOGUE.filter((a) => a.origine === s - 1 || a.origine === s - 2).map(
+        (a) => a.id,
+      );
+      expect(produit(tout, s).effets.plafonne).toBe(false);
+    }
+  });
+
+  it("emportent un objet de moins après un défaut de la dette à la grande crue", () => {
+    expect(preselection(24, 6)).toHaveLength(3);
   });
 });
