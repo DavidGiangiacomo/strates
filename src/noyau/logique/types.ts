@@ -68,6 +68,14 @@ export interface LogiqueStrate<E, A extends ActionBase> {
    * celles que le protocole observe (docs/playtest-mvp.md, § 9). Le noyau ne les lit pas.
    */
   releve?(etat: E): Releve;
+
+  /**
+   * Les objets d'en haut que la strate a déjà nommés, par leur identifiant : l'inventaire du noyau
+   * les montre sous leur nom d'en bas, et ils le gardent plus bas (docs/strates/descente-1-2.md, § 6 ;
+   * bible, § 6). Elle peut citer des objets que le joueur n'a pas : le noyau ne garde que les siens.
+   * Une strate qui ne l'implémente pas n'en nomme aucun.
+   */
+  nommes?(etat: E): readonly string[];
 }
 
 /** Un relevé : des valeurs simples, sérialisables en JSON. */
@@ -378,6 +386,8 @@ export interface EntreeJournal {
   kappaGagne?: number;
   /** Les éléments opaques que le joueur a levés à l'usage, une fois chacun (docs/comprehension.md). */
   leves: string[];
+  /** Les objets d'en haut que la strate a nommés, notés à la descente : ils gardent ce nom plus bas. */
+  nommes: string[];
   seuil?: { le: number; issue?: string };
   /** La fouille à la sortie de la strate (D-002). */
   fouille?: { points: number; emportes: string[]; abandonnes: string[] };

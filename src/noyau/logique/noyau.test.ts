@@ -64,6 +64,7 @@ describe("le démarrage", () => {
         aideConsultee: false,
         actes: [],
         leves: [],
+        nommes: [],
         perturbations: [],
       },
     ]);

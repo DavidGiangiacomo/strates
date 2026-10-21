@@ -171,6 +171,7 @@ C'est un **travelling vertical vers le bas** : la caméra descend, et le décor 
 - **De 0,4 à 3,2 s.** Le travelling.
   - Le sol de la fouille monte et sort par le haut de l'écran, en emportant l'objet laissé en haut. On le voit s'éloigner : c'est l'abandon.
   - Les objets emportés, eux, **restent au milieu de l'écran** : ils descendent avec le joueur.
+  - Aux descentes suivantes, les objets qu'il portait déjà descendent aussi, en rangées par couche d'origine ; les cailloux restent en haut. Chacun montre son usure, trois crans et un mot ([#45](https://github.com/DavidGiangiacomo/strates/issues/45)). À mi-course, avec la Profondeur, les anciens perdent un cran, et les plus vieux deviennent des cailloux ; sans mouvement, le changement est immédiat.
   - Trois ou quatre couches de sol défilent, avec une accélération puis un ralentissement. Ce sont les couches de la coupe ([#47](https://github.com/DavidGiangiacomo/strates/issues/47)), dans la palette du noyau, et le même dessin servira aux sept descentes.
   - À mi-course (vers 1,8 s), la Profondeur du bandeau passe de 1 à 2. C'est le seul changement du bandeau pendant le mouvement.
 - **De 3,2 à 4 s.** L'écran des caves monte d'en bas et se met en place. La coupe des stockages arrive là où le sol traversé s'arrête : le grenier, et rien dessous.
@@ -324,14 +325,16 @@ Les raccords sont des rimes, pas des copies. Tout le reste change : la palette, 
 ## 6. Les objets, du nom d'en haut au nom d'en bas
 
 - **À la fouille**, le joueur choisit sous les noms d'en haut, qu'il connaît.
-- **Pendant la descente**, les objets emportés restent à l'écran et descendent avec lui, puis rejoignent le compteur du bandeau.
+- **Pendant la descente**, les objets emportés restent à l'écran et descendent avec lui, puis rejoignent le compteur du bandeau. Aux descentes suivantes, ceux qu'il portait déjà les accompagnent (P5).
 - **Dans les caves, un objet prend son nom d'en bas la première fois qu'il agit.** Le registre le note, un objet par ligne, avec la même formule : « Les familles ont compris la roue chaude. »
   - L'affichage et le raccourci (l'armoire qui compte les hivers, les deux fenêtres) agissent dès l'arrivée. Ils sont nommés sur la première page du registre.
   - Les multiplicateurs (les bras en plus, le grenier d'ailleurs, la roue chaude) sont nommés au bilan du premier hiver, quand ils s'éveillent. C'est déjà codé ([#34](https://github.com/DavidGiangiacomo/strates/issues/34)).
   - L'effet unique (la feuille qui annonce) est nommé au seuil, juste avant la ligne qu'il écrit d'une autre main.
   - À l'arrivée, une ligne compte les objets qui n'agissent pas encore : « 3 objets venus d'en haut, que personne ne sait employer. » Elle dit au joueur que ses objets sont bien arrivés, et qu'il ne doit pas encore compter sur eux.
 - **Le joueur fait lui-même le lien** entre les deux noms : l'armoire qui compte les hivers est le serveur, et la roue chaude est la turbine. C'est le plaisir d'archéologue du design doc (Outer Wilds).
-- **L'inventaire** ([#45](https://github.com/DavidGiangiacomo/strates/issues/45), après le MVP) montrera le nom d'en haut jusqu'à ce que la strate ait nommé l'objet, puis le nom d'en bas. Il faudra que la strate le signale au noyau, par exemple par un événement. Dans le MVP, le bandeau ne montre que le compteur.
+- **L'inventaire** ([#45](https://github.com/DavidGiangiacomo/strates/issues/45)), que le compteur « Artefacts » du bandeau ouvre pendant le jeu, montre le nom d'en haut jusqu'à ce que la strate ait nommé l'objet, puis le nom d'en bas.
+  - La strate le dit au noyau par `nommes()`, d'après son état : dans les caves, l'arrivée, le premier bilan et le seuil.
+  - Le journal de partie le note à la descente : l'objet garde ce nom plus bas.
 
 ## 7. Ce que devient la surface
 
@@ -384,6 +387,7 @@ Ces durées sont des cibles de départ, réglables au playtest. La descente et l
   - la nouvelle strate reste figée jusqu'à la fin de la transition ;
   - le seuil est noté au journal à l'heure où il est atteint.
 - **Le spectacle** est dans `noyau/ui/passage.svelte.ts`, qui en tient le minutage (`DUREES`, `DUREES_REDUITES`), et dans `Pioche.svelte`, `Fente.svelte`, `Fouille.svelte` et `Descente.svelte`.
+- **L'inventaire et l'usure** ([#45](https://github.com/DavidGiangiacomo/strates/issues/45)) : le volet `Inventaire.svelte`, ouvert par le compteur du bandeau, et la marque d'usure `Usure.svelte`, qui sert aussi au travelling. Vérifiés dans Chromium sur deux descentes, de la surface à l'atelier, avec et sans mouvement.
 - **Les caves** écrivent la première page du § 6 et nomment la feuille au seuil. Elles reçoivent pour cela les effets des objets dans le contexte d'arrivée (`ContexteArrivee.effets`).
 - **Avec la direction artistique de la surface ([#31](https://github.com/DavidGiangiacomo/strates/issues/31))** :
   - au coup de pioche, le tableau de bord se fend en deux moitiés le long de la fissure, qui glissent vers le bas en s'écartant et s'effacent ; au rebouchage, elles remontent et se rejoignent (`Fente.svelte`, deux copies de la strate figée) ;

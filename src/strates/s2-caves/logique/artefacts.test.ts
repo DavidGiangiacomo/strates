@@ -246,6 +246,41 @@ describe("à travers le noyau, avec les six objets de la surface", () => {
   });
 });
 
+describe("les noms d'en bas, dans l'inventaire du noyau", () => {
+  /** Les objets que le registre a nommés, d'après ses lignes. */
+  const auRegistre = (etat: EtatCaves) =>
+    new Set(etat.registre.filter((l) => l.cle === "registre.eveil").map((l) => l.objet));
+
+  it("suivent le registre : les deux fenêtres et l'armoire à l'arrivée, les multiplicateurs au premier bilan", async () => {
+    const registre = new Registre();
+    registre.enregistrer(2, async () => ({ logique, vue: null, textes: {} }) as StrateQuelconque);
+    const etatNoyau = creerEtatNoyau(1, 0);
+    etatNoyau.profondeur = 2;
+    etatNoyau.artefacts = ["s1-equipe", "s1-serveur", "s1-turbine", "s1-double-ecran"];
+    const noyau = new Noyau(registre, etatNoyau);
+    await noyau.demarrer(0);
+    const etat = noyau.etatStrate as EtatCaves;
+
+    expect(noyau.nommes).toEqual(["s1-serveur", "s1-double-ecran"]);
+    expect(new Set(noyau.nommes)).toEqual(auRegistre(etat));
+    while (etat.hivers.length === 0) noyau.avancer(1);
+    expect(noyau.nommes).toEqual(etatNoyau.artefacts);
+    expect(new Set(noyau.nommes)).toEqual(auRegistre(etat));
+  });
+
+  it("nomment la feuille au seuil, avec la ligne du registre", () => {
+    const etat = vallee();
+    Object.assign(etat, { annee: 14, jour: 0, familles: 50, outils: 4, reserve: 200_000 });
+    etat.hivers = [{ annee: 13, rupture: false }];
+    etat.stockages.caveProfonde = 2;
+    const ctx = contexte(["s1-plan"]);
+    expect(logique.nommes!(etat)).not.toContain(OBJETS.feuille);
+    for (let i = 0; i < 5 * 420 && !logique.seuil(etat).atteint; i++) logique.tick(etat, 1, ctx);
+    expect(auRegistre(etat).has(OBJETS.feuille)).toBe(true);
+    expect(logique.nommes!(etat)).toContain(OBJETS.feuille);
+  });
+});
+
 describe("le journal de session", () => {
   it("laisse une trace de chaque ligne écrite au registre, sauf à l'arrivée", () => {
     const traces: unknown[] = [];

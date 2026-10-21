@@ -56,12 +56,16 @@ Le catalogue est une donnée du noyau (la « table des artefacts » du §12), pa
 
 | Niveau | Nom | Effet | Affichage |
 |---|---|---|---|
-| 1 | puissant | effet entier | objet intact |
-| 2 | utile | effet réduit de moitié : un multiplicateur ×m devient ×(1 + (m − 1) / 2), soit ×2 → ×1,5 et ×1,2 → ×1,1. Pour les autres familles, la version réduite est écrite pour chaque artefact. | objet usé |
-| 3 | décoratif | aucun effet mécanique | l'objet reste visible, simple ornement |
-| ≥ 4 | inerte | aucun effet | un caillou dans l'inventaire |
+| 1 | puissant | effet entier | objet intact : trois crans |
+| 2 | utile | effet réduit de moitié : un multiplicateur ×m devient ×(1 + (m − 1) / 2), soit ×2 → ×1,5 et ×1,2 → ×1,1. Pour les autres familles, la version réduite est écrite pour chaque artefact. | objet usé : deux crans |
+| 3 | décoratif | aucun effet mécanique | l'objet reste visible, simple ornement : un cran |
+| ≥ 4 | inerte | aucun effet | un caillou dans l'inventaire, son nom en gris |
 
 Un artefact de la strate 2 est donc puissant en strate 3, utile en 4, décoratif en 5, inerte en 6. Rien ne s'accumule : à l'arrivée dans une strate, seuls les objets des deux strates du dessus agissent.
+
+**L'usure se voit** ([#45](https://github.com/DavidGiangiacomo/strates/issues/45)).
+- **Dans l'inventaire du noyau**, que le compteur « Artefacts » du bandeau ouvre : les objets par couche d'origine, chacun avec son nom, ses crans et le mot de son niveau, lisible sans la couleur. L'inventaire ne dit pas ce que fait un objet : la découverte reste dans la strate.
+- **Pendant le travelling de chaque descente** : tous les objets qui ne sont pas encore des cailloux descendent avec le joueur. À mi-course, quand la Profondeur change, les anciens perdent un cran, et les plus vieux deviennent des cailloux ([storyboard](strates/descente-1-2.md), P5).
 
 ## 4. Effets dans la strate d'arrivée
 
@@ -373,7 +377,6 @@ Un par catalogue, de la surface à la dette. Chacun fait passer quelque chose d'
 
 ### Ce qui reste
 
-- **L'inventaire et l'usure** ([#45](https://github.com/DavidGiangiacomo/strates/issues/45)) : c'est là que paraissent les noms d'en bas du chœur et les encoches du fond.
-- **Les effets, strate par strate** : l'atelier ([#81](https://github.com/DavidGiangiacomo/strates/issues/81)), le réseau ([#84](https://github.com/DavidGiangiacomo/strates/issues/84)), le chœur ([#87](https://github.com/DavidGiangiacomo/strates/issues/87)), la dette ([#90](https://github.com/DavidGiangiacomo/strates/issues/90)) et le lit ([#108](https://github.com/DavidGiangiacomo/strates/issues/108)). Ceux du réseau et du lit sont à confirmer par leurs fiches ([#62](https://github.com/DavidGiangiacomo/strates/issues/62), [#75](https://github.com/DavidGiangiacomo/strates/issues/75)), qui fixeront aussi leurs leviers secondaires.
+- **Les effets, strate par strate**, avec les noms d'en bas que chaque strate dit au noyau par `nommes()` ([#45](https://github.com/DavidGiangiacomo/strates/issues/45)) : c'est ainsi que paraîtront dans l'inventaire les noms d'en bas du chœur et les encoches du fond. Seules les caves nomment déjà leurs objets. Les strates : l'atelier ([#81](https://github.com/DavidGiangiacomo/strates/issues/81)), le réseau ([#84](https://github.com/DavidGiangiacomo/strates/issues/84)), le chœur ([#87](https://github.com/DavidGiangiacomo/strates/issues/87)), la dette ([#90](https://github.com/DavidGiangiacomo/strates/issues/90)) et le lit ([#108](https://github.com/DavidGiangiacomo/strates/issues/108)). Ceux du réseau et du lit sont à confirmer par leurs fiches ([#62](https://github.com/DavidGiangiacomo/strates/issues/62), [#75](https://github.com/DavidGiangiacomo/strates/issues/75)), qui fixeront aussi leurs leviers secondaires.
 - **Les six effets uniques** ([#118](https://github.com/DavidGiangiacomo/strates/issues/118)), et les clés du fond, avec sa fiche ([#65](https://github.com/DavidGiangiacomo/strates/issues/65)).
 - **Les noms d'en haut et d'en bas** sont à relire avec les textes de chaque strate ([#68](https://github.com/DavidGiangiacomo/strates/issues/68), [#70](https://github.com/DavidGiangiacomo/strates/issues/70), [#72](https://github.com/DavidGiangiacomo/strates/issues/72), [#74](https://github.com/DavidGiangiacomo/strates/issues/74), [#92](https://github.com/DavidGiangiacomo/strates/issues/92)) et la passe finale ([#119](https://github.com/DavidGiangiacomo/strates/issues/119)).

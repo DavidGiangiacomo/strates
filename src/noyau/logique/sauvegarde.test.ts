@@ -26,6 +26,7 @@ function etatExemple(): EtatNoyau {
       actes: ["sans-aide"],
       kappaGagne: 3,
       leves: [],
+      nommes: [],
       seuil: { le: 1_700_000_004_500 },
       fouille: { points: 13, emportes: ["s1-turbine", "s1-contrat"], abandonnes: ["s1-brevet"] },
       perturbations: [],
@@ -38,6 +39,7 @@ function etatExemple(): EtatNoyau {
       aideConsultee: true,
       actes: ["premier-hiver"],
       leves: ["marque"],
+      nommes: [],
       perturbations: [{ le: 1_700_000_004_700, recul: 3600 }],
     },
   );
@@ -126,6 +128,7 @@ describe("les migrations du format global", () => {
         delete brute.actes;
         delete brute.kappaGagne;
         delete brute.leves;
+        delete brute.nommes;
       }
     });
     const lecture = lireSauvegarde(format1, "0.1.0");
@@ -142,6 +145,7 @@ describe("les migrations du format global", () => {
       s.format = 2;
       for (const entree of s.noyau.meta.journal.strates) {
         delete (entree as Partial<EntreeJournal>).leves;
+        delete (entree as Partial<EntreeJournal>).nommes;
       }
     });
     const lecture = lireSauvegarde(format2, "0.1.0");
@@ -153,6 +157,48 @@ describe("les migrations du format global", () => {
     expect(strates.map((e) => e.actes)).toEqual([["sans-aide"], ["premier-hiver"]]);
     expect(strates[0]!.kappaGagne).toBe(3);
     expect(lireSauvegarde(format2, "0.1.0")).toEqual(lecture);
+  });
+
+  it("mènent le format 3 au format 4 : les caves quittées ont nommé les objets de la surface", () => {
+    // Une partie à l'atelier : les caves ont été fouillées, et deux de leurs objets sont descendus.
+    const etat = etatExemple();
+    etat.profondeur = 3;
+    etat.artefacts.push("s2-faucille", "s2-registre");
+    etat.meta.journal.strates[1]!.fouille = {
+      points: 6,
+      emportes: ["s2-faucille", "s2-registre"],
+      abandonnes: ["s2-calendrier", "s2-meule", "s2-corde"],
+    };
+    etat.meta.journal.strates.push({ ...etat.meta.journal.strates[1]!, strate: 3 });
+    delete etat.meta.journal.strates[2]!.fouille;
+    const format3 = modifier(ecrireSauvegarde(etat, "0.1.0"), (s) => {
+      s.format = 3;
+      for (const entree of s.noyau.meta.journal.strates) {
+        delete (entree as Partial<EntreeJournal>).nommes;
+      }
+    });
+    const lecture = lireSauvegarde(format3, "0.1.0");
+    expect(lecture.type).toBe("ok");
+    if (lecture.type !== "ok") return;
+    expect(lecture.etat.meta.journal.strates.map((e) => e.nommes)).toEqual([
+      [],
+      ["s1-turbine", "s1-contrat"],
+      [],
+    ]);
+    expect(lireSauvegarde(format3, "0.1.0")).toEqual(lecture);
+  });
+
+  it("ne nomment rien dans des caves qu'on n'a pas quittées : elles le redisent d'elles-mêmes", () => {
+    const format3 = modifier(ecrireSauvegarde(etatExemple(), "0.1.0"), (s) => {
+      s.format = 3;
+      for (const entree of s.noyau.meta.journal.strates) {
+        delete (entree as Partial<EntreeJournal>).nommes;
+      }
+    });
+    const lecture = lireSauvegarde(format3, "0.1.0");
+    expect(lecture.type === "ok" && lecture.etat.meta.journal.strates.map((e) => e.nommes)).toEqual(
+      [[], []],
+    );
   });
 });
 
@@ -190,6 +236,14 @@ describe("une sauvegarde illisible", () => {
       (s) => void delete (s.noyau.meta.journal.strates[0] as Partial<EntreeJournal>).leves,
     ],
     ["levée non textuelle", (s) => void (s.noyau.meta.journal.strates[1]!.leves = [null as never])],
+    [
+      "objets nommés absents",
+      (s) => void delete (s.noyau.meta.journal.strates[0] as Partial<EntreeJournal>).nommes,
+    ],
+    [
+      "objet nommé non textuel",
+      (s) => void (s.noyau.meta.journal.strates[1]!.nommes = [7 as never]),
+    ],
     ["référence absente", (s) => void delete (s as Partial<Sauvegarde>).reference],
   ])("est reconnue : %s", (_, changement) => {
     expect(lireSauvegarde(modifier(valide(), changement), "0.1.0").type).toBe("illisible");
