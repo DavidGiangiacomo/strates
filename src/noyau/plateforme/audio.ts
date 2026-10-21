@@ -39,6 +39,13 @@ const QUEUE = 0.03;
 const COUPE = 0.05;
 /** Le fondu d'une banque libérée, avant que tout s'arrête. */
 const LIBERATION = 0.15;
+/** La pause entre deux sons calculés en tâche de fond, en millisecondes : l'image a le temps de se dessiner. */
+const PAUSE_CALCUL = 100;
+/** Les étapes d'un long calcul faites par tâche, quand il cède la main : quelques millisecondes. */
+const ETAPES_PAR_TACHE = 8;
+/** Les fréquences d'échantillonnage qu'un son calculé peut choisir, en hertz : celles des navigateurs. */
+const FREQUENCE_MIN = 8000;
+const FREQUENCE_MAX = 96000;
 
 /** Un formant : sa fréquence et sa largeur de bande, en hertz, et son gain, en décibels. */
 type Formant = readonly [frequence: number, largeur: number, gain: number];
@@ -403,6 +410,15 @@ interface VoixTenue extends Lecture {
   eteinte: boolean;
 }
 
+/** Un son calculé en cours : ses canaux, et ses étapes s'il cède la main (`*calculer`). */
+interface Calcul {
+  nom: string;
+  source: SonCalcule;
+  canaux: Float32Array[];
+  frequence: number;
+  etapes: Iterator<unknown> | null;
+}
+
 /**
  * La banque d'une strate, ou du noyau : ses sons, et ce qu'elle fait entendre. C'est le `son` que
  * reçoit la vue (`SonStrate`). Le moteur l'ouvre et la branche ; le noyau l'étouffe pendant la
@@ -416,6 +432,11 @@ export class BanqueSons implements SonStrate {
   #etouffee: boolean;
   #liberee = false;
   readonly #tampons = new Map<string, AudioBuffer>();
+  /** Les sons calculés qui attendent leur tour. */
+  readonly #enAttente = new Set<string>();
+  /** Les sons qui se calculent en tâche de fond, par étapes : le premier avance. */
+  readonly #calculs: Calcul[] = [];
+  #calculPrevu = false;
   readonly #fichiers = new Map<string, Promise<ArrayBuffer>>();
   readonly #ambiances = new Map<string, Required<ReglageAmbiance>>();
   readonly #boucles = new Map<string, Boucle>();
@@ -467,20 +488,26 @@ export class BanqueSons implements SonStrate {
     this.#prudemment(() => this.#note(reglage));
   }
 
-  /** La strate se fige (la fouille est ouverte) : sa banque se tait en fondu, puis revient. */
+  /**
+   * La strate se fige (la fouille est ouverte) : sa banque se tait en fondu, puis revient. Rendue au
+   * jeu, elle fait partir les ambiances qui attendaient, et reprend le calcul de ses sons.
+   */
   etouffer(etouffee: boolean): void {
     if (this.#liberee || etouffee === this.#etouffee) return;
     this.#etouffee = etouffee;
     const contexte = this.#contexte;
     const sortie = this.#sortie;
     if (!contexte || !sortie) return;
-    this.#prudemment(() =>
+    this.#prudemment(() => {
       sortie.gain.setTargetAtTime(
         etouffee ? 0 : 1,
         contexte.currentTime,
         constante(etouffee ? 0.25 : 1),
-      ),
-    );
+      );
+      if (etouffee) return;
+      for (const nom of [...this.#ambiances.keys()]) this.#reglerAmbiance(nom);
+      this.#calculerEnFond();
+    });
   }
 
   /** Le démontage : tout se tait en un bref fondu, puis s'arrête. La banque ne répond plus. */
@@ -490,6 +517,8 @@ export class BanqueSons implements SonStrate {
     this.#liens.oublier(this);
     this.#prudemment(() => this.#arreterTout());
     this.#tampons.clear();
+    this.#enAttente.clear();
+    this.#calculs.length = 0;
     this.#fichiers.clear();
     this.#ambiances.clear();
     this.#boucles.clear();
@@ -516,14 +545,72 @@ export class BanqueSons implements SonStrate {
     this.#sortie = sortie;
     for (const [nom, source] of Object.entries(this.#sources)) {
       if ("fichier" in source) this.#decoder(nom, contexte);
-      else this.#calculer(nom, source, contexte);
+      else this.#enAttente.add(nom);
     }
     for (const nom of [...this.#ambiances.keys()]) this.#reglerAmbiance(nom);
     for (const id of [...this.#reglagesVoix.keys()]) this.#reglerVoix(id);
+    this.#calculerEnFond();
+  }
+
+  /**
+   * Prépare le son `nom`, demandé avant son tour : un effet se calcule aussitôt (`maintenant`), une
+   * rumeur aussi, sauf si elle cède la main. Une banque étouffée ne calcule rien, puisqu'on ne
+   * l'entend pas : ouverte pendant la descente, elle ne fige pas le travelling.
+   */
+  #preparer(nom: string, maintenant: boolean): void {
+    const source = this.#sources[nom];
+    const contexte = this.#contexte;
+    if (this.#etouffee || !contexte || !source || "fichier" in source) return;
+    const i = this.#calculs.findIndex((c) => c.nom === nom);
+    let calcul: Calcul | null = i >= 0 ? this.#calculs.splice(i, 1)[0]! : null;
+    if (!calcul && this.#enAttente.delete(nom)) calcul = this.#commencer(nom, source, contexte);
+    if (!calcul) return;
+    // Une rumeur qui cède la main ne se calcule pas d'un coup : elle passe en tête, et part dès
+    // qu'elle est prête. Un effet, lui, se joue maintenant ou jamais.
+    if (calcul.etapes && !maintenant) {
+      this.#calculs.unshift(calcul);
+      this.#calculerEnFond();
+    } else {
+      this.#poursuivre(calcul);
+    }
+  }
+
+  /**
+   * Les sons qu'on n'a pas encore demandés se calculent en tâche de fond, l'un après l'autre. Un long
+   * calcul qui cède la main se fait par étapes, quelques-unes par tâche : l'image a le temps de se
+   * dessiner entre deux.
+   */
+  #calculerEnFond(): void {
+    if (this.#calculPrevu || this.#etouffee || this.#liberee) return;
+    if (this.#calculs.length === 0 && this.#enAttente.size === 0) return;
+    this.#calculPrevu = true;
+    const pause = this.#calculs.length > 0 ? 0 : PAUSE_CALCUL;
+    this.#liens.differer(() => {
+      this.#calculPrevu = false;
+      const contexte = this.#contexte;
+      if (this.#etouffee || this.#liberee || !contexte) return;
+      this.#prudemment(() => {
+        if (this.#calculs.length === 0) {
+          const [nom] = this.#enAttente;
+          const source = nom === undefined ? undefined : this.#sources[nom];
+          if (nom === undefined || !source || "fichier" in source) return;
+          this.#enAttente.delete(nom);
+          const calcul = this.#commencer(nom, source, contexte);
+          if (calcul) this.#calculs.push(calcul);
+        }
+        const calcul = this.#calculs[0];
+        if (calcul && this.#poursuivre(calcul, ETAPES_PAR_TACHE)) {
+          this.#calculs.shift();
+          if (this.#ambiances.has(calcul.nom)) this.#reglerAmbiance(calcul.nom);
+        }
+      });
+      this.#calculerEnFond();
+    }, pause);
   }
 
   #jouer(nom: string, reglage: ReglageEffet): void {
     const pret = this.#pret();
+    if (pret) this.#preparer(nom, true);
     const tampon = pret && this.#tampon(nom);
     if (!pret || !tampon || this.#ponctuelles >= POLYPHONIE) return;
     const { contexte } = pret;
@@ -615,23 +702,49 @@ export class BanqueSons implements SonStrate {
     return null;
   }
 
-  #calculer(nom: string, source: SonCalcule, contexte: AudioContext): void {
+  /** Commence le calcul du son `nom` : il se fait d'un coup, ou par étapes s'il cède la main. */
+  #commencer(nom: string, source: SonCalcule, contexte: AudioContext): Calcul | null {
     try {
-      const frequence = contexte.sampleRate;
+      const frequence =
+        source.frequence === undefined
+          ? contexte.sampleRate
+          : borner(fini(source.frequence, contexte.sampleRate), FREQUENCE_MIN, FREQUENCE_MAX);
       const longueur = Math.max(1, Math.round(fini(source.duree, 0) * frequence));
       const canaux = [...Array(source.stereo ? 2 : 1)].map(() => new Float32Array(longueur));
-      source.calculer(canaux, frequence);
+      const retour = source.calculer(canaux, frequence);
+      const etapes = retour && typeof retour.next === "function" ? retour : null;
+      return { nom, source, canaux, frequence, etapes };
+    } catch (erreur) {
+      console.warn(`Son « ${nom} » : le calcul a échoué.`, erreur);
+      return null;
+    }
+  }
+
+  /**
+   * Poursuit un calcul de `etapes` étapes au plus, puis, s'il est fini, range son tampon. Rend vrai
+   * quand il est fini, ou qu'il a échoué.
+   */
+  #poursuivre(calcul: Calcul, etapes = Infinity): boolean {
+    const contexte = this.#contexte;
+    if (!contexte) return true;
+    try {
+      for (let k = 0; calcul.etapes && k < etapes; k++) {
+        if (calcul.etapes.next().done) calcul.etapes = null;
+      }
+      if (calcul.etapes) return false;
+      const { canaux, frequence, source } = calcul;
       const garde = source.raccord
         ? raccorder(canaux, Math.round(source.raccord * frequence))
-        : longueur;
+        : canaux[0]!.length;
       const tampon = contexte.createBuffer(canaux.length, garde, frequence);
       canaux.forEach((canal, i) =>
         tampon.getChannelData(i).set(assainir(canal.subarray(0, garde))),
       );
-      this.#tampons.set(nom, tampon);
+      this.#tampons.set(calcul.nom, tampon);
     } catch (erreur) {
-      console.warn(`Son « ${nom} » : le calcul a échoué.`, erreur);
+      console.warn(`Son « ${calcul.nom} » : le calcul a échoué.`, erreur);
     }
+    return true;
   }
 
   #decoder(nom: string, contexte: AudioContext): void {
@@ -673,6 +786,7 @@ export class BanqueSons implements SonStrate {
       return;
     }
     // Elle part, ou repart pendant son propre fondu : la nouvelle boucle croise l'ancienne.
+    this.#preparer(nom, false);
     const tampon = this.#tampon(nom);
     if (!tampon) return;
     const source = contexte.createBufferSource();

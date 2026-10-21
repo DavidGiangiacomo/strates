@@ -165,7 +165,10 @@ Un tableau de bord moderne, propre, tiède. C'est la référence : toutes les st
 - **Typographie** : une sans-serif système, avec des chiffres tabulaires pour que les compteurs ne tremblent pas.
 - **Disposition** : des cartes à coins arrondis sur une grille. En haut, les indicateurs : crédits, production, objectif courant. Au centre, le graphique de production. À côté, la carte « Produire », la liste des générateurs et les améliorations disponibles.
 - **Mouvement** : des transitions courtes et douces ; les compteurs défilent au lieu de sauter.
-- **Sons** : un clic feutré, une note discrète à chaque objectif atteint, aucun fond sonore. Ils viendront avec l'ambiance des strates 1 et 2 ([#59](https://github.com/DavidGiangiacomo/strates/issues/59)), par le moteur audio du noyau ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)).
+- **Sons** ([#59](https://github.com/DavidGiangiacomo/strates/issues/59)) : ceux d'un logiciel, et aucun fond sonore.
+  - Chaque bouton, pour produire, acheter ou améliorer, répond d'un clic feutré, à peine varié pour ne pas lasser.
+  - Chaque objectif atteint sonne d'une note discrète, tiède, un cran plus haute que la précédente : les dix objectifs montent une gamme pentatonique.
+  - Ils sont calculés (`vue/sons.ts`) et joués par le moteur audio du noyau ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)). Au passage, le joueur quitte ce silence pour un monde qui a enfin un bruit.
 - **Ce qui la distingue** : c'est la seule strate qui ressemble à un logiciel.
 
 ### Dans le code ([#31](https://github.com/DavidGiangiacomo/strates/issues/31))

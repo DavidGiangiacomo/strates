@@ -3,11 +3,12 @@ import { flushSync, mount, unmount } from "svelte";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { strate } from "..";
 import type { Window as FenetreSimulee } from "happy-dom";
-import type { CommandesNoyau } from "../../../noyau/logique/types";
+import type { CommandesNoyau, ReglageEffet, SonStrate } from "../../../noyau/logique/types";
 import type { ActionSurface, EtatSurface } from "../logique";
 import { etatInitial } from "../logique/etat";
 import Vue from "./Vue.svelte";
 import { SILENCE } from "../../../noyau/plateforme/audio";
+import { vitesseObjectif } from "./sons";
 
 let aides = 0;
 const commandes: CommandesNoyau = {
@@ -29,7 +30,7 @@ afterEach(async () => {
   document.body.innerHTML = "";
 });
 
-function monter(modifs: (etat: EtatSurface) => void = () => {}) {
+function monter(modifs: (etat: EtatSurface) => void = () => {}, son: SonStrate = SILENCE) {
   const etat = $state(etatInitial());
   modifs(etat);
   const actions: ActionSurface[] = [];
@@ -42,11 +43,25 @@ function monter(modifs: (etat: EtatSurface) => void = () => {}) {
       o: (cle: string) => strate.textes[cle] ?? `?${cle}`,
       lisible: () => true,
       mode: "jeu",
-      son: SILENCE,
+      son,
     },
   });
   flushSync();
   return { etat, actions };
+}
+
+/** Ce que la vue fait entendre : chaque appel au moteur audio, noté. */
+function ecoute() {
+  const appels: { type: string; nom?: string; reglage?: unknown }[] = [];
+  const son: SonStrate = {
+    jouer: (nom, reglage) => void appels.push({ type: "jouer", nom, reglage }),
+    ambiance: (nom, reglage) => void appels.push({ type: "ambiance", nom, reglage }),
+    voix: (nom, reglage) => void appels.push({ type: "voix", nom, reglage }),
+    note: (reglage) => void appels.push({ type: "note", reglage }),
+  };
+  const joues = (nom: string) =>
+    appels.filter((a) => a.type === "jouer" && a.nom === nom).map((a) => a.reglage as ReglageEffet);
+  return { son, appels, joues };
 }
 
 /** Espaces insécables de la notation : entre le nombre et son unité. */
@@ -265,5 +280,44 @@ describe("la vue de la surface", () => {
     expect(reperes).toEqual(["20 k", "40 k", "60 k", "80 k"].map(e));
     // La courbe finit en haut à droite, un peu sous le bord.
     expect(document.querySelector("polyline")?.getAttribute("points")).toMatch(/ 100\.00,9\.09$/);
+  });
+});
+
+describe("les sons de la surface", () => {
+  it("n'ont aucun fond sonore : rien ne sonne à l'ouverture", () => {
+    const { son, appels } = ecoute();
+    monter((etat) => (etat.objectif = 4), son);
+    expect(appels).toEqual([]);
+  });
+
+  it("répondent à chaque bouton d'un clic feutré, à peine varié", () => {
+    const { son, joues } = ecoute();
+    const { actions } = monter((etat) => {
+      etat.generateurs.poste = 10;
+      etat.cumul = 400;
+      etat.credits = 400;
+    }, son);
+    bouton("Produire")!.click();
+    document.querySelector<HTMLButtonElement>("[data-test=generateur-poste] button")!.click();
+    bouton("Double écran")!.click();
+    expect(actions).toHaveLength(3);
+    const clics = joues("clic");
+    expect(clics).toHaveLength(3);
+    for (const { volume, vitesse } of clics) {
+      expect(volume).toBeGreaterThanOrEqual(0.35);
+      expect(volume).toBeLessThanOrEqual(0.45);
+      expect(vitesse).toBeGreaterThanOrEqual(0.96);
+      expect(vitesse).toBeLessThanOrEqual(1.04);
+    }
+  });
+
+  it("jouent une note à chaque objectif atteint, un cran plus haute à chaque fois", () => {
+    const { son, joues } = ecoute();
+    const { etat } = monter((e) => (e.objectif = 2), son);
+    etat.objectif = 3;
+    flushSync();
+    etat.objectif = 4;
+    flushSync();
+    expect(joues("note").map((r) => r.vitesse)).toEqual([vitesseObjectif(3), vitesseObjectif(4)]);
   });
 });

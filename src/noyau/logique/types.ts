@@ -313,10 +313,17 @@ export interface SonCalcule {
   /** Deux canaux, plutôt qu'un. */
   stereo?: boolean;
   /**
-   * Écrit les échantillons, de −1 à 1, dans `canaux` (un tableau par canal), à `frequence`
-   * échantillons par seconde. Appelé une fois, quand le son s'ouvre.
+   * La fréquence d'échantillonnage du calcul, en hertz ; celle du contexte par défaut. Une rumeur
+   * sans aigus se calcule à moindre coût plus bas : le navigateur la rééchantillonne à la lecture.
    */
-  calculer(canaux: Float32Array[], frequence: number): void;
+  frequence?: number;
+  /**
+   * Écrit les échantillons, de −1 à 1, dans `canaux` (un tableau par canal), à `frequence`
+   * échantillons par seconde. Appelé une fois, quand le son est demandé ou que vient son tour.
+   * Un long calcul cède la main : écrit en générateur (`*calculer`), il s'arrête à chaque `yield`,
+   * et le moteur le poursuit à la tâche suivante, sans figer l'image.
+   */
+  calculer(canaux: Float32Array[], frequence: number): void | Iterator<unknown>;
   /**
    * Pour une ambiance : fond la fin du son dans son début, sur `raccord` secondes, pour qu'il boucle
    * sans couture. Le son en est raccourci d'autant.

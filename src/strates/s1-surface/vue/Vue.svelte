@@ -24,6 +24,7 @@
   import Fissure from "../../../noyau/ui/Fissure.svelte";
   import Compteur from "./Compteur.svelte";
   import Graphique from "./Graphique.svelte";
+  import { vitesseObjectif } from "./sons";
   import {
     formaterDebit,
     formaterMontant,
@@ -32,7 +33,14 @@
   } from "../logique/notation";
   import { VARIABLES } from "./theme";
 
-  let { etat, agir, noyau, o }: ProprietesVue<EtatSurface, ActionSurface> = $props();
+  let { etat, agir, noyau, o, son }: ProprietesVue<EtatSurface, ActionSurface> = $props();
+
+  // Les sons d'un logiciel (fiche, § 6) : aucun fond sonore. Chaque bouton répond d'un clic feutré,
+  // à peine varié pour ne pas lasser.
+  function cliquer(action: ActionSurface): void {
+    son.jouer("clic", { volume: 0.35 + 0.1 * Math.random(), vitesse: 0.96 + 0.08 * Math.random() });
+    agir(action);
+  }
 
   const p = $derived(production(etat));
   const fissure = $derived(avanceeFissure(etat));
@@ -48,7 +56,8 @@
   /** Les numéros des objectifs atteints, dans l'ordre. */
   const atteints = $derived(Array.from({ length: etat.objectif }, (_, i) => i + 1));
 
-  // « Objectif atteint. », quelques secondes, à chaque objectif atteint pendant qu'on regarde.
+  // « Objectif atteint. », quelques secondes, à chaque objectif atteint pendant qu'on regarde, et
+  // une note discrète, un cran plus haute que la précédente.
   let atteintALInstant = $state(false);
   // svelte-ignore state_referenced_locally
   let dernierObjectif = etat.objectif;
@@ -57,6 +66,7 @@
     const nouveau = n > dernierObjectif;
     dernierObjectif = n;
     if (!nouveau) return;
+    son.jouer("note", { vitesse: vitesseObjectif(n), volume: 0.45 });
     atteintALInstant = true;
     const minuterie = setTimeout(() => (atteintALInstant = false), 3000);
     return () => clearTimeout(minuterie);
@@ -203,7 +213,7 @@
 
     <div class="colonne">
       <article class="carte produire">
-        <button class="bouton-produire" onclick={() => agir({ type: "produire" })}>
+        <button class="bouton-produire" onclick={() => cliquer({ type: "produire" })}>
           {o("produire")}
         </button>
         <p class="clic">{remplir(o("clic"), { valeur: formaterMontant(valeurClic(etat)) })}</p>
@@ -228,21 +238,21 @@
                   class="acheter"
                   aria-describedby="infobulle-{g.id}"
                   disabled={etat.credits < coutAchat(g, n)}
-                  onclick={() => agir({ type: "acheter", generateur: g.id, quantite: 1 })}
+                  onclick={() => cliquer({ type: "acheter", generateur: g.id, quantite: 1 })}
                 >
                   {o("acheter.1")} <span class="prix">{formaterMontant(coutAchat(g, n))}</span>
                 </button>
                 <button
                   aria-label={o("acheter.10.nom")}
                   disabled={etat.credits < coutAchat(g, n, 10)}
-                  onclick={() => agir({ type: "acheter", generateur: g.id, quantite: 10 })}
+                  onclick={() => cliquer({ type: "acheter", generateur: g.id, quantite: 10 })}
                 >
                   {o("acheter.10")}
                 </button>
                 <button
                   aria-label={o("acheter.max.nom")}
                   disabled={quantiteAbordable(g, n, etat.credits) < 1}
-                  onclick={() => agir({ type: "acheter", generateur: g.id, quantite: "max" })}
+                  onclick={() => cliquer({ type: "acheter", generateur: g.id, quantite: "max" })}
                 >
                   {o("acheter.max")}
                 </button>
@@ -266,7 +276,7 @@
                 <button
                   aria-describedby="infobulle-{a.id}"
                   disabled={etat.credits < a.cout}
-                  onclick={() => agir({ type: "ameliorer", amelioration: a.id })}
+                  onclick={() => cliquer({ type: "ameliorer", amelioration: a.id })}
                 >
                   <strong>{o(`amelioration.${a.id}`)}</strong>
                   <span class="effet">{effet(a)}</span>

@@ -377,7 +377,7 @@ Ces durées sont des cibles de départ, réglables au playtest. La descente et l
   - puis les dix premières minutes, du premier achat au premier bilan.
 - **Le journal de session ([#26](https://github.com/DavidGiangiacomo/strates/issues/26))** enregistre les gestes de la fouille : ouverture (avec les points), cases cochées et décochées, « reboucher », « descendre » (avec les objets emportés).
 - **Les textes ([#16](https://github.com/DavidGiangiacomo/strates/issues/16), [#17](https://github.com/DavidGiangiacomo/strates/issues/17))** : ceux de l'écran de fouille appartiennent au noyau ; les lignes du registre du § 6 appartiennent aux caves.
-- **Le son ([#46](https://github.com/DavidGiangiacomo/strates/issues/46))** joue le coup sourd et l'éboulement de P2, et le grondement du sol de P5. Les premiers sons des caves viendront avec leur ambiance ([#59](https://github.com/DavidGiangiacomo/strates/issues/59)).
+- **Le son ([#46](https://github.com/DavidGiangiacomo/strates/issues/46))** joue le coup sourd et l'éboulement de P2, et le grondement du sol de P5. Les sons de la surface se taisent au coup de pioche ; ceux des caves partent avec leur temps, à la fin de l'arrivée, par la rumeur du printemps ([#59](https://github.com/DavidGiangiacomo/strates/issues/59)). Le son change entièrement, comme l'écran : le clic d'un logiciel devient le grain, le bois et les oiseaux.
 
 ### Dans le code (#30)
 

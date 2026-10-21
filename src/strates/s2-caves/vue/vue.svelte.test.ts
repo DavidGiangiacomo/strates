@@ -2,12 +2,18 @@
 import { flushSync, mount, unmount } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { strate } from "..";
-import type { CommandesNoyau } from "../../../noyau/logique/types";
+import type {
+  CommandesNoyau,
+  ReglageAmbiance,
+  ReglageEffet,
+  SonStrate,
+} from "../../../noyau/logique/types";
 import type { ActionCaves, EtatCaves } from "../logique";
 import { etatInitial, type LigneRegistre } from "../logique/etat";
 import { VALLEE } from "../logique/regles";
 import Vue from "./Vue.svelte";
 import { SILENCE } from "../../../noyau/plateforme/audio";
+import { FONDU_SAISON, RUMEURS, TRAIT } from "./sons";
 
 let aides = 0;
 const commandes: CommandesNoyau = {
@@ -27,7 +33,11 @@ afterEach(() => {
 const OPAQUES = (strate.logique.opacite ?? []).map((e) => e.id);
 
 /** Monte la vue ; la couche d'opacité y a déjà levé les éléments `leves`, et peut en lever d'autres. */
-function monter(modifs: (etat: EtatCaves) => void = () => {}, leves: string[] = []) {
+function monter(
+  modifs: (etat: EtatCaves) => void = () => {},
+  leves: string[] = [],
+  son: SonStrate = SILENCE,
+) {
   const etat = $state(etatInitial());
   modifs(etat);
   const couche = $state({ leves });
@@ -41,11 +51,33 @@ function monter(modifs: (etat: EtatCaves) => void = () => {}, leves: string[] = 
       o: (cle: string) => strate.textes[cle] ?? `?${cle}`,
       lisible: (element: string) => !OPAQUES.includes(element) || couche.leves.includes(element),
       mode: "jeu",
-      son: SILENCE,
+      son,
     },
   });
   flushSync();
   return { etat, actions, couche };
+}
+
+/** Ce que la vue fait entendre : chaque appel au moteur audio, noté. */
+function ecoute() {
+  const appels: { type: string; nom?: string; reglage?: unknown }[] = [];
+  const son: SonStrate = {
+    jouer: (nom, reglage) => void appels.push({ type: "jouer", nom, reglage }),
+    ambiance: (nom, reglage) => void appels.push({ type: "ambiance", nom, reglage }),
+    voix: (nom, reglage) => void appels.push({ type: "voix", nom, reglage }),
+    note: (reglage) => void appels.push({ type: "note", reglage }),
+  };
+  const joues = (nom: string) =>
+    appels.filter((a) => a.type === "jouer" && a.nom === nom).map((a) => a.reglage as ReglageEffet);
+  /** Les rumeurs qui sonnent, d'après le dernier réglage de chacune. */
+  const rumeurs = () => {
+    const derniers = new Map<string, number>();
+    for (const a of appels) {
+      if (a.type === "ambiance") derniers.set(a.nom!, (a.reglage as ReglageAmbiance).volume);
+    }
+    return [...derniers].filter(([, volume]) => volume > 0);
+  };
+  return { son, appels, joues, rumeurs };
 }
 
 const texte = (selecteur: string) =>
@@ -392,5 +424,94 @@ describe("la vue des caves", () => {
     expect(bouton("Installer une famille")).toBeUndefined();
     expect(document.body.textContent).toContain("La vallée est pleine.");
     expect(document.body.textContent).toContain("La vallée a tous ses outils.");
+  });
+});
+
+describe("les sons de la vallée", () => {
+  it("font entendre la rumeur de la saison, et passent à la suivante en fondu", () => {
+    const { son, appels, rumeurs } = ecoute();
+    const { etat } = monter(undefined, [], son);
+    expect(rumeurs()).toEqual([["printemps", RUMEURS.printemps]]);
+    expect(appels.every((a) => (a.reglage as ReglageAmbiance).fondu === FONDU_SAISON)).toBe(true);
+    etat.jour = 150;
+    flushSync();
+    expect(rumeurs()).toEqual([["ete", RUMEURS.ete]]);
+    etat.jour = 300;
+    flushSync();
+    expect(rumeurs()).toEqual([["automne", RUMEURS.automne]]);
+    etat.jour = 360;
+    flushSync();
+    expect(rumeurs()).toEqual([["hiver", RUMEURS.hiver]]);
+  });
+
+  it("glanent une poignée de grain, à la mesure de ce que rapporte le glanage ; l'hiver, rien", () => {
+    const { son, joues } = ecoute();
+    const { etat, actions } = monter((e) => (e.jour = 175), [], son);
+    bouton("Glaner")!.click();
+    expect(joues("grain")[0]!.volume).toBeCloseTo(0.8);
+    etat.jour = 50;
+    flushSync();
+    bouton("Glaner")!.click();
+    expect(joues("grain")[1]!.volume).toBeLessThan(0.8);
+    etat.jour = 360;
+    flushSync();
+    bouton("Glaner")!.click();
+    expect(joues("grain")).toHaveLength(2);
+    expect(actions).toHaveLength(3);
+  });
+
+  it("font sonner les achats en bois, et les rations d'un trait de plume", () => {
+    const { son, joues } = ecoute();
+    const { actions } = monter(
+      (e) => {
+        e.reserve = 100_000;
+        e.cumul = 1_000;
+        e.annee = 6;
+      },
+      [],
+      son,
+    );
+    bouton("Installer une famille")!.click();
+    expect(joues("bois")).toEqual([{ vitesse: 0.8, volume: 0.6 }]);
+    bouton("Construire")!.click();
+    expect(
+      joues("bois")
+        .slice(1)
+        .map((r) => r.dans),
+    ).toEqual([0, 0.22, 0.44]);
+    bouton(strate.textes["outil.faucille.acheter"]!)!.click();
+    expect(joues("bois").at(-1)!.vitesse).toBe(1.9);
+    document.querySelectorAll<HTMLInputElement>("[data-test=rations] input")[0]!.click();
+    expect(joues("plume")).toEqual([{ duree: TRAIT, volume: 0.35 }]);
+    expect(actions.map((a) => a.type)).toEqual(["installer", "construire", "outil", "rations"]);
+  });
+
+  it("grattent la plume à chaque nouvelle ligne du registre, pas pour celles déjà écrites", () => {
+    const { son, joues } = ecoute();
+    const ligne = (annee: number): LigneRegistre => ({
+      cle: "registre.sans-rupture",
+      valeurs: { annee, naissances: 1 },
+    });
+    const { etat } = monter((e) => e.registre.push(ligne(1), ligne(2)), [], son);
+    expect(joues("plume")).toEqual([]);
+    etat.registre.push(ligne(3));
+    flushSync();
+    expect(joues("plume")).toHaveLength(1);
+    // Au bilan, plusieurs lignes s'écrivent d'un coup : un trait chacune, trois au plus.
+    etat.registre.push(ligne(4), ligne(5), ligne(6), ligne(7));
+    flushSync();
+    expect(
+      joues("plume")
+        .slice(1)
+        .map((r) => r.dans),
+    ).toEqual([0, 0.7, 1.4]);
+    // Le registre plein oublie sa plus vieille ligne quand il en écrit une.
+    while (etat.registre.length < 30) etat.registre.unshift(ligne(0));
+    flushSync();
+    const avant = joues("plume").length;
+    etat.registre.push(ligne(8));
+    etat.registre.splice(0, 1);
+    flushSync();
+    expect(joues("plume")).toHaveLength(avant + 1);
   });
 });

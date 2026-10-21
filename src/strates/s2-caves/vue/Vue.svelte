@@ -28,21 +28,25 @@
     rationsOuvertes,
     recolte,
     repartition,
+    GLANAGE,
     saison,
     saisonChaude,
     STOCKAGES,
     stockageVisible,
     valeurGlanage,
     valleePleine,
+    type IdRations,
+    type IdStockage,
   } from "../logique/regles";
   import Calendrier from "./Calendrier.svelte";
   import { froidEcran } from "./calendrier";
   import Coupe from "./Coupe.svelte";
   import Courbe from "./Courbe.svelte";
   import { achatsCourbe, saisonsCourbe } from "./courbe";
+  import { FONDU_SAISON, RUMEURS, TRAIT } from "./sons";
   import { VARIABLES } from "./theme";
 
-  let { etat, agir, noyau, o, lisible }: ProprietesVue<EtatCaves, ActionCaves> = $props();
+  let { etat, agir, noyau, o, lisible, son }: ProprietesVue<EtatCaves, ActionCaves> = $props();
 
   const t = (cle: string, valeurs: Record<string, number> = {}) => remplir(o(cle), valeurs);
 
@@ -79,6 +83,60 @@
 
   /** L'hiver refroidit l'écran, et le printemps le réchauffe (fiche, § 6). */
   const froid = $derived(froidEcran(etat));
+
+  // Les sons de la vallée (fiche, § 6). Une rumeur par saison, qui passe à la suivante en fondu.
+  const saisonCourante = $derived(saison(etat));
+  $effect(() => {
+    for (const [s, volume] of Object.entries(RUMEURS)) {
+      son.ambiance(s, { volume: s === saisonCourante ? volume : 0, fondu: FONDU_SAISON });
+    }
+  });
+
+  // Glaner : une poignée de grain, à la mesure de ce que rapporte le glanage. L'hiver, rien.
+  function glaner(): void {
+    const part = Math.min(1, valeurGlanage(etat) / GLANAGE);
+    if (part > 0) {
+      son.jouer("grain", { volume: 0.3 + 0.5 * part, vitesse: 0.92 + 0.16 * Math.random() });
+    }
+    agir({ type: "glaner" });
+  }
+
+  // Les achats sonnent en bois : une famille s'installe d'un coup, un stockage se bâtit au maillet,
+  // un outil claque. Les rations changent d'un trait de plume.
+  function installer(): void {
+    son.jouer("bois", { vitesse: 0.8, volume: 0.6 });
+    agir({ type: "installer" });
+  }
+  function construire(stockage: IdStockage): void {
+    for (let k = 0; k < 3; k++) {
+      son.jouer("bois", { vitesse: 1 + 0.03 * k, volume: 0.5, dans: 0.22 * k });
+    }
+    agir({ type: "construire", stockage });
+  }
+  function acheterOutil(): void {
+    son.jouer("bois", { vitesse: 1.9, volume: 0.5 });
+    agir({ type: "outil" });
+  }
+  function changerRations(rations: IdRations): void {
+    son.jouer("plume", { duree: TRAIT, volume: 0.35 });
+    agir({ type: "rations", rations });
+  }
+
+  // Chaque nouvelle ligne du registre : la plume gratte le papier. Celles qui étaient déjà écrites
+  // quand la vue est montée ne sonnent pas ; quand plusieurs s'écrivent d'un coup, au bilan, trois
+  // traits au plus.
+  // svelte-ignore state_referenced_locally
+  let derniereLigne = etat.registre.at(-1);
+  $effect(() => {
+    const lignes = etat.registre;
+    const derniere = lignes.at(-1);
+    if (derniere === derniereLigne) return;
+    const avant = derniereLigne === undefined ? -1 : lignes.lastIndexOf(derniereLigne);
+    derniereLigne = derniere;
+    for (let k = 0; k < Math.min(3, lignes.length - 1 - avant); k++) {
+      son.jouer("plume", { volume: 0.3, dans: 0.7 * k });
+    }
+  });
 
   const stockages = $derived(STOCKAGES.filter((s) => stockageVisible(etat, s)));
   const outil = $derived(prochainOutil(etat));
@@ -199,7 +257,7 @@
     <div class="droite">
       <!-- « Glaner », à la place de « Produire ». -->
       <div class="glanage">
-        <button class="glaner" onclick={() => agir({ type: "glaner" })}>{o("glaner")}</button>
+        <button class="glaner" onclick={glaner}>{o("glaner")}</button>
         {#if valeurGlanage(etat) === 0}
           <p data-test="glaner-rien">{o("glaner.rien")}</p>
         {/if}
@@ -217,7 +275,7 @@
                 class="ecriture"
                 aria-describedby="note-installer"
                 disabled={etat.reserve < coutFamille(etat)}
-                onclick={() => agir({ type: "installer" })}
+                onclick={installer}
               >
                 <span class="quoi">{o("installer")}</span>
                 <span class="points" aria-hidden="true"></span>
@@ -244,7 +302,7 @@
                         name="rations"
                         value={r.id}
                         checked={etat.rations === r.id}
-                        onchange={() => agir({ type: "rations", rations: r.id })}
+                        onchange={() => changerRations(r.id)}
                       />{o(`rations.${r.id}`)}</label
                     >
                   {/each}
@@ -262,7 +320,7 @@
                 class="ecriture"
                 aria-describedby="note-{s.id}"
                 disabled={etat.reserve < prix}
-                onclick={() => agir({ type: "construire", stockage: s.id })}
+                onclick={() => construire(s.id)}
               >
                 <span class="quoi">{o(`construire.${s.id}`)}</span>
                 <span class="points" aria-hidden="true"></span>
@@ -288,7 +346,7 @@
                 class="ecriture"
                 aria-describedby="note-{outil.id}"
                 disabled={etat.reserve < outil.cout}
-                onclick={() => agir({ type: "outil" })}
+                onclick={acheterOutil}
               >
                 <span class="quoi">{o(`outil.${outil.id}.acheter`)}</span>
                 <span class="points" aria-hidden="true"></span>

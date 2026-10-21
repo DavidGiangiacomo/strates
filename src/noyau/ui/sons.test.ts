@@ -8,7 +8,8 @@ function rendre(nom: SonNoyau, fe = 48000): Float32Array[] {
   const canaux = [...Array(son.stereo ? 2 : 1)].map(
     () => new Float32Array(Math.round(son.duree * fe)),
   );
-  son.calculer(canaux, fe);
+  const etapes = son.calculer(canaux, fe);
+  if (etapes) while (!etapes.next().done);
   return canaux;
 }
 
@@ -79,5 +80,24 @@ describe("les sons du sol", () => {
     expect(efficace(tranche(son!, 0, 0.1))).toBeLessThan(tenue / 10);
     expect(efficace(tranche(son!, 3.9, 4))).toBeLessThan(tenue / 10);
     expect(partGrave(tranche(son!, 1, 2.5), 300)).toBeGreaterThan(0.6);
+  });
+});
+
+describe("le calcul des sons du sol", () => {
+  it("cède la main pour les plus longs, pour ne pas figer l'image", () => {
+    const etapes = (nom: SonNoyau) => {
+      const son = SONS_NOYAU[nom] as SonCalcule;
+      const canaux = [
+        new Float32Array(Math.round(son.duree * 48000)),
+        new Float32Array(Math.round(son.duree * 48000)),
+      ];
+      const retour = son.calculer(canaux, 48000);
+      let n = 0;
+      if (retour) while (!retour.next().done) n++;
+      return n;
+    };
+    expect(etapes("descente")).toBeGreaterThan(40);
+    expect(etapes("pioche")).toBeGreaterThan(10);
+    expect(etapes("resiste")).toBe(0);
   });
 });

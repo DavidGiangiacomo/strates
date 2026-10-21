@@ -6,6 +6,15 @@
 // - la descente : le grondement du sol qui défile (P5).
 import { creerAlea, tirer, type EtatAlea } from "../logique/alea";
 import type { SourceSon } from "../logique/types";
+import {
+  ajouter,
+  blanc,
+  brun,
+  finir,
+  panoramique,
+  passeBas,
+  resonateur,
+} from "../plateforme/synthese";
 
 export type SonNoyau = "resiste" | "pioche" | "descente";
 
@@ -27,7 +36,7 @@ export const SONS_NOYAU: Readonly<Record<SonNoyau, SourceSon>> = {
   pioche: {
     duree: DUREES_SONS.pioche,
     stereo: true,
-    calculer(canaux, fe) {
+    *calculer(canaux, fe) {
       const alea = creerAlea(23);
       coupSourd(canaux, fe, { debut: 0, gain: 0.9, haut: 160, bas: 65, alea });
       // La fissure court du bouton au bas de l'écran en 0,4 s : quelques craquements secs.
@@ -52,7 +61,7 @@ export const SONS_NOYAU: Readonly<Record<SonNoyau, SourceSon>> = {
           gain: (0.25 + 0.75 * tirer(alea)) * (1 - (t - 0.32) / 1.15) ** 1.5 * 1.5,
         });
       }
-      grondement(canaux, fe, alea, {
+      yield* grondement(canaux, fe, alea, {
         debut: 0.3,
         montee: 0.08,
         fin: DUREES_SONS.pioche,
@@ -65,9 +74,9 @@ export const SONS_NOYAU: Readonly<Record<SonNoyau, SourceSon>> = {
   descente: {
     duree: DUREES_SONS.descente,
     stereo: true,
-    calculer(canaux, fe) {
+    *calculer(canaux, fe) {
       const alea = creerAlea(37);
-      grondement(canaux, fe, alea, {
+      yield* grondement(canaux, fe, alea, {
         debut: 0,
         montee: 0.7,
         fin: DUREES_SONS.descente,
@@ -90,55 +99,6 @@ export const SONS_NOYAU: Readonly<Record<SonNoyau, SourceSon>> = {
 };
 
 // ——— Les gestes du son
-
-/** Un filtre passe-bas à un pôle. */
-function passeBas(coupure: number, fe: number): (x: number) => number {
-  const a = 1 - Math.exp((-2 * Math.PI * coupure) / fe);
-  let y = 0;
-  return (x) => (y += a * (x - y));
-}
-
-/** Un résonateur : un passe-bande à deux pôles, de gain 1 à sa fréquence. */
-function resonateur(frequence: number, q: number, fe: number): (x: number) => number {
-  const w = (2 * Math.PI * Math.min(frequence, fe * 0.45)) / fe;
-  const alpha = Math.sin(w) / (2 * q);
-  const a0 = 1 + alpha;
-  const b0 = alpha / a0;
-  const a1 = (-2 * Math.cos(w)) / a0;
-  const a2 = (1 - alpha) / a0;
-  let x1 = 0;
-  let x2 = 0;
-  let y1 = 0;
-  let y2 = 0;
-  return (x) => {
-    const y = b0 * x - b0 * x2 - a1 * y1 - a2 * y2;
-    x2 = x1;
-    x1 = x;
-    y2 = y1;
-    y1 = y;
-    return y;
-  };
-}
-
-/** Un bruit blanc, de −1 à 1. */
-const blanc = (alea: EtatAlea) => 2 * tirer(alea) - 1;
-
-/** Un bruit brun : un bruit blanc intégré, qui fuit pour ne pas dériver. */
-function brun(alea: EtatAlea): () => number {
-  let b = 0;
-  return () => {
-    b = (b + 0.02 * blanc(alea)) / 1.02;
-    return 3.5 * b;
-  };
-}
-
-/** Ajoute `x` à l'échantillon `n` de chaque canal, s'il existe, dans la part `gauche` ou `droite`. */
-function ajouter(canaux: Float32Array[], n: number, x: number, gauche = 1, droite = 1): void {
-  const [g, d] = canaux;
-  if (n < 0 || !g || n >= g.length) return;
-  g[n] = g[n]! + x * gauche;
-  if (d) d[n] = d[n]! + x * droite;
-}
 
 /**
  * Un coup sourd, comme un poing sur de la terre battue : une note grave qui tombe de `haut` à `bas`
@@ -175,9 +135,7 @@ function grain(
 ): void {
   const n0 = Math.round(o.debut * fe);
   const filtre = resonateur(o.frequence, o.q, fe);
-  // Le panoramique à puissance constante : de −0,7 à 0,7.
-  const angle = (Math.PI / 4) * (1 + 0.7 * blanc(alea));
-  const [gauche, droite] = [Math.cos(angle), Math.sin(angle)];
+  const [gauche, droite] = panoramique(0.7 * blanc(alea));
   const longueur = Math.round(6 * o.decroissance * fe);
   for (let i = 0; i < longueur; i++) {
     const t = i / fe;
@@ -189,9 +147,11 @@ function grain(
 /**
  * Un grondement : un bruit brun très grave, un peu de médium pour les petits haut-parleurs, et une
  * houle lente. Il monte en `montee` secondes, puis tient jusqu'à `tenue` et s'éteint à `fin`, ou
- * décroît avec la constante `decroissance`. Les deux canaux grondent chacun de leur côté.
+ * décroît avec la constante `decroissance`. Les deux canaux grondent chacun de leur côté. C'est le
+ * plus long à calculer : il cède la main tous les 4096 échantillons, et le moteur le poursuit plus
+ * tard.
  */
-function grondement(
+function* grondement(
   canaux: Float32Array[],
   fe: number,
   alea: EtatAlea,
@@ -203,7 +163,7 @@ function grondement(
     decroissance?: number;
     gain: number;
   },
-): void {
+): Generator<void> {
   const n0 = Math.round(o.debut * fe);
   const n1 = Math.round(o.fin * fe);
   const phases = [tirer(alea), tirer(alea)].map((p) => 2 * Math.PI * p);
@@ -228,25 +188,7 @@ function grondement(
         0.2 * Math.sin(2 * Math.PI * 1.9 * t + phases[1]!);
       const x = 1.6 * grave(graves()) + 1.5 * medium(blanc(alea));
       canal[n] = canal[n]! + o.gain * montee * tenue * houle * x * (c === 0 ? 1 : 0.95);
-    }
-  }
-}
-
-/**
- * Finit un son : sa crête ramenée à `crete`, un fondu de 2 ms au début et de 30 ms à la fin, pour
- * qu'il commence et finisse sur le silence.
- */
-function finir(canaux: Float32Array[], fe: number, crete: number): void {
-  let max = 0;
-  for (const canal of canaux) for (const x of canal) max = Math.max(max, Math.abs(x));
-  const gain = max > 0 ? crete / max : 0;
-  const debut = Math.round(0.002 * fe);
-  const fin = Math.round(0.03 * fe);
-  for (const canal of canaux) {
-    const n = canal.length;
-    for (let i = 0; i < n; i++) {
-      const fondu = Math.min(1, i / debut, (n - 1 - i) / fin);
-      canal[i] = canal[i]! * gain * fondu;
+      if ((n - n0) % 4096 === 4095) yield;
     }
   }
 }

@@ -6,12 +6,14 @@
   //   modifiée est écrite comme une sauvegarde, puis la page se recharge : tout passe par le vrai
   //   chemin de chargement, migrations comprises.
   // - Le son (#46) : volume, sons du sol, et deux voix pour entendre le moteur accorder et battre.
+  //   Les sons de la strate courante s'écoutent un à un (#59) : un effet se joue, une rumeur se met
+  //   ou s'arrête.
   import { onDestroy, untrack } from "svelte";
   import { creerEtatNoyau, type EtatNoyau } from "../noyau/logique/etat";
   import type { Noyau } from "../noyau/logique/noyau";
   import { lireSauvegarde } from "../noyau/logique/sauvegarde";
-  import type { NumeroStrate, SonStrate, Timbre } from "../noyau/logique/types";
-  import type { MoteurAudio } from "../noyau/plateforme/audio";
+  import type { NumeroStrate, SonStrate, SourceSon, Timbre } from "../noyau/logique/types";
+  import type { BanqueSons, MoteurAudio } from "../noyau/plateforme/audio";
   import { telechargerSauvegarde } from "../noyau/plateforme/export";
   import { graineAleatoire, maintenant } from "../noyau/plateforme/horloge";
   import type { GestionnaireSauvegarde } from "../noyau/plateforme/sauvegarde";
@@ -82,6 +84,7 @@
     journal = e
       ? { jeu: e.tempsDeJeu, horsLigne: e.tempsHorsLigne, perturbations: e.perturbations.length }
       : null;
+    sonsStrate = noyau.strate.sons ?? AUCUN_SON;
   }
 
   function relireEtat(): void {
@@ -144,6 +147,28 @@
   let voixTenues = $state(false);
   const essai = untrack(() => moteur.banque({}));
   onDestroy(() => essai.liberer());
+
+  // Les sons de la strate courante, dans une banque à part, ouverte à la première écoute.
+  const AUCUN_SON: Readonly<Record<string, SourceSon>> = {};
+  let sonsStrate = $state.raw(untrack(() => noyau.strate.sons ?? AUCUN_SON));
+  let rumeurs = $state<string[]>([]);
+  let ecoute: { strate: unknown; banque: BanqueSons } | null = null;
+  onDestroy(() => ecoute?.banque.liberer());
+  /** Fait entendre un son de la strate : un effet se joue, une rumeur se met ou s'arrête. */
+  function ecouter(nom: string, source: SourceSon): void {
+    if (ecoute?.strate !== noyau.strate) {
+      ecoute?.banque.liberer();
+      ecoute = { strate: noyau.strate, banque: moteur.banque(noyau.strate.sons ?? AUCUN_SON) };
+      rumeurs = [];
+    }
+    if (!("raccord" in source) || !source.raccord) {
+      ecoute.banque.jouer(nom);
+      return;
+    }
+    const enCours = rumeurs.includes(nom);
+    ecoute.banque.ambiance(nom, { volume: enCours ? 0 : 1, fondu: 0.3 });
+    rumeurs = enCours ? rumeurs.filter((r) => r !== nom) : [...rumeurs, nom];
+  }
   $effect(() => {
     const reglage = { volume: voixTenues ? 0.3 : 0, timbre, souffle: 0.2, glissement: 0.08 };
     essai.voix("bourdon", { ...reglage, frequence: 110 });
@@ -222,6 +247,16 @@
         <button onclick={() => sol.jouer("pioche")}>pioche</button>
         <button onclick={() => sol.jouer("descente")}>descente</button>
       </p>
+      {#if Object.keys(sonsStrate).length > 0}
+        <p data-test="sons-strate">
+          Strate
+          {#each Object.entries(sonsStrate) as [nom, source] (nom)}
+            <button class:actif={rumeurs.includes(nom)} onclick={() => ecouter(nom, source)}
+              >{nom}</button
+            >
+          {/each}
+        </p>
+      {/if}
       <p>
         Voix
         <select bind:value={timbre} disabled={voixTenues}>
