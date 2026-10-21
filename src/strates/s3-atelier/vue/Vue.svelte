@@ -60,9 +60,18 @@
     return debut !== undefined && etat.temps - debut >= TOUR - 1e-9;
   }
 
-  /** Ce que dit une pièce à un lecteur d'écran : « Pièce 14, roue dentée, tourne, frotte à gauche ». */
+  /**
+   * Ce que dit une pièce à un lecteur d'écran : « Pièce 14, cliquet, dent à gauche, tourne, frotte à
+   * gauche ».
+   */
   function description(p: PieceAtelier, info: EtatPiece | undefined): string {
     const mots = [t("piece.etiquette", { piece: p.repere }), o(`piece.${p.id}`).toLowerCase()];
+    const dents = COTES.filter((d) => dente(p, d));
+    if (dents.length === 0) mots.push(o("piece.sans-dent"));
+    else {
+      const cotes = dents.map((d) => o(`cote.${d}`)).join(", ");
+      mots.push(`${o(dents.length === 1 ? "piece.dent" : "piece.dents")} ${cotes}`);
+    }
     if (info) {
       mots.push(info.entrainee ? o("piece.tourne") : o("piece.immobile"));
       const frotte = COTES.filter((d) => info.cotes[d]!.some((x) => montree(x.cle)));
@@ -101,15 +110,27 @@
     e.preventDefault();
     envoyer({ type: "tourner", repere: p.repere });
   }
+
+  /** Une touche tapée dans un champ, comme ceux des outils de développement, ne vise pas le plan. */
+  function dansUnChamp(e: KeyboardEvent): boolean {
+    const cible = e.target;
+    return (
+      cible instanceof HTMLElement &&
+      (cible.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(cible.tagName))
+    );
+  }
+
+  function touche(e: KeyboardEvent): void {
+    if (dansUnChamp(e)) return;
+    if (e.key === "Escape") main = null;
+    // Ctrl+R et ses semblables appartiennent au navigateur.
+    const modifiee = e.ctrlKey || e.metaKey || e.altKey;
+    if ((e.key === "r" || e.key === "R") && !modifiee && enMain)
+      envoyer({ type: "tourner", repere: enMain.repere });
+  }
 </script>
 
-<svelte:window
-  onkeydown={(e) => {
-    if (e.key === "Escape") main = null;
-    if ((e.key === "r" || e.key === "R") && enMain)
-      envoyer({ type: "tourner", repere: enMain.repere });
-  }}
-/>
+<svelte:window onkeydown={touche} />
 
 <section class="atelier" style="{VARIABLES}; --n: {n}" data-test="atelier">
   <header class="entete">
@@ -156,7 +177,7 @@
         <button
           class="case"
           style="grid-area: {l + 1} / {c + 1}"
-          aria-label={o("case.libre")}
+          aria-label={t("case.libre", { ligne: l + 1, colonne: c + 1 })}
           data-case="{l},{c}"
           disabled={mode !== "jeu"}
           onclick={() => cliquerCase(l, c)}

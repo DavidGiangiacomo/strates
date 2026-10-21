@@ -154,6 +154,7 @@ describe("les contacts", () => {
       cle: "1:0.0:3",
       piece: 1,
       contre: "piece",
+      autre: 3,
     });
   });
 

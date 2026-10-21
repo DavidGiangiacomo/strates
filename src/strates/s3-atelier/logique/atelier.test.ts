@@ -406,6 +406,42 @@ describe("les gênes", () => {
     agir(etat, { type: "tourner", repere: r });
     expect(heures()).toEqual([6, 6]);
   });
+
+  it("repartent pour un tour quand on déplace la pièce, même si elle frotte comme avant", () => {
+    // Une roue au-dessus de la première : sa dent du haut frotte contre le cadre. Au bout de 10 s, elle
+    // glisse au-dessus de la seconde, et sa dent du haut frotte toujours contre le cadre.
+    const etat = etatInitial();
+    const r = ajouter(etat, "roue", [0, 2]);
+    jouer(etat, 10);
+    agir(etat, { type: "deplacer", repere: r, case: [0, 3] });
+    expect(Object.keys(etat.genes)).toEqual([`${r}:0.0:C`]);
+    expect(etat.genes[`${r}:0.0:C`]).toBeCloseTo(10);
+    jouer(etat, TOUR - 0.5);
+    expect(etat.legende.map((l) => l.cle)).not.toContain("legende.gene.cadre");
+    jouer(etat, 0.5);
+    expect(derniere(etat)).toEqual({ cle: "legende.gene.cadre", valeurs: { piece: r } });
+  });
+
+  it("repartent aussi quand on déplace la pièce frottée, et durent ailleurs", () => {
+    // Un cliquet, la dent en bas, frotte le dos lisse d'un balancier retourné, et son côté droit lisse
+    // frotte le ressort. Le balancier glisse d'une case vers la droite : le cliquet frotte toujours son
+    // dos, et lui frotte toujours le cadre, de sa dent.
+    const etat = etatInitial();
+    const c = ajouter(etat, "cliquet", [3, 1], 2);
+    const b = ajouter(etat, "balancier", [4, 0], 2);
+    jouer(etat, 6);
+    agir(etat, { type: "deplacer", repere: b, case: [4, 1] });
+    const heures = Object.fromEntries(
+      Object.entries(etat.genes).map(([cle, t]) => [cle, Math.round(t)]),
+    );
+    expect(heures).toEqual({
+      [`${c}:1.0:R`]: 0,
+      [`${c}:2.0:${b}`]: 6,
+      [`${b}:2.0:C`]: 6,
+      [`${b}:2.1:C`]: 6,
+      [`${b}:0.1:R`]: 6,
+    });
+  });
 });
 
 describe("le déterminisme", () => {

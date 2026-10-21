@@ -69,7 +69,25 @@ describe("la vue de l'atelier", () => {
     monter();
     expect(document.querySelectorAll(".plan .case")).toHaveLength(30);
     expect(document.querySelectorAll(".plan .piece")).toHaveLength(2);
-    expect(etiquette(1)).toBe("Pièce 1, roue dentée, tourne");
+    expect(etiquette(1)).toBe(
+      "Pièce 1, roue dentée, dents en haut, à droite, en bas, à gauche, tourne",
+    );
+  });
+
+  it("dit à un lecteur d'écran la place d'une case libre, en base douze, et les dents d'une pièce", () => {
+    monter((e) => {
+      e.taille = 12;
+      e.pieces.push({ id: "cliquet", repere: 3, case: null, rot: 1, limees: [] });
+      e.pieces.push({ id: "cliquet", repere: 4, case: null, rot: 0, limees: [0] });
+    });
+    const libre = (l: number, c: number) =>
+      document.querySelector(`[data-case="${l},${c}"]`)?.getAttribute("aria-label");
+    expect(libre(0, 0)).toBe("Case libre, ligne 1, colonne 1");
+    expect(libre(11, 10)).toBe("Case libre, ligne 10, colonne ↋");
+    const etabli = (repere: number) =>
+      document.querySelector(`.etabli [data-piece="${repere}"]`)?.getAttribute("aria-label");
+    expect(etabli(3)).toBe("Pièce 3, cliquet, dent à droite");
+    expect(etabli(4)).toBe("Pièce 4, cliquet, sans dent");
   });
 
   it("montre la nomenclature au fil du cumul, avec ses prix en base douze", () => {
@@ -124,6 +142,19 @@ describe("la vue de l'atelier", () => {
     ]);
   });
 
+  it("laisse la touche R aux champs de saisie, et Ctrl+R au navigateur", () => {
+    const { actions } = monter();
+    cliquer('.plan [data-piece="1"]');
+    const champ = document.createElement("input");
+    document.body.append(champ);
+    champ.dispatchEvent(new KeyboardEvent("keydown", { key: "r", bubbles: true }));
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "r", ctrlKey: true }));
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "R", metaKey: true }));
+    expect(actions).toEqual([]);
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "R", shiftKey: true }));
+    expect(actions).toEqual([{ type: "tourner", repere: 1 }]);
+  });
+
   it("propose de limer les côtés dentés de la pièce en main", () => {
     const { actions } = monter((e) =>
       e.pieces.push({ id: "cliquet", repere: 3, case: null, rot: 1, limees: [] }),
@@ -140,12 +171,15 @@ describe("la vue de l'atelier", () => {
     });
     actions.push({ type: "poser", repere: 3, case: [0, 2], rot: 0 });
     appliquer();
-    expect(etiquette(1)).toBe("Pièce 1, roue dentée, tourne");
+    const roue = "Pièce 1, roue dentée, dents en haut, à droite, en bas, à gauche, tourne";
+    expect(etiquette(1)).toBe(roue);
     expect(document.querySelectorAll(".frotte")).toHaveLength(0);
     etat.temps += TOUR;
     flushSync();
-    expect(etiquette(1)).toBe("Pièce 1, roue dentée, tourne, frotte en haut");
-    expect(etiquette(3)).toBe("Pièce 3, cliquet, ne tourne pas, frotte en haut, en bas");
+    expect(etiquette(1)).toBe(`${roue}, frotte en haut`);
+    expect(etiquette(3)).toBe(
+      "Pièce 3, cliquet, dent en haut, ne tourne pas, frotte en haut, en bas",
+    );
     expect(document.querySelectorAll(".frotte").length).toBeGreaterThan(0);
   });
 

@@ -266,6 +266,8 @@ export interface Frottement {
   /** La pièce que nomme la légende : celle dont la dent frotte, ou celle dont le côté lisse frotte le ressort. */
   piece: number;
   contre: "piece" | "cadre" | "ressort";
+  /** La pièce frottée, quand c'en est une. */
+  autre?: number;
 }
 
 export interface Analyse {
@@ -388,7 +390,12 @@ export function analyser(etat: EtatAtelier): Analyse {
               let cle: string;
               if (mienne) {
                 cle = cleFrottement(piece.repere, d, h, autre.repere);
-                frottements.push({ cle, piece: piece.repere, contre: "piece" });
+                frottements.push({
+                  cle,
+                  piece: piece.repere,
+                  contre: "piece",
+                  autre: autre.repere,
+                });
               } else {
                 const [la, ca] = autre.case!;
                 const da = oppose(d);

@@ -18,8 +18,11 @@ export const textes: Record<string, string> = {
   // ——— Le plan
   plan: "Le plan",
   ressort: "Ressort",
-  "case.libre": "Case libre",
+  "case.libre": "Case libre, ligne {ligne}, colonne {colonne}",
   "piece.etiquette": "Pièce {piece}",
+  "piece.dent": "dent",
+  "piece.dents": "dents",
+  "piece.sans-dent": "sans dent",
   "piece.tourne": "tourne",
   "piece.immobile": "ne tourne pas",
   "piece.frotte": "frotte",

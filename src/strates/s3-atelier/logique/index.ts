@@ -81,12 +81,18 @@ function entrainees(analyse: Analyse): Set<number> {
 
 /**
  * Les gênes en cours, après un geste : un frottement qui dure garde son heure, un nouveau prend celle
- * du geste, et un frottement défait est oublié.
+ * du geste, et un frottement défait est oublié. Une pièce qu'on vient de poser ou de déplacer repart
+ * pour un tour : ses frottements, et ceux qu'elle subit, prennent l'heure du geste, même quand elle
+ * frotte comme avant.
  */
-function suivreGenes(etat: EtatAtelier, analyse: Analyse): void {
+function suivreGenes(etat: EtatAtelier, analyse: Analyse, bougees: readonly number[]): void {
   const actuels = new Set(analyse.frottements.map((f) => f.cle));
   for (const cle of Object.keys(etat.genes)) if (!actuels.has(cle)) delete etat.genes[cle];
-  for (const cle of actuels) etat.genes[cle] ??= etat.temps;
+  for (const f of analyse.frottements) {
+    const bouge = bougees.includes(f.piece) || (f.autre !== undefined && bougees.includes(f.autre));
+    if (bouge) etat.genes[f.cle] = etat.temps;
+    else etat.genes[f.cle] ??= etat.temps;
+  }
 }
 
 /**
@@ -102,7 +108,7 @@ function actualiser(
   bougees: readonly number[] = [],
 ): void {
   const analyse = analyser(etat);
-  suivreGenes(etat, analyse);
+  suivreGenes(etat, analyse, bougees);
   for (const [piece, info] of analyse.pieces) {
     const bougee = bougees.includes(piece);
     if (info.entrainee && (bougee || !avant.has(piece)))
