@@ -415,6 +415,8 @@ export class Noyau {
     // La Compréhension de la strate quittée se conclut avant que les objets emportés ne rejoignent
     // les artefacts : « sans artefact » regarde ceux qui agissaient ici.
     this.#conclureComprehension(entree);
+    // Les objets qu'elle a nommés gardent leur nom plus bas : le journal s'en souvient.
+    entree.nommes = this.#nommesIci();
     const resultat = fouiller(this.etat, fouille.points, choix);
     entree.seuil ??= { le: maintenant };
     // Une action restée en file appartient à la strate quittée : elle ne doit pas atteindre la suivante.
@@ -428,6 +430,17 @@ export class Noyau {
       this.#crediter(this.#entreeCourante());
     }
     return resultat;
+  }
+
+  /**
+   * Les objets possédés qu'une strate a nommés, dans l'ordre des artefacts : l'inventaire les montre
+   * sous leur nom d'en bas (docs/strates/descente-1-2.md, § 6). Ce sont ceux que le journal a notés en
+   * quittant chaque strate, et ceux que la strate courante a déjà nommés.
+   */
+  get nommes(): string[] {
+    const notes = new Set(this.etat.meta.journal.strates.flatMap((entree) => entree.nommes));
+    const ici = new Set(this.#nommesIci());
+    return this.etat.artefacts.filter((id) => notes.has(id) || ici.has(id));
   }
 
   /** Un relevé de la strate courante, pour le journal de session ; null si elle n'en donne pas. */
@@ -494,6 +507,12 @@ export class Noyau {
     this.etat.kappa = crediter(this.etat.kappa, gain);
   }
 
+  /** Les objets possédés que la strate courante a déjà nommés : elle peut en citer d'autres. */
+  #nommesIci(): string[] {
+    const cites = new Set(this.strate.logique.nommes?.(this.etatStrate) ?? []);
+    return this.etat.artefacts.filter((id) => cites.has(id));
+  }
+
   #appliquerActions(): void {
     const logique = this.strate.logique;
     const etat = this.etatStrate;
@@ -553,6 +572,7 @@ function nouvelleEntree(strate: NumeroStrate, arrivee: number): EntreeJournal {
     aideConsultee: false,
     actes: [],
     leves: [],
+    nommes: [],
     perturbations: [],
   };
 }

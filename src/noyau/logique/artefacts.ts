@@ -128,6 +128,43 @@ export function effetsActifs(
   };
 }
 
+/** Un objet possédé, tel que le montre l'inventaire (#45) : son nom, sa couche d'origine, son usure. */
+export interface ObjetInventaire {
+  id: string;
+  /** Son nom d'en haut, puis son nom d'en bas, dès que la strate d'en dessous l'a nommé. */
+  nom: string;
+  origine: ArtefactDef["origine"];
+  niveau: Niveau;
+}
+
+/**
+ * L'inventaire des objets possédés à une profondeur (docs/artefacts.md, § 3) : par couche d'origine,
+ * de la surface vers le bas, puis dans l'ordre où ils ont été emportés. Ceux de `nommes` portent leur
+ * nom d'en bas. Pendant le travelling, avant la mi-course, les objets de la strate quittée ne sont pas
+ * encore descendus : ils sont montrés intacts, puissants. Les identifiants inconnus du catalogue sont
+ * ignorés.
+ */
+export function inventaire(
+  possedes: readonly string[],
+  profondeur: number,
+  nommes: readonly string[],
+  catalogue = CATALOGUE,
+): ObjetInventaire[] {
+  const objets: ObjetInventaire[] = [];
+  for (const id of new Set(possedes)) {
+    const def = artefact(id, catalogue);
+    if (!def) continue;
+    objets.push({
+      id,
+      nom: nommes.includes(id) ? def.nomDEnBas : def.nomDHaut,
+      origine: def.origine,
+      niveau: niveauUsure(def.origine, profondeur) ?? "puissant",
+    });
+  }
+  // Le tri est stable : dans une couche, l'ordre des artefacts reste.
+  return objets.sort((a, b) => a.origine - b.origine);
+}
+
 /** Le catalogue d'une strate d'origine par coût croissant, comme l'écran de choix. À coût égal, l'ordre de la table. */
 export function catalogueParCout(origine: number, catalogue = CATALOGUE): ArtefactDef[] {
   return catalogueDe(origine, catalogue).sort((a, b) => a.cout - b.cout);

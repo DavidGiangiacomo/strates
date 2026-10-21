@@ -353,6 +353,53 @@ describe("la descente", () => {
   });
 });
 
+describe("les objets nommés", () => {
+  const EMPORTES = ["s1-equipe", "s1-serveur", "s1-turbine"];
+  /** Des caves factices : l'équipe nommée dès l'arrivée, la turbine et le plan au premier générateur. */
+  const caves: LogiqueFactice = {
+    ...creerLogiqueFactice(2),
+    nommes: (e) => ["s1-equipe", ...(e.generateurs > 0 ? ["s1-turbine", "s1-plan"] : [])],
+  };
+
+  async function auxCaves(): Promise<Noyau> {
+    const noyau = await partie([creerLogiqueFactice(1), caves, creerLogiqueFactice(3)]);
+    expect(noyau.nommes).toEqual([]);
+    auSeuil(noyau);
+    noyau.ouvrirFouille();
+    await noyau.descendre(DEBUT, EMPORTES);
+    return noyau;
+  }
+
+  it("sont ceux que la strate courante a nommés, parmi les objets possédés", async () => {
+    const noyau = await auxCaves();
+    expect(noyau.nommes).toEqual(["s1-equipe"]);
+    // Le plan est cité, mais il est resté en haut.
+    etatDe(noyau).generateurs = 1;
+    expect(noyau.nommes).toEqual(["s1-equipe", "s1-turbine"]);
+    // Rien n'est encore noté au journal : la strate le redit d'elle-même.
+    expect(journal(noyau).map((e) => e.nommes)).toEqual([[], []]);
+  });
+
+  it("gardent leur nom plus bas : le journal les note à la descente, et la sauvegarde les garde", async () => {
+    const noyau = await auxCaves();
+    noyau.reprendre();
+    etatDe(noyau).generateurs = 1;
+    auSeuil(noyau, 1e4);
+    noyau.ouvrirFouille();
+    await noyau.descendre(DEBUT + H, ["s2-faucille"]);
+
+    // L'atelier factice ne nomme rien : la faucille garde son nom d'en haut.
+    expect(journal(noyau).map((e) => e.nommes)).toEqual([[], ["s1-equipe", "s1-turbine"], []]);
+    expect(noyau.nommes).toEqual(["s1-equipe", "s1-turbine"]);
+
+    const lecture = lireSauvegarde(ecrireSauvegarde(noyau.etat, "1.0.0"), "1.0.0");
+    if (lecture.type !== "ok") throw new Error(lecture.type);
+    const repris = new Noyau(registreDe([creerLogiqueFactice(3)]), lecture.etat);
+    await repris.demarrer(DEBUT + H);
+    expect(repris.nommes).toEqual(["s1-equipe", "s1-turbine"]);
+  });
+});
+
 describe("la descente automatique", () => {
   const automatique: LogiqueFactice = {
     ...creerLogiqueFactice(1),

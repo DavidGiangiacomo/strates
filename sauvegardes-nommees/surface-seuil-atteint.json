@@ -1,5 +1,5 @@
 {
-  "format": 3,
+  "format": 4,
   "versionJeu": "0.0.0",
   "partieCreeeLe": 1767225600000,
   "reference": 1767229961000,
@@ -20,6 +20,7 @@
               "sans-aide"
             ],
             "leves": [],
+            "nommes": [],
             "perturbations": [],
             "seuil": {
               "le": 1767229960000

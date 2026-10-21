@@ -2,7 +2,7 @@
 // P6) : le coup de pioche, l'écran de fouille, « reboucher » ou « descendre », la transition,
 // l'arrivée. Le noyau engage la descente ; le passage en règle le spectacle et le moment où le temps
 // de la nouvelle strate commence.
-import { artefact, type FouilleOuverte } from "../logique/artefacts";
+import { inventaire, type FouilleOuverte, type ObjetInventaire } from "../logique/artefacts";
 import type { Noyau } from "../logique/noyau";
 import type { ApparenceValeur, NumeroStrate } from "../logique/types";
 import { formaterBrut, formuleConversion, NOMS_STRATES, TEXTES_FOUILLE } from "./fouille";
@@ -111,8 +111,13 @@ export class Passage {
   artefacts: string[] = $state.raw([]);
   /** La Compréhension : elle monte à l'arrivée, après les objets, sans un mot (docs/comprehension.md, § 7). */
   kappa = $state(0);
-  /** Les noms d'en haut des objets emportés, qui descendent avec le joueur. */
-  transportes: string[] = $state.raw([]);
+  /**
+   * Les objets qui descendent avec le joueur : tous ceux qui n'étaient pas encore des cailloux, sous
+   * les noms qu'il leur connaît. Leur usure suit la Profondeur du bandeau, qui change à mi-course.
+   */
+  transportes: ObjetInventaire[] = $state.raw([]);
+  /** Les objets nommés, que montre l'inventaire : relus pendant le jeu, figés pendant la séquence. */
+  nommes: string[] = $state.raw([]);
   /** Une descente est en cours d'engagement : les boutons ne répondent plus. */
   occupe = $state(false);
   /** La fouille a été rebouchée dans cette strate : la fissure reste dessinée. */
@@ -127,6 +132,17 @@ export class Passage {
     this.profondeur = dependances.noyau.etat.profondeur;
     this.artefacts = [...dependances.noyau.etat.artefacts];
     this.kappa = dependances.noyau.etat.kappa;
+    this.nommes = dependances.noyau.nommes;
+  }
+
+  /**
+   * Relit les objets nommés, à chaque image : une strate nomme ses objets en cours de jeu. Pendant la
+   * séquence, le noyau est déjà en bas : l'inventaire attend la fin de l'arrivée.
+   */
+  actualiser(): void {
+    if (this.phase !== "jeu" || this.occupe) return;
+    const nommes = this.#d.noyau.nommes;
+    if (!memes(nommes, this.nommes)) this.nommes = nommes;
   }
 
   #signaler(evenement: EvenementPassage): void {
@@ -202,9 +218,14 @@ export class Passage {
     const automatique = this.phase === "jeu" && noyau.descenteAutomatique;
     if (this.occupe || (this.phase !== "fouille" && !automatique)) return;
     this.occupe = true;
+    let descendent: string[];
     try {
       const fouille = await noyau.descendre(this.#d.maintenant(), emportes);
-      this.transportes = fouille.emportes.map((id) => artefact(id)?.nomDHaut ?? id);
+      // Tous les objets descendent, les nouveaux sous leur nom d'en haut ; les cailloux restent.
+      descendent = this.#porter()
+        .filter((objet) => objet.niveau !== "inerte")
+        .map((objet) => objet.id);
+      this.transportes = this.#porter(descendent);
       this.#signaler({
         type: "descendre",
         emportes: [...fouille.emportes],
@@ -225,7 +246,9 @@ export class Passage {
     this.#d.sonner?.("descente", d.descente / 1000);
     this.#passer("descente");
     await this.#d.attendre(d.miCourse);
+    // À mi-course, les anciens perdent un cran, et les plus vieux deviennent des cailloux.
     this.profondeur = noyau.etat.profondeur;
+    this.transportes = this.#porter(descendent);
     await this.#d.attendre(d.descente - d.miCourse);
 
     this.#passer("arrivee");
@@ -236,6 +259,7 @@ export class Passage {
       ecoule += d.parObjet;
     }
     this.artefacts = [...noyau.etat.artefacts];
+    this.nommes = noyau.nommes;
     this.kappa = noyau.etat.kappa;
     await this.#d.attendre(Math.max(0, d.arrivee - ecoule));
     await sauvegarde;
@@ -246,4 +270,14 @@ export class Passage {
     this.#passer("jeu");
     this.occupe = false;
   }
+
+  /** Les objets possédés, à la Profondeur du bandeau et sous les noms connus ; ou ceux de `parmi`. */
+  #porter(parmi?: readonly string[]): ObjetInventaire[] {
+    const objets = inventaire(this.#d.noyau.etat.artefacts, this.profondeur, this.nommes);
+    return parmi ? objets.filter((objet) => parmi.includes(objet.id)) : objets;
+  }
+}
+
+function memes(a: readonly string[], b: readonly string[]): boolean {
+  return a.length === b.length && a.every((x, i) => x === b[i]);
 }

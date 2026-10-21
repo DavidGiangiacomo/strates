@@ -398,6 +398,8 @@ Seuls les artefacts de la surface peuvent être actifs ici, et ils sont **puissa
 - Les multiplicateurs sont nommés au premier bilan.
 - La feuille est nommée au seuil, juste avant sa ligne.
 
+L'inventaire du noyau ([#45](https://github.com/DavidGiangiacomo/strates/issues/45)) montre ces noms dès que le registre les écrit : les caves les lui disent par `nommes()`, d'après leur état (l'arrivée, le premier bilan, le seuil). Les objets les gardent plus bas.
+
 Ces lignes de l'arrivée et du seuil sont codées avec l'orchestration de la descente ([#30](https://github.com/DavidGiangiacomo/strates/issues/30)) : la strate reçoit les effets des objets dans son contexte d'arrivée.
 
 **Dans le code** ([#34](https://github.com/DavidGiangiacomo/strates/issues/34)) : les caves reconnaissent les objets de la surface par leur identifiant (`OBJETS`, dans `logique/regles.ts`) et les lisent par `EffetsActifs`. Les multiplicateurs restent à 1 tant qu'aucun hiver n'a été jugé ; les autres objets sont notés dans l'état (`objets`), que la vue lit. Les deux fenêtres et l'armoire lèvent l'opacité du § 7 par la couche du noyau, qui les lit dans la déclaration de la strate (`opacite`, [#78](https://github.com/DavidGiangiacomo/strates/issues/78)).

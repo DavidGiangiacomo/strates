@@ -108,6 +108,13 @@ interface LogiqueStrate<E, A extends ActionBase> {
   opacite?: ElementOpaque[];
 
   /**
+   * Les objets d'en haut que la strate a déjà nommés, par leur identifiant (#45) : l'inventaire du
+   * noyau les montre sous leur nom d'en bas, et ils le gardent plus bas. Elle peut citer des objets
+   * que le joueur n'a pas : le noyau ne garde que les siens. Sans elle, aucun objet n'est nommé.
+   */
+  nommes?(etat: E): readonly string[];
+
+  /**
    * Un relevé de l'état, pour le journal de session des playtests (#26) : quelques grandeurs à plat,
    * celles que le protocole observe. Le noyau ne les lit pas.
    */
@@ -321,6 +328,10 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
   - La sauvegarde écrit la référence sans la déplacer : une sauvegarde faite pendant que l'onglet est caché garde l'absence à rattraper.
 - **Hors-ligne standard** : le noyau simule 80 % de l'absence, plafonnée à 12 h, par ticks de `pasMax` au plus. En politique propre, il appelle `absence()`. Le temps rattrapé s'ajoute à `tempsHorsLigne`, pas à `tempsDeJeu`. Le rattrapage du chargement se fait avant l'enveloppe réactive, sur l'objet brut ; en session, il passe par l'enveloppe, comme les ticks (12 h de la strate factice : moins de 0,1 s dans Chromium).
 - **Bandeau** (`noyau/ui/Bandeau.svelte`, §12) : 24 px en haut de l'écran, identique quelle que soit la strate montée, avec la Profondeur, les artefacts, la Compréhension (« Compréhension 22 % ») et le bouton « creuser ». À partir de κ = 50, un bouton « graphe » ouvre le graphe de dépendances de la strate. Au-delà, les formules réelles s'y écrivent une à une, et celle de la conversion sur l'écran de fouille ([`comprehension.md`](comprehension.md), § 8). Le bouton « creuser » a le même aspect avant et après le seuil ; seule sa réponse change. Avant le seuil, `demanderFouille()` refuse : le bandeau tressaille et le sol sonne sourd, sans texte ni pénalité (un bref assombrissement si le joueur préfère moins de mouvement). Le bouton d'une strate qui appellerait `CommandesNoyau.demanderFouille()` a la même réponse.
+- **Inventaire** (`noyau/ui/Inventaire.svelte`, [#45](https://github.com/DavidGiangiacomo/strates/issues/45)) : le compteur des artefacts du bandeau l'ouvre, pendant le jeu. C'est un volet sous le bandeau, dans sa palette, et la strate continue de vivre dessous.
+  - Les objets y sont rangés par couche d'origine, de la surface vers le bas (`inventaire`, dans `noyau/logique/artefacts.ts`). Chacun montre son nom et son usure : trois crans qui se vident, puissant, utile, décoratif, puis un caillou au nom gris, et toujours le mot (`noyau/ui/Usure.svelte`).
+  - Le nom est celui d'en haut jusqu'à ce que la strate d'en dessous l'ait nommé, puis celui d'en bas. Le noyau le sait par `nommes()`, qu'il interroge pour la strate courante et dont il note la réponse au journal à la descente (`Noyau.nommes`) : l'objet garde ce nom plus bas.
+  - L'inventaire ne dit pas ce que fait un objet : la découverte reste dans la strate.
 - **Résumé au retour** : `noyau/ui/reprise.ts` rédige le résumé d'une absence d'au moins une minute (durée, taux, plafond atteint, ou les lignes de la strate en politique propre). L'interface l'affiche sous le bandeau, dans sa palette, jusqu'à ce que le joueur le ferme.
 - **Actions** : mises en file, appliquées au début du tick suivant dans l'ordre d'arrivée.
 - **Journal de session** ([#26](https://github.com/DavidGiangiacomo/strates/issues/26), `src/playtest/`) : pour les playtests, et seulement si l'observateur l'a demandé (`?journal=T3` dans l'adresse).
@@ -331,6 +342,7 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
 - **Sauvegarde** : selon D-005 (toutes les 30 s, en arrière-plan, après chaque descente). Le format, sa validation et les migrations sont dans `noyau/logique/sauvegarde.ts` et `migrations.ts` ; le stockage, la rotation des deux emplacements et la mise de côté des sauvegardes illisibles, dans `noyau/plateforme/sauvegarde.ts`. Les migrations d'une strate s'appliquent à son démarrage. De vraies sauvegardes de chaque version publiée sont archivées dans `tests/sauvegardes/` et doivent toutes se charger.
   - Le format 2 ([#56](https://github.com/DavidGiangiacomo/strates/issues/56)) ajoute à chaque entrée du journal de partie ses actes de compréhension. La migration du format 1 les laisse vides.
   - Le format 3 ([#66](https://github.com/DavidGiangiacomo/strates/issues/66)) y ajoute les éléments opaques levés à l'usage (`leves`). La migration du format 2 les laisse vides : les objets et le délai lèveront le reste.
+  - Le format 4 ([#45](https://github.com/DavidGiangiacomo/strates/issues/45)) y ajoute les objets d'en haut que la strate a nommés (`nommes`), notés à la descente. La migration du format 3 les laisse vides, sauf pour des caves déjà quittées : elles avaient nommé tous les objets de la surface avant leur seuil.
 
 ### La descente
 
@@ -346,11 +358,12 @@ La logique est dans `Noyau` (`ouvrirFouille`, `reboucher`, `descendre`, `reprend
    - En descente automatique, `descendre()` sans choix ouvre la fouille et applique la présélection, sans écran.
 4. `descendre(maintenant, emportes)` vérifie le choix et charge la strate suivante. Si le chargement échoue, rien n'a changé : la fouille reste ouverte. Puis tout s'engage d'un coup, avant l'animation :
    - la Compréhension de la strate quittée se conclut : « sans artefact » est constaté si aucun objet n'y agissait, puis le gain de ses actes est crédité à κ et noté au journal (`kappaGagne`) ;
+   - les objets que la strate quittée a nommés sont notés au journal (`nommes`) : ils gardent leur nom d'en bas ;
    - `fouiller` note la fouille au journal (points, objets emportés, objets abandonnés), à côté du seuil et de l'issue.
 5. Les objets emportés rejoignent `artefacts` (`fouiller`), et la Profondeur augmente de 1. Une action restée en file pour la strate quittée est oubliée.
 6. L'état de la strate quittée reste tel quel dans `strates` : gelé, gardé dans la sauvegarde.
 7. La strate suivante s'installe : ses effets sont calculés, puis `etatInitial()` est appelé avec une nouvelle graine, le journal et ces effets, et une entrée de journal s'ouvre. L'interface monte sa vue, puis sauvegarde.
-8. La nouvelle strate reste figée pendant la transition (4 s, puis 1 s d'arrivée), qui ne fait que représenter ce qui est déjà fait : le bandeau change de Profondeur à mi-course, puis reçoit les objets à l'arrivée, et enfin κ. Son temps part à la fin, par `reprendre()`. Un rechargement pendant la transition retrouve la nouvelle strate, et ne rejoue pas la transition.
+8. La nouvelle strate reste figée pendant la transition (4 s, puis 1 s d'arrivée), qui ne fait que représenter ce qui est déjà fait : le bandeau change de Profondeur à mi-course, puis reçoit les objets à l'arrivée, et enfin κ. Tous les objets qui ne sont pas encore des cailloux descendent avec le joueur : à mi-course, avec la Profondeur, les anciens perdent un cran d'usure (`noyau/ui/Descente.svelte`, [#45](https://github.com/DavidGiangiacomo/strates/issues/45)). Son temps part à la fin, par `reprendre()`. Un rechargement pendant la transition retrouve la nouvelle strate, et ne rejoue pas la transition.
 
 ### Les fins
 
@@ -382,6 +395,10 @@ interface EntreeJournal {
   actes: string[];
   /** Le κ que ces actes ont rapporté, crédité à la descente (à l'arrivée, pour le fond). */
   kappaGagne?: number;
+  /** Les éléments opaques levés à l'usage, une fois chacun (docs/comprehension.md, § 4). */
+  leves: string[];
+  /** Les objets d'en haut que la strate a nommés, notés à la descente : ils gardent ce nom plus bas. */
+  nommes: string[];
   seuil?: { le: number; issue?: string };
   /** La fouille à la sortie de la strate (D-002). */
   fouille?: { points: number; emportes: string[]; abandonnes: string[] };

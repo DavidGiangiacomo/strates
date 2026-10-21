@@ -4,7 +4,7 @@ import { appliquerMigrations, ErreurVersionPlusRecente, type Migrations } from "
 import type { Meta, NumeroStrate } from "./types";
 
 /** Version du format global ; elle augmente à chaque changement incompatible. */
-export const FORMAT_SAUVEGARDE = 3;
+export const FORMAT_SAUVEGARDE = 4;
 
 /** Migrations du format global : `MIGRATIONS_FORMAT[v]` fait passer du format v au format v + 1. */
 export const MIGRATIONS_FORMAT: Migrations = {
@@ -14,7 +14,32 @@ export const MIGRATIONS_FORMAT: Migrations = {
   // Format 3 (#66) : chaque entrée note aussi les éléments opaques levés à l'usage. Une partie
   // commencée avant l'opacité n'en a levé aucun : les objets et le délai lèveront le reste.
   2: (sauvegarde) => completerJournal(sauvegarde, 3, "leves"),
+  // Format 4 (#45) : chaque entrée note aussi les objets d'en haut que sa strate a nommés. La strate
+  // courante les redit d'elle-même. Parmi celles qu'on a quittées, seules les caves nommaient déjà.
+  3: (sauvegarde) => nommerAuxCaves(completerJournal(sauvegarde, 4, "nommes")),
 };
+
+/**
+ * Les caves quittées avaient nommé tous les objets de la surface : les deux fenêtres et l'armoire à
+ * l'arrivée, les multiplicateurs au premier bilan, la feuille au seuil, qu'il faut franchir pour
+ * descendre (docs/strates/descente-1-2.md, § 6). Leur entrée du journal les retrouve parmi les artefacts.
+ */
+function nommerAuxCaves(sauvegarde: unknown): unknown {
+  if (!estObjet(sauvegarde) || !estObjet(sauvegarde.noyau)) return sauvegarde;
+  const { artefacts, meta } = sauvegarde.noyau;
+  if (!Array.isArray(artefacts) || !estObjet(meta) || !estObjet(meta.journal)) return sauvegarde;
+  if (!Array.isArray(meta.journal.strates)) return sauvegarde;
+  const surface = artefacts.filter((id) => typeof id === "string" && id.startsWith("s1-"));
+  const strates = meta.journal.strates.map((entree: unknown) =>
+    estObjet(entree) && entree.strate === 2 && entree.fouille !== undefined
+      ? { ...entree, nommes: surface }
+      : entree,
+  );
+  return {
+    ...sauvegarde,
+    noyau: { ...sauvegarde.noyau, meta: { ...meta, journal: { ...meta.journal, strates } } },
+  };
+}
 
 /**
  * Passe une sauvegarde au `format` donné, en ajoutant une liste vide `champ` aux entrées du journal
@@ -215,6 +240,8 @@ function problemeDeMeta(meta: unknown): string | null {
       (entree.kappaGagne !== undefined && !estNombre(entree.kappaGagne)) ||
       !Array.isArray(entree.leves) ||
       !entree.leves.every((e) => typeof e === "string") ||
+      !Array.isArray(entree.nommes) ||
+      !entree.nommes.every((e) => typeof e === "string") ||
       !Array.isArray(entree.perturbations)
     ) {
       return "entrée du journal de partie invalide";

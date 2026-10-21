@@ -20,6 +20,7 @@ const entree = (strate: NumeroStrate, arrivee: number): EntreeJournal => ({
   aideConsultee: false,
   actes: [],
   leves: [],
+  nommes: [],
   perturbations: [],
 });
 

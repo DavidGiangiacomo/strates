@@ -5,7 +5,8 @@ import {
   type ActionFactice,
   type EtatFactice,
 } from "../../strates/factice/logique";
-import { creerEtatNoyau } from "../logique/etat";
+import { inventaire } from "../logique/artefacts";
+import { creerEtatNoyau, type EtatNoyau } from "../logique/etat";
 import { Noyau } from "../logique/noyau";
 import { Registre, type StrateQuelconque } from "../logique/registre";
 import type { LogiqueStrate } from "../logique/types";
@@ -20,6 +21,7 @@ const APPARENCE = { police: "serif", couleur: "black", fond: "white" };
 async function partie(
   logiques: LogiqueFactice[] = [creerLogiqueFactice(1), creerLogiqueFactice(2)],
   sauvegarder?: () => Promise<unknown>,
+  etat: EtatNoyau = creerEtatNoyau(1, DEBUT),
 ) {
   const registre = new Registre();
   for (const logique of logiques) {
@@ -35,7 +37,7 @@ async function partie(
         }) as StrateQuelconque,
     );
   }
-  const noyau = new Noyau(registre, creerEtatNoyau(1, DEBUT));
+  const noyau = new Noyau(registre, etat);
   await noyau.demarrer(DEBUT);
 
   const appels = {
@@ -181,7 +183,11 @@ describe("la descente", () => {
     expect(passage.phase).toBe("descente");
     // Le sol gronde pendant tout le travelling.
     expect(appels.sons.at(-1)).toEqual(["descente", DUREES.descente / 1000]);
-    expect(passage.transportes).toEqual(["L'équipe", "La turbine"]);
+    // Les objets emportés descendent avec le joueur, sous leur nom d'en haut, intacts.
+    expect(passage.transportes.map((o) => [o.nom, o.niveau])).toEqual([
+      ["L'équipe", "puissant"],
+      ["La turbine", "puissant"],
+    ]);
     // Le bandeau suit le spectacle : la Profondeur change à mi-course, les objets à l'arrivée, puis
     // la Compréhension. La surface a été passée sans aide : 3 points, déjà crédités au noyau.
     expect(passage.profondeur).toBe(1);
@@ -257,6 +263,117 @@ describe("la descente", () => {
     await descend;
     expect(noyau.etat.profondeur).toBe(2);
     expect(noyau.etat.artefacts).toEqual(noyau.etat.meta.journal.strates[0]?.fouille?.emportes);
+  });
+});
+
+describe("l'inventaire et l'usure", () => {
+  /** Des caves factices, qui nomment l'équipe dès l'arrivée. */
+  const caves: LogiqueFactice = { ...creerLogiqueFactice(2), nommes: () => ["s1-equipe"] };
+  const vus = (passage: Passage) => passage.transportes.map((o) => `${o.nom} · ${o.niveau}`);
+  const inventaireDe = (passage: Passage) =>
+    inventaire(passage.artefacts, passage.profondeur, passage.nommes).map(
+      (o) => `${o.nom} · ${o.niveau}`,
+    );
+
+  async function descendre(passage: Passage, emportes: string[]): Promise<void> {
+    void passage.creuser();
+    await vi.advanceTimersByTimeAsync(DUREES.pioche);
+    void passage.descendre(emportes);
+    await vi.advanceTimersByTimeAsync(0);
+  }
+
+  it("s'affichent sur deux descentes successives : les noms connus, et l'usure qui change à mi-course", async () => {
+    const strates = [creerLogiqueFactice(1), caves, creerLogiqueFactice(3)];
+    const { noyau, passage } = await partie(strates);
+    expect(inventaireDe(passage)).toEqual([]);
+
+    // Vers les caves : les objets de la surface, sous leur nom d'en haut, intacts.
+    auSeuil(noyau);
+    await descendre(passage, ["s1-equipe", "s1-turbine"]);
+    expect(vus(passage)).toEqual(["L'équipe · puissant", "La turbine · puissant"]);
+    // Le noyau est déjà en bas, où les caves ont nommé l'équipe : l'inventaire l'apprendra à l'arrivée.
+    expect(noyau.nommes).toEqual(["s1-equipe"]);
+    passage.actualiser();
+    expect(passage.nommes).toEqual([]);
+    await vi.advanceTimersByTimeAsync(DUREES.miCourse);
+    expect(vus(passage)).toEqual(["L'équipe · puissant", "La turbine · puissant"]);
+    await vi.runAllTimersAsync();
+    expect(passage.phase).toBe("jeu");
+    expect(inventaireDe(passage)).toEqual(["les bras en plus · puissant", "La turbine · puissant"]);
+
+    // Vers l'atelier : la surface perd un cran à mi-course ; la faucille arrive intacte.
+    auSeuil(noyau);
+    await descendre(passage, ["s2-faucille"]);
+    expect(vus(passage)).toEqual([
+      "les bras en plus · puissant",
+      "La turbine · puissant",
+      "La faucille · puissant",
+    ]);
+    await vi.advanceTimersByTimeAsync(DUREES.miCourse);
+    expect(passage.profondeur).toBe(3);
+    expect(vus(passage)).toEqual([
+      "les bras en plus · utile",
+      "La turbine · utile",
+      "La faucille · puissant",
+    ]);
+    await vi.runAllTimersAsync();
+    // L'équipe garde plus bas le nom que lui ont donné les caves.
+    expect(inventaireDe(passage)).toEqual([
+      "les bras en plus · utile",
+      "La turbine · utile",
+      "La faucille · puissant",
+    ]);
+    expect(passage.transportes).toEqual([]);
+  });
+
+  it("laisse les cailloux en haut, et fait des plus vieux objets des cailloux à mi-course", async () => {
+    const etat = creerEtatNoyau(1, DEBUT);
+    etat.profondeur = 5;
+    etat.artefacts = ["s1-turbine", "s2-faucille", "s4-carnet"];
+    const strates = [creerLogiqueFactice(5), creerLogiqueFactice(6)];
+    const { noyau, passage } = await partie(strates, undefined, etat);
+    expect(inventaireDe(passage)).toEqual([
+      "La turbine · inerte",
+      "La faucille · decoratif",
+      "Le carnet de relevés · puissant",
+    ]);
+
+    auSeuil(noyau);
+    await descendre(passage, ["s5-souffle"]);
+    expect(vus(passage)).toEqual([
+      "La faucille · decoratif",
+      "Le carnet de relevés · puissant",
+      "Le souffle · puissant",
+    ]);
+    await vi.advanceTimersByTimeAsync(DUREES.miCourse);
+    expect(vus(passage)).toEqual([
+      "La faucille · inerte",
+      "Le carnet de relevés · utile",
+      "Le souffle · puissant",
+    ]);
+  });
+
+  it("suit les objets que la strate nomme en cours de jeu, mais pas pendant la séquence", async () => {
+    const nommes: string[] = [];
+    const strate: LogiqueFactice = { ...creerLogiqueFactice(2), nommes: () => nommes };
+    const etat = creerEtatNoyau(1, DEBUT);
+    etat.profondeur = 2;
+    etat.artefacts = ["s1-equipe", "s1-turbine"];
+    const { noyau, passage } = await partie([strate, creerLogiqueFactice(3)], undefined, etat);
+    const avant = passage.nommes;
+    passage.actualiser();
+    // Rien n'a changé : le même tableau, pour ne pas réveiller l'interface.
+    expect(passage.nommes).toBe(avant);
+
+    nommes.push("s1-turbine");
+    passage.actualiser();
+    expect(passage.nommes).toEqual(["s1-turbine"]);
+
+    auSeuil(noyau);
+    void passage.creuser();
+    nommes.push("s1-equipe");
+    passage.actualiser();
+    expect(passage.nommes).toEqual(["s1-turbine"]);
   });
 });
 

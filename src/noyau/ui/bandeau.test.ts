@@ -10,14 +10,17 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-function monter(artefacts: string[] = [], kappa = 22) {
+function monter(artefacts: string[] = [], kappa = 22, autres: Record<string, unknown> = {}) {
   const oncreuser = vi.fn();
   composant = mount(Bandeau, {
     target: document.body,
-    props: { profondeur: 3, artefacts, kappa, oncreuser },
+    props: { profondeur: 3, artefacts, kappa, oncreuser, ...autres },
   });
   flushSync();
-  return { oncreuser, bandeau: composant as unknown as { resister: () => void } };
+  return {
+    oncreuser,
+    bandeau: composant as unknown as { resister: () => void; focaliserInventaire: () => void },
+  };
 }
 
 const texte = (test: string) =>
@@ -29,7 +32,26 @@ describe("le bandeau commun", () => {
     expect(texte("profondeur")).toBe("Profondeur 3");
     expect(texte("artefacts")).toBe("Artefacts 2");
     expect(texte("comprehension")).toBe("Compréhension 22 %");
-    expect(document.querySelector("button")?.textContent).toBe("creuser");
+    expect(document.querySelector(".creuser")?.textContent).toBe("creuser");
+  });
+
+  it("ouvre l'inventaire par le compteur des artefacts, et dit s'il est ouvert", () => {
+    const oninventaire = vi.fn();
+    const { bandeau } = monter(["s1-turbine"], 22, { oninventaire, inventaireOuvert: true });
+    const compteur = document.querySelector<HTMLButtonElement>("[data-test=artefacts]")!;
+    expect(compteur.tagName).toBe("BUTTON");
+    expect(compteur.getAttribute("aria-expanded")).toBe("true");
+    compteur.click();
+    expect(oninventaire).toHaveBeenCalledOnce();
+    bandeau.focaliserInventaire();
+    expect(document.activeElement).toBe(compteur);
+  });
+
+  it("garde le compteur à sa place pendant la descente, sans qu'il s'ouvre", () => {
+    monter(["s1-turbine"]);
+    const compteur = document.querySelector<HTMLButtonElement>("[data-test=artefacts]")!;
+    expect(compteur.disabled).toBe(true);
+    expect(compteur.getAttribute("aria-expanded")).toBe("false");
   });
 
   it("offre le bouton « graphe » quand on le lui donne, et dit s'il est ouvert", () => {
@@ -65,7 +87,7 @@ describe("le bandeau commun", () => {
 
   it("transmet le clic sur « creuser »", () => {
     const { oncreuser } = monter();
-    document.querySelector("button")!.click();
+    document.querySelector<HTMLButtonElement>(".creuser")!.click();
     expect(oncreuser).toHaveBeenCalledOnce();
   });
 

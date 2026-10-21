@@ -3,6 +3,7 @@
   import type { JournalSession } from "../../playtest/journal";
   import Journal from "../../playtest/Journal.svelte";
   import { demarrerGardeJournal, metaNavigateur, ouvrirJournal } from "../../playtest/plateforme";
+  import { inventaire } from "../logique/artefacts";
   import { creerEtatNoyau, type EtatNoyau } from "../logique/etat";
   import type { Reprise } from "../logique/horsligne";
   import { Noyau } from "../logique/noyau";
@@ -24,6 +25,7 @@
   import { NOMS_STRATES } from "./fouille";
   import Graphe from "./Graphe.svelte";
   import { grapheOuvrable } from "./graphe";
+  import Inventaire from "./Inventaire.svelte";
   import { CoucheOpacite } from "./opacite.svelte";
   import { DUREES, DUREES_REDUITES, Passage } from "./passage.svelte";
   import Pioche from "./Pioche.svelte";
@@ -36,6 +38,12 @@
   let avis = $state<string | null>(null);
   let resume = $state<string[] | null>(null);
   let bandeau: ReturnType<typeof Bandeau> | undefined = $state();
+  /** L'inventaire des objets, ouvert depuis le compteur du bandeau (#45). */
+  let inventaireOuvert = $state(false);
+  function fermerInventaire(): void {
+    inventaireOuvert = false;
+    bandeau?.focaliserInventaire();
+  }
   /** Le graphe de dépendances, ouvert depuis le bandeau à partir de κ = 50 (#76). */
   let grapheOuvert = $state(false);
   function fermerGraphe(): void {
@@ -135,8 +143,9 @@
         opacite: new CoucheOpacite(noyau),
         son: moteur.banque(noyau.strate.sons ?? {}, pendantLaDescente),
       };
-      // Le graphe ouvert était celui de la strate quittée.
+      // Le graphe ouvert était celui de la strate quittée ; l'inventaire montrait l'usure d'en haut.
       grapheOuvert = false;
+      inventaireOuvert = false;
     };
     monter();
 
@@ -167,6 +176,7 @@
         () => {
           session?.journal.suivre();
           courante?.opacite.actualiser();
+          passage.actualiser();
           // La strate 7 descend d'elle-même, sans écran de choix (docs/artefacts.md, § 6).
           if (noyau.descenteAutomatique) void passage.descendre();
         },
@@ -216,13 +226,34 @@
     artefacts={passage.artefacts}
     kappa={passage.kappa}
     oncreuser={() => {
-      // Le coup de pioche ouvre la strate : le graphe se referme d'abord.
+      // Le coup de pioche ouvre la strate : le graphe et l'inventaire se referment d'abord.
       grapheOuvert = false;
+      inventaireOuvert = false;
       void passage.creuser();
     }}
-    ongraphe={graphe ? () => (grapheOuvert ? fermerGraphe() : (grapheOuvert = true)) : undefined}
+    oninventaire={phase === "jeu"
+      ? () => {
+          if (inventaireOuvert) return fermerInventaire();
+          grapheOuvert = false;
+          inventaireOuvert = true;
+        }
+      : undefined}
+    {inventaireOuvert}
+    ongraphe={graphe
+      ? () => {
+          if (grapheOuvert) return fermerGraphe();
+          inventaireOuvert = false;
+          grapheOuvert = true;
+        }
+      : undefined}
     {grapheOuvert}
   />
+  {#if phase === "jeu" && inventaireOuvert}
+    <Inventaire
+      objets={inventaire(passage.artefacts, passage.profondeur, passage.nommes)}
+      onfermer={fermerInventaire}
+    />
+  {/if}
   {#if graphe && grapheOuvert && courante?.strate.logique.graphe}
     {@const { strate, etat, opacite } = courante}
     <Graphe
@@ -259,7 +290,7 @@
     />
   {/if}
   {#if phase === "descente" || phase === "arrivee"}
-    <Descente {phase} transportes={passage.transportes} />
+    <Descente {phase} transportes={passage.transportes} poche={() => bandeau?.poche() ?? null} />
   {/if}
   {#if avis || resume}
     <!-- Au-dessus de la séquence : une descente refusée doit se lire sur l'écran de fouille. -->

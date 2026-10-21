@@ -1,18 +1,67 @@
 <script lang="ts">
   // La descente (docs/strates/descente-1-2.md, P5 et P6) : un travelling vertical vers le bas. Les
-  // couches du sol défilent et montent ; les objets emportés restent au milieu de l'écran, puisqu'ils
-  // descendent avec le joueur. À l'arrivée, ils glissent vers le compteur du bandeau, sa poche.
+  // couches du sol défilent et montent ; les objets restent au milieu de l'écran, puisqu'ils
+  // descendent avec le joueur : tous ceux qui n'étaient pas encore des cailloux, rangés par couche
+  // d'origine. À mi-course, quand la Profondeur change, les anciens perdent un cran, et les plus vieux
+  // deviennent des cailloux (#45). À l'arrivée, ils glissent vers le compteur du bandeau, leur poche.
   // Les durées suivent celles du passage (passage.svelte.ts, DUREES).
-  let { phase, transportes }: { phase: "descente" | "arrivee"; transportes: readonly string[] } =
-    $props();
+  import type { ObjetInventaire } from "../logique/artefacts";
+  import { etiquette, NIVEAUX, parCouche } from "./inventaire";
+  import Usure from "./Usure.svelte";
+
+  let {
+    phase,
+    transportes,
+    poche,
+  }: {
+    phase: "descente" | "arrivee";
+    transportes: readonly ObjetInventaire[];
+    /** Où est le compteur des artefacts : les objets le visent à l'arrivée. */
+    poche?: () => DOMRect | null;
+  } = $props();
+
+  const couches = $derived(parCouche(transportes));
+  const rangs = $derived(new Map(transportes.map((objet, i) => [objet.id, i])));
+
+  let liste: HTMLElement | undefined = $state();
+
+  // À l'arrivée, chaque objet vise le compteur depuis sa place.
+  $effect(() => {
+    if (phase !== "arrivee" || !liste) return;
+    const cible = poche?.();
+    if (!cible) return;
+    for (const objet of liste.querySelectorAll<HTMLElement>("li")) {
+      const ici = objet.getBoundingClientRect();
+      objet.style.setProperty("--dx", `${cible.x + cible.width / 2 - (ici.x + ici.width / 2)}px`);
+      objet.style.setProperty("--dy", `${cible.y + cible.height / 2 - (ici.y + ici.height / 2)}px`);
+    }
+  });
 </script>
 
 <div class="sol" class:arrivee={phase === "arrivee"} aria-hidden="true" data-test="sol"></div>
-<ul class="transportes" class:arrivee={phase === "arrivee"} data-test="transportes">
-  {#each transportes as nom, i (nom)}
-    <li style:--i={i}>{nom}</li>
+<div
+  class="transportes"
+  class:arrivee={phase === "arrivee"}
+  style:--n={transportes.length}
+  bind:this={liste}
+  data-test="transportes"
+>
+  {#each couches as couche (couche.origine)}
+    <ul>
+      {#each couche.objets as objet (objet.id)}
+        <li
+          class:inerte={objet.niveau === "inerte"}
+          style:--i={rangs.get(objet.id)}
+          data-test="transporte-{objet.id}"
+        >
+          <Usure niveau={objet.niveau} />
+          <span>{etiquette(objet.nom)}<span class="lecteur">,</span></span>
+          <span class="mot">{NIVEAUX[objet.niveau]}</span>
+        </li>
+      {/each}
+    </ul>
   {/each}
-</ul>
+</div>
 
 <style>
   /* Les couches de la coupe, dans la palette du noyau : le même sol pour les sept descentes. */
@@ -42,30 +91,67 @@
     opacity: 0;
   }
 
+  /* Une rangée par couche d'origine, la surface en haut : une coupe en petit. */
   .transportes {
     position: fixed;
     top: 50%;
     left: 50%;
     z-index: 6;
-    margin: 0;
-    padding: 0;
-    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: min(92vw, 44rem);
     transform: translate(-50%, -50%);
     font:
-      14px/1.5 system-ui,
+      13px/1.5 system-ui,
       sans-serif;
     pointer-events: none;
     animation: paraitre 1ms 400ms both;
   }
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
   /* Des étiquettes aux couleurs du bandeau : lisibles sur le sol comme sur la strate qui arrive. */
   li {
-    width: fit-content;
-    margin: 0.35rem auto;
-    padding: 0.1rem 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.1rem 0.6rem;
     color: #f2f2f2;
     background: #1e1e1e;
     border: 1px solid #5c5c5c;
     border-radius: 2px;
+    transition:
+      color 400ms,
+      border-color 400ms;
+  }
+  .mot {
+    color: #a6a6a6;
+    transition: color 400ms;
+  }
+  /* Devenu caillou, l'objet passe au gris. */
+  .inerte,
+  .inerte .mot {
+    color: #8c8c8c;
+  }
+  .inerte {
+    border-color: #3c3c3c;
+  }
+  .lecteur {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   @keyframes paraitre {
     from {
@@ -75,13 +161,16 @@
       opacity: 1;
     }
   }
-  /* P6 : chaque objet rejoint « Artefacts », en haut à gauche du bandeau, un par dixième de seconde. */
+  /*
+   * P6 : chaque objet rejoint « Artefacts », dans le bandeau, un par dixième de seconde ; plus vite
+   * quand ils sont nombreux, pour que tous y soient à la fin de l'arrivée.
+   */
   .arrivee li {
-    animation: ranger 400ms ease-in calc(var(--i) * 100ms) forwards;
+    animation: ranger 400ms ease-in calc(var(--i) * min(100ms, 600ms / var(--n))) forwards;
   }
   @keyframes ranger {
     to {
-      transform: translate(calc(-50vw + 150px), calc(-50vh + 12px)) scale(0.3);
+      transform: translate(var(--dx, calc(-50vw + 150px)), var(--dy, calc(-50vh + 12px))) scale(0.3);
       opacity: 0;
     }
   }
@@ -90,6 +179,10 @@
     .sol,
     .transportes {
       animation: none;
+    }
+    li,
+    .mot {
+      transition: none;
     }
     .arrivee li {
       animation: none;

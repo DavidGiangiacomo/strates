@@ -562,6 +562,15 @@ export const logique: LogiqueStrate<EtatCaves, ActionCaves> = {
     // Les naissances : annoncées au premier bilan réussi.
     { id: "naissances", cles: ["naissances"] },
   ],
+  // Les objets d'en haut que le registre a nommés (docs/strates/descente-1-2.md, § 6) : les deux
+  // fenêtres et l'armoire dès l'arrivée, les multiplicateurs au bilan du premier hiver, la feuille au
+  // seuil. Le noyau ne garde que ceux que le joueur a emportés.
+  nommes: (etat) => [
+    OBJETS.fenetres,
+    OBJETS.armoire,
+    ...(etat.hivers.length > 0 ? OBJETS.multiplicateurs : []),
+    ...(etat.seuilAtteintA !== null ? [OBJETS.feuille] : []),
+  ],
   valeurConvertible: (etat) => etat.cumul,
   absence,
 

@@ -4,6 +4,7 @@ import {
   effetsActifs,
   facteurUtile,
   fouiller,
+  inventaire,
   niveauUsure,
   pointsDeFouille,
   preselection,
@@ -69,6 +70,55 @@ describe("l'usure", () => {
     expect(effet(4).multiplicateur("production")).toBe(1);
     expect(effet(4).niveau("s1-turbine")).toBeNull();
     expect(effet(5).multiplicateur("production")).toBe(1);
+  });
+});
+
+describe("l'inventaire", () => {
+  const POSSEDES = ["s2-meule", "s1-turbine", "s3-loupe", "s1-equipe", "s2-faucille"];
+
+  it("range les objets par couche d'origine, de la surface vers le bas, dans l'ordre où ils ont été emportés", () => {
+    expect(inventaire(POSSEDES, 4, []).map((o) => o.id)).toEqual([
+      "s1-turbine",
+      "s1-equipe",
+      "s2-meule",
+      "s2-faucille",
+      "s3-loupe",
+    ]);
+  });
+
+  it("montre l'usure de chacun à la profondeur donnée", () => {
+    const niveaux = (profondeur: number) =>
+      inventaire(POSSEDES, profondeur, []).map((o) => `${o.id} ${o.niveau}`);
+    expect(niveaux(4)).toEqual([
+      "s1-turbine decoratif",
+      "s1-equipe decoratif",
+      "s2-meule utile",
+      "s2-faucille utile",
+      "s3-loupe puissant",
+    ]);
+    expect(niveaux(5).slice(0, 2)).toEqual(["s1-turbine inerte", "s1-equipe inerte"]);
+  });
+
+  it("montre intacts les objets qui ne sont pas encore descendus : pendant le travelling, avant la mi-course", () => {
+    expect(inventaire(POSSEDES, 3, []).at(-1)).toEqual({
+      id: "s3-loupe",
+      nom: "La loupe",
+      origine: 3,
+      niveau: "puissant",
+    });
+  });
+
+  it("donne le nom d'en haut, puis le nom d'en bas aux objets nommés", () => {
+    const noms = inventaire(POSSEDES, 4, ["s1-turbine", "s2-faucille", "s4-carnet"]).map(
+      (o) => o.nom,
+    );
+    expect(noms).toEqual(["la roue chaude", "L'équipe", "La meule", "la lame courbe", "La loupe"]);
+  });
+
+  it("ignore les identifiants inconnus et les doublons", () => {
+    expect(inventaire(["s1-turbine", "inconnu", "s1-turbine"], 2, []).map((o) => o.id)).toEqual([
+      "s1-turbine",
+    ]);
   });
 });
 
@@ -205,6 +255,7 @@ describe("la fouille", () => {
       aideConsultee: false,
       actes: [],
       leves: [],
+      nommes: [],
       perturbations: [],
     });
     return etat;

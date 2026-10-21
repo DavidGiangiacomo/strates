@@ -1,8 +1,9 @@
 <script lang="ts">
   // Le bandeau commun (§12) : 24 px, identique dans les huit strates, le seul élément stable du jeu.
   // Le bouton « creuser » a le même aspect avant et après le seuil : seule sa réponse change
-  // (docs/strates/strate-1.md, § 4). À partir de κ = 50, le bouton « graphe » ouvre le graphe de
-  // dépendances de la strate (docs/comprehension.md, § 5).
+  // (docs/strates/strate-1.md, § 4). Le compteur des artefacts ouvre l'inventaire des objets (#45). À
+  // partir de κ = 50, le bouton « graphe » ouvre le graphe de dépendances de la strate
+  // (docs/comprehension.md, § 5).
   import type { NumeroStrate } from "../logique/types";
   import { TEXTES_GRAPHE } from "./graphe";
 
@@ -11,6 +12,8 @@
     artefacts,
     kappa,
     oncreuser,
+    oninventaire,
+    inventaireOuvert = false,
     ongraphe,
     grapheOuvert = false,
   }: {
@@ -19,17 +22,31 @@
     /** La Compréhension, de 0 à 100 : un pourcentage entier (docs/comprehension.md, § 7). */
     kappa: number;
     oncreuser: () => void;
+    /** Ouvre ou referme l'inventaire ; sans elle, pendant la descente, le compteur ne s'ouvre pas. */
+    oninventaire?: () => void;
+    inventaireOuvert?: boolean;
     /** Ouvre ou referme le graphe ; sans elle, pas de bouton : κ < 50, ou la strate n'en a pas. */
     ongraphe?: () => void;
     grapheOuvert?: boolean;
   } = $props();
 
   let barre: HTMLElement | undefined = $state();
+  let boutonInventaire: HTMLButtonElement | undefined = $state();
   let boutonGraphe: HTMLButtonElement | undefined = $state();
+
+  /** L'inventaire refermé, le focus revient au compteur. */
+  export function focaliserInventaire(): void {
+    boutonInventaire?.focus();
+  }
 
   /** Le graphe refermé, le focus revient à son bouton. */
   export function focaliserGraphe(): void {
     boutonGraphe?.focus();
+  }
+
+  /** Où est le compteur des artefacts : les objets qui arrivent y rejoignent leur poche. */
+  export function poche(): DOMRect | null {
+    return boutonInventaire?.getBoundingClientRect() ?? null;
   }
 
   const SECOUSSE = [
@@ -52,7 +69,14 @@
 
 <header class="bandeau" bind:this={barre} data-test="bandeau">
   <span data-test="profondeur">Profondeur <strong>{profondeur}</strong></span>
-  <span data-test="artefacts">Artefacts <strong>{artefacts.length}</strong></span>
+  <button
+    class="artefacts"
+    bind:this={boutonInventaire}
+    aria-expanded={inventaireOuvert}
+    disabled={!oninventaire}
+    onclick={oninventaire}
+    data-test="artefacts">Artefacts <strong>{artefacts.length}</strong></button
+  >
   <span data-test="comprehension"
     >Compréhension <strong>{`${Math.round(kappa)}\u202f%`}</strong></span
   >
@@ -93,6 +117,29 @@
   .creuser {
     margin-inline-start: auto;
   }
+  /*
+   * Le compteur se lit comme les autres, à sa place : son cadre, plus discret que celui des boutons
+   * d'action, dit seulement qu'il s'ouvre. Il garde son aspect pendant la descente, où il ne s'ouvre pas.
+   */
+  .artefacts {
+    height: 18px;
+    margin: 0 -5px;
+    padding: 0 4px;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    white-space: nowrap;
+    border: 1px solid #3c3c3c;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .artefacts:disabled {
+    cursor: default;
+  }
+  .artefacts:enabled:hover,
+  .artefacts[aria-expanded="true"] {
+    border-color: #8c8c8c;
+  }
   .creuser,
   .graphe {
     height: 18px;
@@ -110,6 +157,7 @@
     border-color: #8c8c8c;
   }
   .creuser:focus-visible,
+  .artefacts:focus-visible,
   .graphe:focus-visible {
     outline: 1px solid #f2f2f2;
     outline-offset: 1px;
