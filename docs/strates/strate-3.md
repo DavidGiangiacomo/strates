@@ -122,7 +122,7 @@ Douze pièces. Les petites ont une douzaine d'exemplaires chacune. Les deux sér
 
 ### L'arrivée
 
-Le plan de 6 × 6 et son ressort. Deux roues dentées sont déjà posées au-dessus du ressort, engrenées avec lui et entre elles : elles tournent, et produisent 58 pièces par tour (« 4↊ »). Leurs dents du haut et des côtés regardent des cases libres. La première roue à acheter coûte 88 pièces (« 74 ») : elle se paie en un tour et demi.
+Le plan de 6 × 6 et son ressort. Deux roues dentées sont déjà posées au-dessus du ressort, engrenées avec lui et entre elles : elles tournent, et produisent 56 pièces par tour (« 48 »), deux fois 7 × 2². Leurs dents du haut et des côtés regardent des cases libres. La première roue à acheter coûte 88 pièces (« 74 ») : elle se paie en un tour et demi.
 
 ### État et actions, pour la boucle ([#67](https://github.com/DavidGiangiacomo/strates/issues/67))
 
@@ -161,7 +161,7 @@ type ActionAtelier =
   | { type: "deplacer"; repere: number; case: [number, number] }
   | { type: "echanger"; a: number; b: number }
   | { type: "mettreDeCote"; repere: number }
-  | { type: "limer"; repere: number; cote: number }
+  | { type: "limer"; repere: number; cote: number }  // le côté tel qu'il se montre, de 0 (en haut) à 3 (à gauche)
   | { type: "agrandir" };
 ```
 
@@ -169,6 +169,14 @@ type ActionAtelier =
 - **`pasMax`** vaut un tour, douze secondes.
 - **Après chaque action**, la logique refait les contacts, l'entraînement (un parcours depuis le ressort, sur 126 pièces au plus) et la production.
 - La strate n'utilise pas d'aléatoire. Un geste impossible est ignoré sans erreur.
+
+Ce que la boucle a tranché en la codant ([#67](https://github.com/DavidGiangiacomo/strates/issues/67), `src/strates/s3-atelier/`) :
+- **Les côtés** se numérotent dans le sens horaire, de 0 en haut à 3 à gauche. Une pièce tournée de `rot` quarts de tour montre en `d` son côté de base `d − rot`. Les profils de base : le cliquet a sa dent en haut, le renvoi en haut et à droite, le pignon en haut et en bas, le secteur partout sauf en bas.
+- **Un frottement se nomme** par la pièce dont la dent frotte (ou dont le côté lisse frotte le ressort), sa direction, son demi-côté et ce qu'elle frotte : `3:1.0:7`, la pièce 3 qui frotte à droite contre la pièce 7 ; `C` pour le cadre, `R` pour le ressort. Le nom ne dépend pas de la place sur le plan : un frottement qui dure garde son heure quand le plan grandit, ou quand un geste ailleurs ne le défait pas. Mais une pièce qu'on vient de poser ou de déplacer repart pour un tour : ses frottements, et ceux que d'autres pièces lui font, prennent l'heure du geste, même quand elle frotte comme avant. Ils ne sont pas défaits pour autant : l'acte « la gêne défaite avant que l'atelier ne la montre » (§ 7) ne compte que les frottements qui disparaissent.
+- **Échanger** se fait entre deux pièces de même taille, dont l'une peut être sur l'établi : elle prend la place de l'autre, qui y retourne.
+- **La légende** note une pièce qui se met à tourner (« ajustée ») ou qui s'arrête, toute pièce qu'on vient de poser ou de déplacer, une gêne au bout d'un tour, un coup de lime, le plan agrandi et la pièce sans plan. Elle garde ses trente dernières lignes.
+- **Le seuil** reste à coder ([#79](https://github.com/DavidGiangiacomo/strates/issues/79)), comme l'opacité et les actes ([#95](https://github.com/DavidGiangiacomo/strates/issues/95)) et les objets d'en haut hors multiplicateurs ([#81](https://github.com/DavidGiangiacomo/strates/issues/81)). Les leviers `ressort` et `plan` agissent déjà.
+- **En développement seulement** : tant que le test du MVP se joue sur la version publiée, l'atelier n'est enregistré à la profondeur 3 que par `npm run dev`. Les outils de développement y sautent.
 
 ## 4. Boucle moyenne et seuil de fouille
 
