@@ -265,3 +265,21 @@ describe("le déterminisme", () => {
     expect(await partie()).toBe(await partie());
   });
 });
+
+describe("le rappel de reprise", () => {
+  it("donne les lignes de la strate courante, deux au plus (bible, § 10)", async () => {
+    const logique: LogiqueFactice = {
+      ...creerLogiqueFactice(1),
+      rappel: (etat) => [`${etat.unites} unités.`, "Seuil : loin.", "Une ligne de trop."],
+    };
+    const noyau = await noyauDemarre(1, logique);
+    noyau.agir({ type: "produire" });
+    noyau.tick(0);
+    expect(noyau.rappel()).toEqual(["1 unités.", "Seuil : loin."]);
+  });
+
+  it("ne donne rien pour une strate qui ne rappelle que le lieu", async () => {
+    const noyau = await noyauDemarre();
+    expect(noyau.rappel()).toEqual([]);
+  });
+});

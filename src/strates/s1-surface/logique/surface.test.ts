@@ -3,6 +3,7 @@ import { EFFETS_NEUTRES } from "../../../noyau/logique/effets";
 import type { ContexteTick } from "../../../noyau/logique/types";
 import { logique, type ActionSurface, type EtatSurface } from ".";
 import { TAILLE_HISTORIQUE } from "./etat";
+import { formaterDebit } from "./notation";
 import {
   AMELIORATIONS,
   ameliorationDisponible,
@@ -306,5 +307,31 @@ describe("le journal de session", () => {
       objectif: 3,
       fissure: 0,
     });
+  });
+});
+
+describe("le rappel de reprise", () => {
+  const rappel = (etat: EtatSurface) => logique.rappel!(etat);
+
+  it("donne l'objectif en cours, comme le tableau de bord l'écrit, puis la production", () => {
+    expect(rappel(etatNeuf())).toEqual([
+      "Objectif : produire 15 cr.",
+      `Production : ${formaterDebit(0)}.`,
+    ]);
+    const etat = avec({ poste: 3, equipe: 1 }, { objectif: 4 });
+    expect(rappel(etat)).toEqual([
+      "Objectif : atteindre 10 cr/s.",
+      `Production : ${formaterDebit(production(etat))}.`,
+    ]);
+  });
+
+  it("dit que tout est atteint après le seuil, sans jamais le nommer", () => {
+    const etat = avec({ filiale: 40 }, { objectif: OBJECTIFS.length, seuilAtteintA: 10 });
+    const lignes = rappel(etat);
+    expect(lignes).toEqual([
+      "Tous les objectifs sont atteints.",
+      `Production : ${formaterDebit(production(etat))}.`,
+    ]);
+    for (const ligne of lignes) expect(ligne).not.toMatch(/seuil|creuser|vous/i);
   });
 });

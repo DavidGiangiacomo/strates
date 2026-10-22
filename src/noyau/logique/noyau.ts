@@ -443,6 +443,14 @@ export class Noyau {
     return this.etat.artefacts.filter((id) => notes.has(id) || ici.has(id));
   }
 
+  /**
+   * Les lignes de la strate courante pour le rappel de reprise (bible, § 10) : deux au plus, pour que
+   * le rappel, lieu compris, tienne en trois lignes.
+   */
+  rappel(): string[] {
+    return this.strate.logique.rappel?.(this.etatStrate).slice(0, 2) ?? [];
+  }
+
   /** Un relevé de la strate courante, pour le journal de session ; null si elle n'en donne pas. */
   releve(): Releve | null {
     return this.strate.logique.releve?.(this.etatStrate) ?? null;

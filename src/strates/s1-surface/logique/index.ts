@@ -118,13 +118,16 @@ function graphe(etat: EtatSurface): GrapheDependances {
   };
 }
 
+/** Un texte de la surface, rempli : `{nom}` devient `valeurs.nom`, déjà écrit dans sa notation. */
+function ecrire(cle: string, valeurs: Record<string, string> = {}): string {
+  return (textes[cle] ?? cle).replace(/\{(\w+)\}/g, (tout, nom: string) => valeurs[nom] ?? tout);
+}
+
 /**
  * Les formules réelles (fiche, § 3), de la plus simple à la plus profonde : le prix de chaque moyen
  * de production, ce qu'il produit, puis la valeur du clic.
  */
 function formules(): Formule[] {
-  const ecrire = (cle: string, valeurs: Record<string, string>) =>
-    (textes[cle] ?? cle).replace(/\{(\w+)\}/g, (tout, nom: string) => valeurs[nom] ?? tout);
   return [
     ...GENERATEURS.map((g) => ({
       noeud: g.id,
@@ -134,8 +137,20 @@ function formules(): Formule[] {
       noeud: g.id,
       expression: ecrire("formule.production", { production: formaterDebit(g.production) }),
     })),
-    { noeud: "clic", expression: ecrire("formule.clic", {}) },
+    { noeud: "clic", expression: ecrire("formule.clic") },
   ];
+}
+
+/**
+ * Le rappel de reprise (bible, § 10) : l'objectif en cours, tel que le tableau de bord l'écrit, puis la
+ * production. Le seuil est une production, et rien ne le nomme.
+ */
+function rappel(etat: EtatSurface): string[] {
+  const suivant = etat.objectif < OBJECTIFS.length ? textes[`objectif.${etat.objectif + 1}`] : null;
+  const objectif = suivant
+    ? ecrire("rappel.objectif", { objectif: suivant.charAt(0).toLowerCase() + suivant.slice(1) })
+    : ecrire("objectifs.fini");
+  return [objectif, ecrire("rappel.production", { production: formaterDebit(production(etat)) })];
 }
 
 export const logique: LogiqueStrate<EtatSurface, ActionSurface> = {
@@ -190,6 +205,8 @@ export const logique: LogiqueStrate<EtatSurface, ActionSurface> = {
     objectif: etat.objectif,
     fissure: avanceeFissure(etat),
   }),
+
+  rappel,
 
   /** La surface telle qu'on l'a laissée, avec sa production qui a tourné pendant toute la partie (§11). */
   remontee(etatSauvegarde, duree) {

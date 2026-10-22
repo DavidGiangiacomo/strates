@@ -413,7 +413,7 @@ Les objets des caves sont **puissants** ici, ceux de la surface **utiles**. Les 
 - Le rouage tourne pendant l'absence comme devant le joueur : sa production est constante.
 - Rien ne se dérègle seul : aucune pièce ne s'use, aucune dent ne casse. Un frottement laissé en partant se montre au retour, s'il ne l'était pas encore.
 - Le seuil ne dépend d'aucune durée : l'absence ne peut ni le faire gagner ni le faire perdre.
-- Au retour, le résumé du noyau suffit : la durée, et le taux.
+- Au retour, le résumé du noyau suffit : « Absence : 8 h, comptée à 80 %. » Après une demi-heure, le rappel de reprise le précède ([`bible.md`](../bible.md), § 10) : la dernière ligne de la légende, puis les cases qui restent, comme l'en-tête les écrit. Il est codé avec les textes provisoires ; à revoir avec [#68](https://github.com/DavidGiangiacomo/strates/issues/68).
 - **Remontée finale** (§11) : à décider avec [#128](https://github.com/DavidGiangiacomo/strates/issues/128). Proposition : le plan tel qu'il a été laissé, immobile.
 
 ## 11. Textes
@@ -428,6 +428,7 @@ Les objets des caves sont **puissants** ici, ceux de la surface **utiles**. Les 
   - les lignes de la légende : une pièce ajustée, une gêne montrée, une pièce qui ne tourne pas, les cases qui restent, le plan agrandi, et « Il ne reste aucune case. » ;
   - l'éveil des objets d'en haut, sous « Hors plan » ;
   - la pièce sans plan (ci-dessous) ;
+  - le rappel de reprise ([`bible.md`](../bible.md), § 10), s'il lui faut plus que la légende et les cases ;
   - `fouille.valeur` : « Pièces produites » ;
   - l'aide : une page courte, écrite comme la notice d'un plan. Elle dit que les dents engrènent avec les dents, qu'une pièce ne tourne que si elle tient au ressort, et comment se lit la base douze. Elle ne dit rien de la fin, ni de la lime, ni du bandeau.
 - **Le reste** ([`bible.md`](../bible.md), § 3) : au dernier agrandissement, une **pièce sans plan** paraît sur l'établi, trouvée dessous. Creuse, sans dents ni cote, elle ne se pose nulle part. Elle n'est pas dans la nomenclature, et le seuil ne la compte pas. La légende la note : « Pièce sans plan : mise de côté. » C'est une conduite du réseau, avec sa vanne ; aucun texte ne le dit.

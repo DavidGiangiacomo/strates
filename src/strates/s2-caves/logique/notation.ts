@@ -1,6 +1,8 @@
 // La notation des caves (I1 ; docs/strates/strate-2.md, § 1) : des nombres entiers, jamais abrégés,
 // les milliers séparés par une espace fine. Pas de suffixe, pas de décimale, pas de secondes.
-// Elle sert à la vue, et au résumé d'absence que la logique rédige elle-même.
+// Elle sert à la vue, et à ce que la logique rédige elle-même : le résumé d'absence et le rappel.
+import { artefact } from "../../../noyau/logique/artefacts";
+import type { LigneRegistre } from "./etat";
 
 /** Espace insécable, entre le nombre et son unité. */
 const INSECABLE = "\u00a0";
@@ -41,4 +43,14 @@ export function remplir(texte: string, valeurs: Readonly<Record<string, number>>
     if (valeur === undefined) return tout;
     return mot ? formaterQuantite(valeur, mot) : formaterEntier(valeur);
   });
+}
+
+/**
+ * Une ligne du registre, écrite d'après `texte` : ses nombres dans la notation des caves, et l'objet
+ * d'en haut qu'elle cite sous son nom d'en bas.
+ */
+export function ecrireLigne(ligne: LigneRegistre, texte: string): string {
+  const ecrite = remplir(texte, ligne.valeurs);
+  if (ligne.objet === undefined) return ecrite;
+  return ecrite.replace("{objet}", artefact(ligne.objet)?.nomDEnBas ?? ligne.objet);
 }

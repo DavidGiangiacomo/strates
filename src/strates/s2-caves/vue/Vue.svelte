@@ -4,13 +4,12 @@
   // la date, là où étaient les crédits, la production et l'objectif (raccords du storyboard, § 5).
   // Dessous, le calendrier à gauche, la coupe des stockages au centre, qui sert de jauge, et à droite
   // « Glaner » et le registre, dont les achats sont les écritures. En bas, la courbe de la réserve.
-  import { artefact } from "../../../noyau/logique/artefacts";
   import { avanceeFissure } from "../../../noyau/logique/filet";
   import type { ProprietesVue } from "../../../noyau/logique/types";
   import Fissure from "../../../noyau/ui/Fissure.svelte";
   import type { ActionCaves, EtatCaves } from "../logique";
   import { TAILLE_HISTORIQUE, type LigneRegistre } from "../logique/etat";
-  import { remplir } from "../logique/notation";
+  import { ecrireLigne, remplir } from "../logique/notation";
   import {
     capacite,
     consommation,
@@ -61,11 +60,7 @@
   const grain = $derived(repartition(etat));
 
   /** Une ligne du registre ; un objet d'en haut y porte son nom d'en bas. */
-  function ligneRegistre(ligne: LigneRegistre): string {
-    const texte = t(ligne.cle, ligne.valeurs);
-    if (ligne.objet === undefined) return texte;
-    return texte.replace("{objet}", artefact(ligne.objet)?.nomDEnBas ?? ligne.objet);
-  }
+  const ligneRegistre = (ligne: LigneRegistre) => ecrireLigne(ligne, o(ligne.cle));
 
   // Le filet : si le joueur n'a pas creusé après le seuil, une fissure part du fond de la coupe et
   // monte vers le bandeau (fiche, § 4).

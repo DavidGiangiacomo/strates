@@ -44,9 +44,9 @@ describe("les textes des caves", () => {
     expect(textes["stockage.caveProfonde.note"]).toContain("les roues sans moulin");
   });
 
-  it("tiennent dans leur budget, 750 mots depuis les rations, hors formules lues au-delà de κ = 50", () => {
+  it("tiennent dans leur budget, 750 mots depuis les rations, hors formules lues au-delà de κ = 50 et hors rappel", () => {
     const total = Object.entries(textes)
-      .filter(([cle]) => !cle.startsWith("formule."))
+      .filter(([cle]) => !cle.startsWith("formule.") && !cle.startsWith("rappel."))
       .reduce((n, [, t]) => n + mots(t), 0);
     expect(total).toBeGreaterThan(450);
     expect(total).toBeLessThan(750);

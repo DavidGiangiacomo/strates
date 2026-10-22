@@ -20,7 +20,7 @@ import {
   TAILLE_REGISTRE,
   type EtatCaves,
 } from "./etat";
-import { remplir } from "./notation";
+import { ecrireLigne, remplir } from "./notation";
 import {
   ACTES,
   ANNEE_RATIONS,
@@ -41,6 +41,7 @@ import {
   OBJETS,
   partRations,
   pertes,
+  PREMIER_GRAND_HIVER,
   prochainOutil,
   RATIONS,
   rationsOuvertes,
@@ -410,6 +411,28 @@ function absence(etat: EtatCaves, duree: number, ctx: ContexteTick): ResumeAbsen
 }
 
 /**
+ * Le rappel de reprise (bible, § 10) : la dernière ligne que le registre a écrite de sa main, puis où
+ * en est le seuil, dès que le registre en a parlé, au premier jour du premier grand hiver : la série
+ * des grands hivers, puis le seuil franchi. Avant, ce serait un indice.
+ */
+function rappel(etat: EtatCaves): string[] {
+  const lignes: string[] = [];
+  // La ligne de l'atelier, d'une autre main, n'est pas dans la voix du registre.
+  const derniere = [...etat.registre].reverse().find((ligne) => ligne.cle !== "registre.feuille");
+  if (derniere) lignes.push(ecrireLigne(derniere, textes[derniere.cle] ?? derniere.cle));
+  if (etat.seuilAtteintA !== null) {
+    const seuil = t("registre.seuil");
+    if (lignes[0] !== seuil) lignes.push(seuil);
+  } else if (
+    etat.annee > PREMIER_GRAND_HIVER ||
+    (etat.annee === PREMIER_GRAND_HIVER && enHiver(etat))
+  ) {
+    lignes.push(t("rappel.serie", { serie: etat.serie }));
+  }
+  return lignes;
+}
+
+/**
  * Le graphe de dépendances (fiche, § 7). Les familles et les outils alimentent la récolte, que règlent
  * les saisons, et le grand cycle règle les saisons. La réserve reçoit la récolte et le glanage ; elle
  * perd la consommation et les pertes, et les stockages la bornent. La marque d'hiver la compare à
@@ -573,6 +596,7 @@ export const logique: LogiqueStrate<EtatCaves, ActionCaves> = {
   ],
   valeurConvertible: (etat) => etat.cumul,
   absence,
+  rappel,
 
   graphe,
   formules,

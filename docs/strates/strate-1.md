@@ -235,6 +235,7 @@ Sans objet : aucun artefact n'arrive jamais à la surface, puisqu'aucune strate 
   - **après le seuil**, une nuit d'absence rapporte 2 points sans jouer (12 → 14).
   
   Les deux effets sont dans l'esprit d'un jeu de fond, et restent à observer pendant l'équilibrage ([#35](https://github.com/DavidGiangiacomo/strates/issues/35)).
+- **Au retour**, le résumé du noyau suffit : « Absence : 8 h, comptée à 80 %. » Après une demi-heure, le rappel de reprise le précède ([`bible.md`](../bible.md), § 10) : « Profondeur 1 · La surface », l'objectif en cours (« Objectif : atteindre 100 k cr/s. »), puis la production (« Production : 76,6 k cr/s. »). Le seuil est une production : le rappel ne le nomme pas. Une fois tous les objectifs atteints : « Tous les objectifs sont atteints. »
 - **Remontée finale** (§11) : `remontee()` rend l'état sauvegardé, augmenté de la production de toute la durée écoulée, à 100 % et sans plafond. C'est « sa production qui tourne toujours ». Après des semaines, le compteur dépasse les unités du tableau de bord (§ 1).
 
 ## 11. Textes
@@ -257,6 +258,7 @@ Tous les textes sont dans `textes.fr.ts` : 609 mots, dont 264 pour les descripti
 - **L'aide** : un lien « Aide », discret, en haut à droite du tableau de bord, ouvre un panneau qu'on referme par « Fermer » ou Échap. Le tableau de bord continue de tourner. Chaque ouverture est notée au journal de partie (`Noyau.noterAide`, pour l'acte « sans aide » du § 7) et au journal de session des playtests.
 - **Les moyens de production** disent « 32 en service » : « Possédés » ne s'accordait pas avec les usines ou les turbines.
 - **Le reste** ([`bible.md`](../bible.md), § 3) : la description du serveur le place « au sous-sol, au frais ». Ce sont les caves de la vallée ; aucun texte ne le dit.
+- **Le rappel de reprise** (`rappel.*`, § 10) : 4 mots, qui comptent dans le budget des rappels de la bible (§ 9), pas dans celui de la surface.
 - **Les traces pour le fond** (`trace.1` à `trace.3`) attendent la strate 8 ([#109](https://github.com/DavidGiangiacomo/strates/issues/109)).
 - Les noms « Double écran » et « Plan stratégique », comme ceux des moyens de production, sont aussi des noms d'en haut du catalogue des objets ([`artefacts.md`](../artefacts.md), § 8) : les deux listes doivent rester d'accord.
 

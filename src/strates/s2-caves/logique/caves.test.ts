@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { artefact } from "../../../noyau/logique/artefacts";
 import type { ContexteTick } from "../../../noyau/logique/types";
 import { logique, type ActionCaves } from ".";
 import { etatInitial, TAILLE_HISTORIQUE, type EtatCaves } from "./etat";
@@ -328,5 +329,72 @@ describe("l'absence : l'hiver attend", () => {
       "Le grain allait manquer : le calendrier s'est arrêté.",
     ]);
     expect(vide.temps).toBe(0);
+  });
+});
+
+describe("le rappel de reprise", () => {
+  const rappel = (etat: EtatCaves) => logique.rappel!(etat);
+  const avecRegistre = (etat: EtatCaves, ...registre: EtatCaves["registre"]) => ({
+    ...etat,
+    registre,
+  });
+
+  it("donne la dernière ligne du registre, et rien du seuil avant le grand hiver", () => {
+    expect(rappel(etatInitial())).toEqual(["An 1. 8 familles, un grenier."]);
+    const etat = avecRegistre(
+      { ...etatInitial(), annee: 7 },
+      { cle: "registre.arrivee", valeurs: { annee: 1, familles: 8 } },
+      { cle: "registre.sans-rupture", valeurs: { annee: 6, naissances: 12 } },
+    );
+    expect(rappel(etat)).toEqual([
+      "Hiver de l'an 6 : passé sans rupture. Naissances : 12 familles.",
+    ]);
+  });
+
+  it("nomme l'objet d'en haut de son nom d'en bas, comme le registre", () => {
+    const etat = avecRegistre(etatInitial(), {
+      cle: "registre.eveil",
+      valeurs: {},
+      objet: "s1-turbine",
+    });
+    expect(rappel(etat)).toEqual(["Les familles ont compris la roue chaude."]);
+  });
+
+  it("dit la série des grands hivers dès que le registre l'a annoncée, au premier jour du grand hiver", () => {
+    const annonce = { cle: "registre.grand-hiver-arrive", valeurs: { annee: 14 } };
+    const avant = { ...etatInitial(), annee: 14, jour: saisonChaude(14) - 1 };
+    expect(rappel(avant)).toHaveLength(1);
+    const hiver = avecRegistre({ ...etatInitial(), annee: 14, jour: saisonChaude(14) }, annonce);
+    expect(rappel(hiver)).toEqual([
+      "An 14 : le grand hiver est là. Les vieux disent qu'une vallée qui en passe trois de suite n'a plus rien à craindre.",
+      "Grands hivers de suite : 0.",
+    ]);
+    const apres = { ...etatInitial(), annee: 16, jour: 200, serie: 2 };
+    expect(rappel(apres).at(-1)).toBe("Grands hivers de suite : 2.");
+  });
+
+  it("dit le seuil franchi, sans le répéter, et laisse la ligne de l'atelier à son autre main", () => {
+    const seuil = { cle: "registre.seuil", valeurs: {} };
+    const franchi = { ...etatInitial(), annee: 17, serie: 3, seuilAtteintA: 6000 };
+    const ligneSeuil = "Trois grands hivers sans rupture. La vallée n'a plus rien à craindre.";
+    expect(rappel(avecRegistre(franchi, seuil))).toEqual([ligneSeuil]);
+    expect(
+      rappel(
+        avecRegistre(
+          franchi,
+          seuil,
+          { cle: "registre.eveil", valeurs: {}, objet: "s1-plan" },
+          { cle: "registre.feuille", valeurs: {} },
+        ),
+      ),
+    ).toEqual([`Les familles ont compris ${artefact("s1-plan")!.nomDEnBas}.`, ligneSeuil]);
+    const plusTard = avecRegistre(franchi, seuil, {
+      cle: "registre.sans-rupture-vallee-pleine",
+      valeurs: { annee: 18 },
+    });
+    expect(rappel(plusTard)).toEqual([
+      "Hiver de l'an 18 : passé sans rupture. La vallée est pleine.",
+      ligneSeuil,
+    ]);
   });
 });

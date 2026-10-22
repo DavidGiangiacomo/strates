@@ -115,6 +115,13 @@ interface LogiqueStrate<E, A extends ActionBase> {
   nommes?(etat: E): readonly string[];
 
   /**
+   * Le rappel de reprise (bible, § 10 ; #58) : deux lignes au plus, dans la voix et la notation de la
+   * strate. La dernière ligne qu'elle a écrite, puis où en est son seuil, sans rien dire que le joueur
+   * n'ait déjà lu. Le noyau les fait précéder du lieu. Sans elle, le rappel ne donne que le lieu.
+   */
+  rappel?(etat: E): readonly string[];
+
+  /**
    * Un relevé de l'état, pour le journal de session des playtests (#26) : quelques grandeurs à plat,
    * celles que le protocole observe. Le noyau ne les lit pas.
    */
@@ -352,7 +359,10 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
   - Les objets y sont rangés par couche d'origine, de la surface vers le bas (`inventaire`, dans `noyau/logique/artefacts.ts`). Chacun montre son nom et son usure : trois crans qui se vident, puissant, utile, décoratif, puis un caillou au nom gris, et toujours le mot (`noyau/ui/Usure.svelte`).
   - Le nom est celui d'en haut jusqu'à ce que la strate d'en dessous l'ait nommé, puis celui d'en bas. Le noyau le sait par `nommes()`, qu'il interroge pour la strate courante et dont il note la réponse au journal à la descente (`Noyau.nommes`) : l'objet garde ce nom plus bas.
   - L'inventaire ne dit pas ce que fait un objet : la découverte reste dans la strate.
-- **Résumé au retour** : `noyau/ui/reprise.ts` rédige le résumé d'une absence d'au moins une minute (durée, taux, plafond atteint, ou les lignes de la strate en politique propre). L'interface l'affiche sous le bandeau, dans sa palette, jusqu'à ce que le joueur le ferme.
+- **Le retour du joueur** ([#58](https://github.com/DavidGiangiacomo/strates/issues/58) ; [`bible.md`](bible.md), § 10) : `noyau/ui/reprise.ts` le rédige, `noyau/ui/Retour.svelte` l'affiche sous le bandeau, dans sa palette, jusqu'à « reprendre ». La strate vit dessous.
+  - **Le rappel de reprise** vient après une absence d'au moins 30 minutes (`ABSENCE_A_RAPPELER`), au chargement comme au retour sur un onglet resté ouvert : une pause ne rappelle rien. Il tient en trois lignes : le lieu, écrit par le noyau (« Profondeur 2 · Les caves »), puis les deux lignes de la strate, lues par `Noyau.rappel()` dans `rappel()`. Une strate qui n'en a pas ne rappelle que le lieu.
+  - **Le résumé de l'absence** suit le rappel, à partir d'une minute d'absence : « Absence : 8 h 12 min, comptée à 80 %. », et « sur 12 h » au plafond. En politique propre, les lignes de la strate suivent la durée. Le fond n'a pas de résumé.
+  - Le bloc ne parle que de la strate en jeu : il se cache pendant la fouille et s'efface quand la strate change. Une nouvelle absence le remplace.
 - **Actions** : mises en file, appliquées au début du tick suivant dans l'ordre d'arrivée.
 - **Journal de session** ([#26](https://github.com/DavidGiangiacomo/strates/issues/26), `src/playtest/`) : pour les playtests, et seulement si l'observateur l'a demandé (`?journal=T3` dans l'adresse).
   - Il observe le noyau (`Noyau.observateur`), qui le prévient de chaque action appliquée et de chaque événement des strates.
