@@ -52,6 +52,11 @@ export interface EtatAtelier {
   sansPlan: boolean;
   /** Multiplicateurs des artefacts, relus à chaque tick. */
   multiplicateurs: { ressort: number; plan: number };
+  /**
+   * Les objets d'en haut qui agissent ici, relus à chaque tick : la nomenclature les ajoute sous
+   * « Hors plan » (fiche, § 6 et § 8).
+   */
+  horsPlan: string[];
 }
 
 export function etatInitial(): EtatAtelier {
@@ -73,6 +78,7 @@ export function etatInitial(): EtatAtelier {
     legende: [],
     sansPlan: false,
     multiplicateurs: { ressort: 1, plan: 1 },
+    horsPlan: [],
   };
   etat.legende.push({
     cle: "legende.arrivee",

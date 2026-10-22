@@ -66,6 +66,8 @@ export const textes: Record<string, string> = {
   "piece.balancier.note": "Quatre cases. Un côté denté.",
   agrandir: "Agrandir le plan : {taille} × {taille}",
   "plan.complet": "Le plan a sa taille.",
+  // Sous la nomenclature, les objets d'en haut qui agissent ici, sous leur nom d'en bas (fiche, § 8).
+  "hors-plan": "Hors plan",
 
   // ——— L'établi, et la pièce en main
   etabli: "Établi",

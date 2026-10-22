@@ -84,6 +84,7 @@ describe("l'arrivée dans l'atelier", () => {
       { cle: "legende.eveil", valeurs: {}, objet: "s1-turbine" },
       { cle: "legende.eveil", valeurs: {}, objet: "s2-faucille" },
     ]);
+    expect(etat.horsPlan).toEqual(["s1-turbine", "s2-faucille"]);
     // La dernière ligne de la légende, telle que le rappel de reprise la reprend.
     expect(logique.rappel!(etat)[0]).toBe("Hors plan : la lame courbe.");
     // Sans objet qui agit, rien n'est noté.
@@ -108,6 +109,28 @@ describe("l'arrivée dans l'atelier", () => {
     });
     expect(etat.multiplicateurs).toEqual({ ressort: 1.375, plan: 1.25 });
     expect(production(etat)).toBe(56 * 1.375);
+  });
+
+  it("garde la liste des objets d'en haut qui agissent, relue à chaque tick, pour la nomenclature", () => {
+    const etat = etatInitial();
+    expect(etat.horsPlan).toEqual([]);
+    const ctx: ContexteTick = {
+      effets: { multiplicateur: () => 1, niveau: (id) => (id === "s2-meule" ? "puissant" : null) },
+      emettre: () => {},
+    };
+    logique.tick(etat, 0.1, ctx);
+    expect(etat.horsPlan).toEqual(["s2-meule"]);
+    // Inchangée, la liste reste la même : la nomenclature n'a rien à redessiner.
+    const liste = etat.horsPlan;
+    logique.tick(etat, 0.1, ctx);
+    expect(etat.horsPlan).toBe(liste);
+  });
+
+  it("migre un état de la version 1, sans la liste : le premier tick la relit", () => {
+    const version1: Partial<EtatAtelier> = etatInitial();
+    delete version1.horsPlan;
+    expect(logique.versionEtat).toBe(2);
+    expect(logique.migrations[1]!(version1)).toEqual(etatInitial());
   });
 });
 
@@ -233,6 +256,9 @@ describe("poser, tourner, déplacer, échanger, mettre de côté", () => {
     for (let i = 0; i < 3; i++) agir(etat, { type: "tourner", repere: r });
     expect(piece(etat, r).rot).toBe(0);
     expect(derniere(etat)).toEqual({ cle: "legende.ajustee", valeurs: { piece: r } });
+    // Posée sans rotation, la pièce garde le sens qu'on lui a donné en main.
+    agir(etat, { type: "poser", repere: e, case: [4, 3] });
+    expect(piece(etat, e)).toMatchObject({ case: [4, 3], rot: 1 });
   });
 
   it("déplace une pièce vers une case libre, et une grande pièce d'une case, sur elle-même", () => {

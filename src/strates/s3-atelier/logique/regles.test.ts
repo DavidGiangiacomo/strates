@@ -207,6 +207,28 @@ describe("les contacts", () => {
     // pas le mouvement à la roue posée au-dessus de lui, contre son côté lisse.
     expect([1, 2, 3, 4].map((r) => info(etat, r).entrainee)).toEqual([true, true, true, false]);
     expect(info(etat, 4).frottements).toBe(2);
+    // Chaque pièce prend son rang dans le rouage : celle qui ne tourne pas n'en a pas.
+    expect([1, 2, 3, 4].map((r) => info(etat, r).rang)).toEqual([1, 2, 3, 0]);
+  });
+
+  it("donne à chaque pièce le plus court chemin qui la relie au ressort, pour son sens", () => {
+    // Les deux roues de l'arrivée engrènent avec le ressort et entre elles : toutes deux au rang 1.
+    // Une troisième, au-dessus de la première, au rang 2.
+    const etat = plan(6, ["roue", [1, 2]], ["roue", [1, 3]], ["roue", [0, 2]]);
+    expect([1, 2, 3].map((r) => info(etat, r).rang)).toEqual([1, 1, 2]);
+  });
+
+  it("dit ce que touchent les demi-côtés du ressort : une dent, un côté lisse, une case libre", () => {
+    const a = analyser(etatInitial());
+    expect(a.ressort[0]).toEqual([{ contact: "engrene" }, { contact: "engrene" }]);
+    expect(a.ressort[2]).toEqual([{ contact: "rien" }, { contact: "rien" }]);
+    // Un cliquet sous le ressort, son dos lisse contre lui : le frottement a le même nom des deux côtés.
+    const etat = plan(6, ["cliquet", [4, 3], 2]);
+    expect(analyser(etat).ressort[2]).toEqual([
+      { contact: "rien" },
+      { contact: "frotte", cle: "1:0.0:R" },
+    ]);
+    expect(cles(etat)).toEqual(["1:0.0:R"]);
   });
 
   it("compte les demi-côtés d'une grande pièce, et divise l'exposant par deux", () => {

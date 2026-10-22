@@ -149,14 +149,15 @@ interface EtatAtelier {
   genes: Record<string, number>;     // frottements en cours, et depuis quand : montrés au bout d'un tour
   temps: number;                     // secondes depuis l'arrivée, absences comprises
   seuilAtteintA: number | null;
-  legende: { cle: string; valeurs: Record<string, number> }[];  // les dernières lignes, formatées par la vue
+  legende: { cle: string; valeurs: Record<string, number>; objet?: string }[];  // formatées par la vue
   sansPlan: boolean;                 // la pièce sans plan, trouvée au dernier agrandissement
   multiplicateurs: { ressort: number; plan: number };          // artefacts, relus à chaque tick
+  horsPlan: string[];                // les objets d'en haut qui agissent ici, relus à chaque tick (#80)
 }
 
 type ActionAtelier =
   | { type: "acheter"; piece: IdPiece }
-  | { type: "poser"; repere: number; case: [number, number]; rot: number }
+  | { type: "poser"; repere: number; case: [number, number]; rot?: number }  // sans rot, le sens qu'elle a en main
   | { type: "tourner"; repere: number }
   | { type: "deplacer"; repere: number; case: [number, number] }
   | { type: "echanger"; a: number; b: number }
@@ -311,6 +312,23 @@ Plan, souris, encombrement (§5). L'écran est un dessin technique, et la souris
 - **Ce qui la distingue** : la première strate où l'espace compte, la seule en base douze, et la seule où l'on manipule plus qu'on ne lit.
 - **À l'écran de fouille** : les pièces produites, en base douze, au graphite sur le papier du plan (`apparenceValeur`).
 
+### Dans le code ([#80](https://github.com/DavidGiangiacomo/strates/issues/80))
+
+*Choix tranchés le 22 octobre 2026 : un moyeu qui tourne, le plan toujours au plus grand, des dents qui s'emboîtent ; le curseur au clavier, les nombres en mots, ↊ et ↋ toujours dessinés et « Hors plan » dans la nomenclature, dans le même lot.*
+
+- **Le plan garde sa taille**, au plus grand : la hauteur sous l'en-tête moins l'établi, la largeur que laisse la nomenclature, entre 15 et 50 rem. Ses cases rétrécissent à chaque couronne : il se densifie au lieu de grandir. Son cadre est un double trait, et ses lignes et ses colonnes sont repérées dessus, en base douze : à 12 × 12, les dernières sont « ↊ », « ↋ » et « 10 ». Sur un écran étroit, tout s'empile, et la nomenclature défile si elle déborde.
+- **Les pièces** (`Piece.svelte`, `dessin.ts`) : un corps en laiton ou en acier, hachuré quand il tourne ; trois dents par case et par côté denté, un trait épais au graphite pour un côté lisse, un zigzag vermillon pour une gêne montrée. Les dents d'en haut et de gauche sont décalées d'une unité sur celles d'en bas et de droite : deux côtés face à face s'intercalent. Quand ils engrènent, leurs dents s'allongent et passent la limite des cases.
+- **Le moyeu** : autour du repère, une jante et trois rayons, sur un calque à part, dont la rotation ne redessine rien. Le ressort a un spiral dans son barillet.
+- **Le sens** : le ressort tourne dans le sens horaire, d'un tour par tour de l'atelier. Chaque pièce prend dans l'analyse son rang, le plus court chemin de dents engrenées qui la relie au ressort : un rang impair tourne à contresens, un rang pair dans le sens du ressort. Une pièce d'une case tourne deux fois plus vite que lui. Les deux roues de l'arrivée, au même rang, tournent dans le même sens, bien qu'elles engrènent : c'est le prix d'un ressort qui touche les deux.
+- **Les saccades** : une pièce entraînée qui frotte tourne par à-coups, une fois et demie plus lentement, dès le geste qui la fait frotter. La gêne ne se montre, en mots et en trait, qu'au bout d'un tour ; le mouvement, lui, la trahit tout de suite. C'est ce qu'on lit pour l'acte « la gêne défaite avant que l'atelier ne la montre » (§ 7).
+- **Moins de mouvement** : aucun moyeu ne tourne. La hachure dit ce qui est entraîné, le zigzag ce qui frotte.
+- **↊ et ↋** sont dessinés par la vue, dans une police TrueType de deux glyphes construite au chargement (`chiffres.ts`) : un 2 et un 3 retournés, au trait monolinéaire. Elle passe avant les autres polices de l'atelier pour ces deux caractères seulement (`unicode-range`) : ils sont les mêmes sur tous les systèmes, et le texte reste ↊ et ↋, pour la copie comme pour les lecteurs d'écran.
+- **Le clavier** : un curseur, la seule case du plan dans l'ordre de tabulation. Les flèches vont de case en case, sautent une grande pièce d'un coup et passent par-dessus le ressort. Entrée prend et pose ; R tourne la pièce sous le curseur, sinon celle qu'on tient ; L lève la lime sur la pièce sous le curseur, et la flèche suivante désigne le côté à limer. Échap repose la lime, puis lâche la pièce. Quand la case du curseur se remplit, le focus reste sur le plan.
+- **Les lecteurs d'écran** entendent les nombres en mots, en grosses et en douzaines (`enMots`) : « Pièce une douzaine et deux, roue dentée, tourne », « Case libre, ligne un, colonne onze », « Il reste cinq douzaines et trois cases. ». Au-delà d'une grande grosse, chaque groupe de trois chiffres se dit avec son rang : « deux grandes grosses de grandes grosses et cinq ». L'en-tête, le plan, la nomenclature et la légende les disent ; la notice, qui apprend à lire les chiffres, reste en chiffres.
+- **Hors plan** : l'état garde la liste des objets d'en haut qui agissent (`horsPlan`, version 2 de l'état, relue à chaque tick). La nomenclature les ajoute sous son tableau, sous leur nom d'en bas et sans repère, en plus de leur ligne d'éveil à la légende.
+- **L'établi** : la lime est dessinée, un manche et une lame taillée, et sa lame se souligne de vermillon quand elle est levée au clavier. La pièce sans plan est un carré en tirets, creux.
+- **Poser garde le sens de la main** : l'action `poser` n'a plus besoin de rotation. Sans elle, la pièce se pose dans le sens que « tourner » lui a donné, même si ce quart de tour n'est pas encore appliqué quand on la pose.
+
 ## 7. Opacité et Compréhension
 
 Le seuil dépend de trois choses visibles, qu'on ne cache jamais : les dents, le mouvement et les cases libres. Le joueur doit échouer par maladresse, pas par ignorance.
@@ -440,7 +458,7 @@ Les objets des caves sont **puissants** ici, ceux de la surface **utiles**. Les 
 
 ### Dans le code ([#68](https://github.com/DavidGiangiacomo/strates/issues/68))
 
-Tous les textes sont dans `textes.fr.ts` : 428 mots, dont 183 pour la notice, 63 pour les notes de la nomenclature et 53 pour la légende. Les formules (`formule.*`, 59 mots), lues au-delà de κ = 50 seulement, n'entrent pas dans le budget. Un test vérifie :
+Tous les textes sont dans `textes.fr.ts` : 430 mots, dont 183 pour la notice, 63 pour les notes de la nomenclature et 53 pour la légende. Les formules (`formule.*`, 59 mots), lues au-delà de κ = 50 seulement, n'entrent pas dans le budget. Un test vérifie :
 - le budget ;
 - l'absence de « creuser », de l'horloge, du nom de la couche, de point d'exclamation et des mots que la bible interdit ;
 - qu'aucun texte ne s'adresse au joueur ;
@@ -479,11 +497,11 @@ Ce qui le fait tenir :
 1. **La dernière ajustée** (§ 4, § 12) : la simulation l'estime avec un solveur, ni malin ni humain. Un joueur peut faire mieux, en voyant la structure, ou pire, en s'acharnant. À mesurer avec le jouet, puis au playtest.
 2. **La lime est-elle trop généreuse ?** Elle règle tout frottement en un geste, et ôte une part du casse-tête. Pistes : un coup de lime qui coûte des pièces, ou un nombre de limes compté. Mais la lime est aussi ce qui rend la fin sûre : sans elle, jusqu'à deux heures de rangement.
 3. **Les grandes pièces** demandent un carré libre dans un plan presque plein. Faut-il montrer d'avance, dans la nomenclature, la place qu'elles prendront ?
-4. **La base douze** se lit-elle ? Elle est la notation de la strate (I1), et sa découverte est un petit choc de plus. Mais un joueur qui ne compare plus deux prix d'un coup d'œil s'ennuie. À voir au playtest, et pour les lecteurs d'écran.
+4. **La base douze** se lit-elle ? Elle est la notation de la strate (I1), et sa découverte est un petit choc de plus. Mais un joueur qui ne compare plus deux prix d'un coup d'œil s'ennuie. À voir au playtest. Les lecteurs d'écran l'entendent en grosses et en douzaines ([#80](https://github.com/DavidGiangiacomo/strates/issues/80)) : à vérifier avec eux.
 5. **Le tour de douze secondes** : assez long pour défaire une gêne avant qu'elle se montre, assez court pour qu'on la voie vite ?
 6. **Le joueur désordonné** dépasse les 3 h 15 d'I5 : de 3 h 16 à 3 h 37, et une fois sur quatre il ne finit pas en cinq heures (§ 4). C'est le premier réglage à surveiller. Pistes : une gêne qui se montre plus fort quand elle dure ; un gabarit, qui montre où une pièce tournerait sans frotter ; des frottements moins chers pendant la montée.
 7. **Rester un quart d'heure rapporte un point** (§ 9). C'est comme dans les caves, mais c'est la récompense du rouage achevé : faut-il la garder ?
 8. **La pièce sans plan** paraît au dernier agrandissement. Faut-il qu'on puisse essayer de la poser, et qu'elle ne s'emboîte avec rien ?
-9. **Le toucher** : sur un écran tactile, on prend et on pose d'un toucher, et l'on tourne par un bouton. Est-ce encore le même jeu ? À voir avec [#80](https://github.com/DavidGiangiacomo/strates/issues/80).
+9. **Le toucher** : sur un écran tactile, on prend et on pose d'un toucher, et l'on tourne par le bouton « Tourner » de la pièce en main ([#80](https://github.com/DavidGiangiacomo/strates/issues/80)). Est-ce encore le même jeu ? À voir au playtest.
 10. **Les objets des caves** : leur réception est décrite par famille (§ 8). À préciser avec le catalogue ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)), et à mesurer avec [#81](https://github.com/DavidGiangiacomo/strates/issues/81).
 11. **La remontée finale** (§ 10) : à décider avec [#128](https://github.com/DavidGiangiacomo/strates/issues/128).

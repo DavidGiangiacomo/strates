@@ -40,7 +40,8 @@ export type { EtatAtelier, PieceAtelier } from "./etat";
 
 export type ActionAtelier =
   | { type: "acheter"; piece: IdPiece }
-  | { type: "poser"; repere: number; case: [number, number]; rot: number }
+  // Sans `rot`, la pièce se pose dans le sens qu'elle a en main : celui que « tourner » lui a donné.
+  | { type: "poser"; repere: number; case: [number, number]; rot?: number }
   | { type: "tourner"; repere: number }
   | { type: "deplacer"; repere: number; case: [number, number] }
   | { type: "echanger"; a: number; b: number }
@@ -51,10 +52,19 @@ export type ActionAtelier =
 // Tolérance pour les sommes de pas en virgule flottante, en secondes.
 const EPSILON = 1e-9;
 
-/** Les multiplicateurs des objets d'en haut agissent dès l'arrivée (fiche, § 8). */
+/** Les objets d'en haut : ceux de la surface et ceux des caves agissent tous ici (fiche, § 8). */
+const D_EN_HAUT = CATALOGUE.filter((a) => a.origine < 3).map((a) => a.id);
+
+/**
+ * Les objets d'en haut agissent dès l'arrivée (fiche, § 8) : leurs multiplicateurs, et la liste de
+ * ceux qui agissent, que la nomenclature montre sous « Hors plan ».
+ */
 function lireEffets(etat: EtatAtelier, effets: EffetsActifs): void {
   etat.multiplicateurs.ressort = effets.multiplicateur("ressort");
   etat.multiplicateurs.plan = effets.multiplicateur("plan");
+  const horsPlan = D_EN_HAUT.filter((id) => effets.niveau(id) !== null);
+  // Une liste neuve à chaque tick redessinerait la nomenclature pour rien.
+  if (horsPlan.join() !== etat.horsPlan.join()) etat.horsPlan = horsPlan;
 }
 
 /**
@@ -85,12 +95,8 @@ const NOMMES = CATALOGUE.filter((a) => a.origine === 2).map((a) => a.id);
  * sous son nom d'en bas. Ceux des caves y prennent le nom que leur donne l'atelier ; ceux de la
  * surface gardent celui des caves, comme un mot étranger. Il n'y a pas d'éveil retardé.
  */
-function eveiller(etat: EtatAtelier, effets: EffetsActifs): void {
-  for (const a of CATALOGUE) {
-    if (a.origine < 3 && effets.niveau(a.id) !== null) {
-      ecrire(etat, null, "legende.eveil", {}, a.id);
-    }
-  }
+function eveiller(etat: EtatAtelier): void {
+  for (const id of etat.horsPlan) ecrire(etat, null, "legende.eveil", {}, id);
 }
 
 /** Les repères des pièces entraînées. */
@@ -203,8 +209,8 @@ function geste(etat: EtatAtelier, action: ActionAtelier): number[] | null {
   switch (action.type) {
     case "poser": {
       const p = trouver(etat, action.repere);
-      const rot = action.rot;
       if (!p || p.case || !estCase(action.case)) return null;
+      const rot = action.rot ?? p.rot;
       if (!Number.isInteger(rot) || rot < 0 || rot > 3) return null;
       if (!placeLibre(etat, largeur(p), action.case)) return null;
       p.case = [action.case[0], action.case[1]];
@@ -374,8 +380,12 @@ function appliquer(etat: EtatAtelier, action: ActionAtelier, ctx: ContexteTick):
 
 export const logique: LogiqueStrate<EtatAtelier, ActionAtelier> = {
   numero: 3,
-  versionEtat: 1,
-  migrations: {},
+  versionEtat: 2,
+  migrations: {
+    // Version 2 (#80) : les objets d'en haut, sous « Hors plan » dans la nomenclature. Le premier tick
+    // les relit.
+    1: (etat) => ({ ...(etat as object), horsPlan: [] }),
+  },
   // Un tour. Entre deux gestes, la production ne change pas ; le pas est coupé quand une gêne se montre.
   pasMax: TOUR,
   leviers: { principal: "ressort", secondaires: ["plan"] },
@@ -385,7 +395,7 @@ export const logique: LogiqueStrate<EtatAtelier, ActionAtelier> = {
     const etat = etatInitial();
     const effets = ctx.effets ?? EFFETS_NEUTRES;
     lireEffets(etat, effets);
-    eveiller(etat, effets);
+    eveiller(etat);
     return etat;
   },
 

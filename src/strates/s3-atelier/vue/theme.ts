@@ -1,6 +1,8 @@
-// La palette et la police de l'atelier (fiche, § 6), le temps de l'interface minimale : le papier d'un
-// plan, le trait au graphite, le laiton des pièces qui tournent, l'acier de celles qui ne bougent pas,
-// et un vermillon pour les frottements. La direction artistique est l'objet de #80.
+// La palette et la police de l'atelier (fiche, § 6) : le papier d'un plan, gris clair et un peu vert ;
+// le trait au graphite ; le laiton des pièces qui tournent, l'acier de celles qui ne bougent pas ; un
+// vermillon pour les frottements. Ni le blanc et le bleu-vert de la surface, ni les bruns et l'ocre des
+// caves, ni le bleu nuit du chœur.
+import { FAMILLE_CHIFFRES } from "./chiffres";
 
 export const PALETTE = {
   /** Le papier du plan, gris clair et un peu vert, et son quadrillage. */
@@ -18,11 +20,14 @@ export const PALETTE = {
   vermillon: "#d23c22",
 } as const;
 
-/** Un lettrage technique, monolinéaire, comme au normographe. */
-export const POLICE =
-  'Bahnschrift, "DIN Alternate", "DIN 2014", "Barlow Semi Condensed", "Arial Narrow", sans-serif';
+/**
+ * Un lettrage technique, monolinéaire, comme au normographe. ↊ et ↋ viennent d'abord de la police que
+ * la vue dessine elle-même (chiffres.ts) : ils sont les mêmes partout.
+ */
+export const POLICE = `"${FAMILLE_CHIFFRES}", Bahnschrift, "DIN Alternate", "DIN 2014", "Barlow Semi Condensed", "Arial Narrow", sans-serif`;
 
-/** Les variables CSS de la vue : `--papier`, `--graphite`… */
-export const VARIABLES = Object.entries(PALETTE)
-  .map(([nom, couleur]) => `--${nom}: ${couleur}`)
-  .join("; ");
+/** Les variables CSS de la vue : `--papier`, `--graphite`…, et `--police`. */
+export const VARIABLES = [
+  ...Object.entries(PALETTE).map(([nom, couleur]) => `--${nom}: ${couleur}`),
+  `--police: ${POLICE}`,
+].join("; ");
