@@ -19,7 +19,11 @@ function monter(artefacts: string[] = [], kappa = 22, autres: Record<string, unk
   flushSync();
   return {
     oncreuser,
-    bandeau: composant as unknown as { resister: () => void; focaliserInventaire: () => void },
+    bandeau: composant as unknown as {
+      resister: () => void;
+      focaliserInventaire: () => void;
+      focaliserMenu: () => void;
+    },
   };
 }
 
@@ -45,6 +49,28 @@ describe("le bandeau commun", () => {
     expect(oninventaire).toHaveBeenCalledOnce();
     bandeau.focaliserInventaire();
     expect(document.activeElement).toBe(compteur);
+  });
+
+  it("ouvre le menu par le bouton du bout, après « creuser », et dit s'il est ouvert", () => {
+    const onmenu = vi.fn();
+    const { bandeau } = monter([], 22, { onmenu, menuOuvert: true });
+    const boutons = [...document.querySelectorAll("[data-test=bandeau] button")];
+    expect(boutons.slice(-2).map((b) => b.textContent)).toEqual(["creuser", "menu"]);
+    const menu = document.querySelector<HTMLButtonElement>("[data-test=ouvrir-menu]")!;
+    expect(menu.getAttribute("aria-expanded")).toBe("true");
+    menu.click();
+    expect(onmenu).toHaveBeenCalledOnce();
+    bandeau.focaliserMenu();
+    expect(document.activeElement).toBe(menu);
+    // La fissure et le coup de pioche visent « creuser » là où il est.
+    expect(document.querySelector("[data-test=creuser]")?.textContent).toBe("creuser");
+  });
+
+  it("garde le menu à sa place pendant la descente, sans qu'il s'ouvre", () => {
+    monter();
+    expect(document.querySelector<HTMLButtonElement>("[data-test=ouvrir-menu]")!.disabled).toBe(
+      true,
+    );
   });
 
   it("garde le compteur à sa place pendant la descente, sans qu'il s'ouvre", () => {

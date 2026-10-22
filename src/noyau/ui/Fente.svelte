@@ -4,6 +4,7 @@
   // s'écartant et s'effacent. Au rebouchage, elles remontent et se rejoignent (P4). Le noyau fige la
   // strate pendant tout ce temps : une copie de son DOM, prise à l'instant, suffit à la montrer.
   // Sans mouvement, les deux moitiés s'effacent ou reparaissent sur place.
+  import { milieuCreuser, zoomEcran } from "./ecran";
   import { moitiesFente } from "./fissure";
 
   let {
@@ -15,9 +16,15 @@
     sens: "ouvrir" | "refermer";
   } = $props();
 
-  let largeur = $state(0);
-  let hauteur = $state(0);
-  const moities = $derived(largeur > 0 ? moitiesFente(largeur, hauteur) : null);
+  // La fenêtre se mesure en pixels de l'écran ; le calque, en pixels du jeu, que la taille du texte
+  // peut avoir zoomé (#48). La fente se mesure une fois : la strate est figée.
+  let largeurFenetre = $state(0);
+  let hauteurFenetre = $state(0);
+  const zoom = zoomEcran();
+  const bouton = milieuCreuser() ?? undefined;
+  const largeur = $derived(largeurFenetre / zoom);
+  const hauteur = $derived(hauteurFenetre / zoom);
+  const moities = $derived(largeur > 0 ? moitiesFente(largeur, hauteur, bouton) : null);
 
   /** Pose dans une moitié une copie de la strate, exactement là où elle est à l'écran. */
   function copier(moitie: HTMLElement) {
@@ -27,9 +34,9 @@
     // La strate est cachée pendant la fente : la copie ne garde rien de ce qui la cache ou l'anime.
     Object.assign(copie.style, {
       position: "absolute",
-      top: `${r.top}px`,
-      left: `${r.left}px`,
-      width: `${r.width}px`,
+      top: `${r.top / zoom}px`,
+      left: `${r.left / zoom}px`,
+      width: `${r.width / zoom}px`,
       margin: "0",
       visibility: "visible",
       opacity: "1",
@@ -41,7 +48,7 @@
   }
 </script>
 
-<svelte:window bind:innerWidth={largeur} bind:innerHeight={hauteur} />
+<svelte:window bind:innerWidth={largeurFenetre} bind:innerHeight={hauteurFenetre} />
 
 {#if moities && source}
   <div class="fente {sens}" inert aria-hidden="true" data-test="fente">

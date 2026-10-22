@@ -811,8 +811,8 @@
     right: 16px;
     z-index: 4;
     box-sizing: border-box;
-    width: min(28rem, calc(100vw - 32px));
-    max-height: calc(100vh - 56px);
+    width: min(28rem, calc(100vw / var(--zoom, 1) - 32px));
+    max-height: calc(100vh / var(--zoom, 1) - 56px);
     padding: 18px 22px 20px 34px;
     overflow: auto;
     color: var(--encre);

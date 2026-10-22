@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   AMPLITUDE_FISSURE,
   BANDEAU,
+  BOUTON_DEPUIS_LA_DROITE,
   cheminFissure,
   moitiesFente,
   ramificationsFissure,
@@ -56,10 +57,15 @@ describe("le tracé de la fissure", () => {
 });
 
 describe("le coup de pioche", () => {
-  it("part du bouton « creuser » et descend jusqu'au bas de la fenêtre", () => {
-    expect(traitPioche(1280, 800)).toEqual({
-      depart: { x: 1240, y: BANDEAU },
+  it("part du bouton « creuser », là où il est, et descend jusqu'au bas de la fenêtre", () => {
+    expect(traitPioche(1280, 800, 1190)).toEqual({
+      depart: { x: 1190, y: BANDEAU },
       arrivee: { x: 768, y: 800 },
+    });
+    // Sans mesure, le bouton est supposé à sa place, avant le menu (#48).
+    expect(traitPioche(1280, 800).depart).toEqual({
+      x: 1280 - BOUTON_DEPUIS_LA_DROITE,
+      y: BANDEAU,
     });
   });
 

@@ -7,11 +7,20 @@
   import { creerEtatNoyau, type EtatNoyau } from "../logique/etat";
   import type { Reprise } from "../logique/horsligne";
   import { Noyau } from "../logique/noyau";
+  import { lireSauvegarde } from "../logique/sauvegarde";
   import type { StrateQuelconque } from "../logique/registre";
   import type { ActionBase, CommandesNoyau, ProprietesVue } from "../logique/types";
+  import {
+    appliquerTailleTexte,
+    ecrireTailleTexte,
+    lireTailleTexte,
+    zoneNavigateur,
+    type TailleTexte,
+  } from "../plateforme/affichage";
   import { MoteurAudio, type BanqueSons } from "../plateforme/audio";
   import { demarrerAutosauvegarde } from "../plateforme/autosauvegarde";
   import { demarrerBoucle } from "../plateforme/boucle";
+  import { copierSauvegarde, telechargerSauvegarde } from "../plateforme/export";
   import { graineAleatoire, maintenant } from "../plateforme/horloge";
   import { GestionnaireSauvegarde, sauvegarderPartie } from "../plateforme/sauvegarde";
   import { ouvrirStockage } from "../plateforme/stockage";
@@ -26,6 +35,8 @@
   import Graphe from "./Graphe.svelte";
   import { grapheOuvrable } from "./graphe";
   import Inventaire from "./Inventaire.svelte";
+  import Menu from "./Menu.svelte";
+  import { TEXTES_MENU } from "./menu";
   import { CoucheOpacite } from "./opacite.svelte";
   import { DUREES, DUREES_REDUITES, Passage } from "./passage.svelte";
   import Pioche from "./Pioche.svelte";
@@ -49,6 +60,32 @@
   function fermerGraphe(): void {
     grapheOuvert = false;
     bandeau?.focaliserGraphe();
+  }
+  /** Le menu système, ouvert depuis le bout du bandeau (#48). */
+  let menuOuvert = $state(false);
+  function fermerMenu(): void {
+    menuOuvert = false;
+    bandeau?.focaliserMenu();
+  }
+  /** Un seul volet à la fois, sous le bandeau : l'inventaire, le graphe ou le menu. */
+  function ouvrirVolet(volet: "inventaire" | "graphe" | "menu"): void {
+    inventaireOuvert = volet === "inventaire";
+    grapheOuvert = volet === "graphe";
+    menuOuvert = volet === "menu";
+  }
+  /**
+   * La taille du texte : un zoom de tout le jeu, appliqué au chargement par main.ts. Les calques qui
+   * se mesurent sur la fenêtre se remesurent quand elle change.
+   */
+  let taille = $state(lireTailleTexte(zoneNavigateur()));
+  /** Le volume et le son coupé, tels que le moteur les garde : le menu les règle. */
+  let volume = $state(0);
+  let muet = $state(false);
+  function changerTaille(nouvelle: TailleTexte): void {
+    taille = nouvelle;
+    appliquerTailleTexte(document.documentElement, nouvelle);
+    ecrireTailleTexte(zoneNavigateur(), nouvelle);
+    window.dispatchEvent(new Event("resize"));
   }
   /** Multiplie le temps de jeu : réglée par les outils de développement, toujours 1 sinon. */
   let vitesse = $state(1);
@@ -132,6 +169,8 @@
     // Le son (#46) s'ouvre au premier geste du joueur. Le noyau a sa banque, celle du sol ; chaque
     // strate a la sienne, ouverte au montage de sa vue et libérée quand elle est quittée.
     const moteur = new MoteurAudio();
+    volume = moteur.volume;
+    muet = moteur.muet;
     arrets.push(() => moteur.arreter());
     const sol = moteur.banque(SONS_NOYAU);
     /** Monte la strate courante. Pendant la descente, elle arrive figée, et muette. */
@@ -146,6 +185,7 @@
       // Le graphe ouvert était celui de la strate quittée ; l'inventaire montrait l'usure d'en haut.
       grapheOuvert = false;
       inventaireOuvert = false;
+      menuOuvert = false;
     };
     monter();
 
@@ -206,7 +246,38 @@
     }
 
     const dev = { gestionnaire, profondeurs: registre.numeros(), remplacerPartie, moteur, sol };
-    return { noyau, passage, commandes, dev, session };
+
+    /**
+     * Le menu (#48) remplace la partie par une autre, importée ou nouvelle (D-005) : tout s'arrête,
+     * la partie en cours est sauvegardée une dernière fois et devient la « précédente », puis la page
+     * se recharge sur la nouvelle.
+     */
+    async function remplacerPar(ecrire: () => Promise<unknown>): Promise<void> {
+      for (const arreter of arrets.splice(0)) arreter();
+      await sauvegarder();
+      await ecrire();
+      location.reload();
+    }
+    const exporter = () => gestionnaire.exporter(noyau.etat);
+    const systeme = {
+      moteur,
+      exporter: () => telechargerSauvegarde(exporter(), new Date(maintenant())),
+      copier: () => copierSauvegarde(exporter()),
+      /** Importe une sauvegarde : rend ce qui ne va pas, ou rien, et la page se recharge. */
+      async importer(texte: string): Promise<string | null> {
+        const lecture = lireSauvegarde(texte, VERSION_JEU);
+        if (lecture.type === "illisible") return TEXTES_MENU.importIllisible;
+        if (lecture.type === "plus-recente") return TEXTES_MENU.importPlusRecente;
+        if (!persistant || gestionnaire.lectureSeule) return TEXTES_MENU.importImpossible;
+        await remplacerPar(() => gestionnaire.importer(texte));
+        return null;
+      },
+      recommencer: () =>
+        void remplacerPar(() =>
+          gestionnaire.ecrire(creerEtatNoyau(graineAleatoire(), maintenant())),
+        ),
+    };
+    return { noyau, passage, commandes, dev, session, systeme };
   }
 
   const demarrage = demarrer();
@@ -216,7 +287,7 @@
 
 {#await demarrage}
   <main><p>Chargement…</p></main>
-{:then { noyau, passage, commandes, dev, session }}
+{:then { noyau, passage, commandes, dev, session, systeme }}
   {@const phase = passage.phase}
   {@const graphe =
     phase === "jeu" && courante && grapheOuvrable(passage.kappa, courante.strate.logique)}
@@ -226,28 +297,38 @@
     artefacts={passage.artefacts}
     kappa={passage.kappa}
     oncreuser={() => {
-      // Le coup de pioche ouvre la strate : le graphe et l'inventaire se referment d'abord.
+      // Le coup de pioche ouvre la strate : les volets se referment d'abord.
       grapheOuvert = false;
       inventaireOuvert = false;
+      menuOuvert = false;
       void passage.creuser();
     }}
     oninventaire={phase === "jeu"
-      ? () => {
-          if (inventaireOuvert) return fermerInventaire();
-          grapheOuvert = false;
-          inventaireOuvert = true;
-        }
+      ? () => (inventaireOuvert ? fermerInventaire() : ouvrirVolet("inventaire"))
       : undefined}
     {inventaireOuvert}
-    ongraphe={graphe
-      ? () => {
-          if (grapheOuvert) return fermerGraphe();
-          inventaireOuvert = false;
-          grapheOuvert = true;
-        }
-      : undefined}
+    ongraphe={graphe ? () => (grapheOuvert ? fermerGraphe() : ouvrirVolet("graphe")) : undefined}
     {grapheOuvert}
+    onmenu={phase === "jeu" ? () => (menuOuvert ? fermerMenu() : ouvrirVolet("menu")) : undefined}
+    {menuOuvert}
   />
+  {#if phase === "jeu" && menuOuvert}
+    <Menu
+      {volume}
+      {muet}
+      {taille}
+      version={VERSION_JEU}
+      build={BUILD}
+      onvolume={(v) => (volume = systeme.moteur.volume = v)}
+      onmuet={(m) => (muet = systeme.moteur.muet = m)}
+      ontaille={changerTaille}
+      onexporter={systeme.exporter}
+      oncopier={systeme.copier}
+      onimporter={systeme.importer}
+      onrecommencer={systeme.recommencer}
+      onfermer={fermerMenu}
+    />
+  {/if}
   {#if phase === "jeu" && inventaireOuvert}
     <Inventaire
       objets={inventaire(passage.artefacts, passage.profondeur, passage.nommes)}
@@ -348,9 +429,6 @@
   </main>
 {/await}
 
-<!-- Provisoire : pour les playtests, en attendant une place dans le bandeau ou le menu. -->
-<footer data-test="version">Strates {VERSION_JEU} · {BUILD}</footer>
-
 <style>
   /* Sous la strate, le sol, dans la palette du bandeau : on le voit tout en bas de la page. */
   :global(body) {
@@ -359,16 +437,9 @@
   }
   main {
     box-sizing: border-box;
-    min-height: calc(100vh - 24px);
+    min-height: calc(100vh / var(--zoom, 1) - 24px);
     padding: 1rem;
     background: Canvas;
-  }
-  footer {
-    padding: 1rem;
-    font:
-      12px/1 system-ui,
-      sans-serif;
-    color: #8c8c8c;
   }
 
   /* Le sol sous la strate : ce que découvre le coup de pioche, et le fond de toute la séquence. */
@@ -434,7 +505,7 @@
   }
   @keyframes monter {
     from {
-      transform: translateY(100vh);
+      transform: translateY(calc(100vh / var(--zoom, 1)));
     }
   }
 

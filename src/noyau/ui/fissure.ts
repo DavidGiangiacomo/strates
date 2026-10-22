@@ -95,13 +95,23 @@ export function ramificationsFissure(depart: Point, arrivee: Point): { a: number
 
 /** Hauteur du bandeau commun (§12) : la fissure part juste en dessous. */
 export const BANDEAU = 24;
-/** Distance du bouton « creuser » au bord droit de la fenêtre, à peu près en son milieu. */
-export const BOUTON_DEPUIS_LA_DROITE = 40;
+/**
+ * Distance du bouton « creuser » au bord droit de la fenêtre, à peu près en son milieu, quand on ne
+ * peut pas le mesurer : le menu le suit dans le bandeau (#48).
+ */
+export const BOUTON_DEPUIS_LA_DROITE = 110;
 
-/** Le trait du coup de pioche : du bouton « creuser » jusqu'au bas de la fenêtre, un peu à droite du milieu. */
-export function traitPioche(largeur: number, hauteur: number): { depart: Point; arrivee: Point } {
+/**
+ * Le trait du coup de pioche : du bouton « creuser », dont `bouton` est le milieu, jusqu'au bas de la
+ * fenêtre, un peu à droite du milieu.
+ */
+export function traitPioche(
+  largeur: number,
+  hauteur: number,
+  bouton = largeur - BOUTON_DEPUIS_LA_DROITE,
+): { depart: Point; arrivee: Point } {
   return {
-    depart: { x: largeur - BOUTON_DEPUIS_LA_DROITE, y: BANDEAU },
+    depart: { x: bouton, y: BANDEAU },
     arrivee: { x: largeur * 0.6, y: hauteur },
   };
 }
@@ -110,8 +120,12 @@ export function traitPioche(largeur: number, hauteur: number): { depart: Point; 
  * Les deux moitiés de la strate, de part et d'autre du trait du coup de pioche : deux polygones pour
  * `clip-path`, en pixels de la fenêtre. Leur bord commun suit exactement le tracé de la fissure.
  */
-export function moitiesFente(largeur: number, hauteur: number): { gauche: string; droite: string } {
-  const { depart, arrivee } = traitPioche(largeur, hauteur);
+export function moitiesFente(
+  largeur: number,
+  hauteur: number,
+  bouton?: number,
+): { gauche: string; droite: string } {
+  const { depart, arrivee } = traitPioche(largeur, hauteur, bouton);
   const bord = sommetsFissure(depart, arrivee);
   const polygone = (points: readonly Point[]) =>
     `polygon(${points.map(({ x, y }) => `${x.toFixed(1)}px ${y.toFixed(1)}px`).join(", ")})`;

@@ -62,8 +62,8 @@
     left: 0;
     z-index: 7;
     box-sizing: border-box;
-    width: min(100vw, 26rem);
-    max-height: calc(100vh - 24px);
+    width: min(calc(100vw / var(--zoom, 1)), 26rem);
+    max-height: calc(100vh / var(--zoom, 1) - 24px);
     overflow-y: auto;
     padding-bottom: 6px;
     font:

@@ -6,7 +6,7 @@ Jeu incrémental long (18–25 h) en huit strates. Chaque strate est un incréme
 
 **<https://davidgiangiacomo.github.io/strates/>**
 
-Chaque push sur `main` qui passe la CI y est publié automatiquement (job `publier` de `.github/workflows/ci.yml`). Le bas de la page affiche la version et le commit du build (« Strates 0.0.0 · 07eede8 ») : c'est ce qu'il faut noter avec chaque retour de playtest.
+Chaque push sur `main` qui passe la CI y est publié automatiquement (job `publier` de `.github/workflows/ci.yml`). Le menu, au bout du bandeau, affiche la version et le commit du build (« Strates 0.0.0 · 07eede8 ») : c'est ce qu'il faut noter avec chaque retour de playtest.
 
 Les sauvegardes des testeurs restent dans leur navigateur, propres à ce site.
 
