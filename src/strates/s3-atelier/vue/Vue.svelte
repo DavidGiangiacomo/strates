@@ -3,7 +3,9 @@
   // légende dessous, l'établi sous le plan ; en tête, le stock, la production par tour et les cases
   // libres. Tout se fait à la souris : on prend une pièce d'un clic, on la pose d'un autre, on la tourne
   // d'un clic droit ou de la touche R. La direction artistique est l'objet de #80.
+  import { avanceeFissure } from "../../../noyau/logique/filet";
   import type { ProprietesVue } from "../../../noyau/logique/types";
+  import Fissure from "../../../noyau/ui/Fissure.svelte";
   import type { ActionAtelier, EtatAtelier, PieceAtelier } from "../logique";
   import { formaterEntier, remplir } from "../logique/notation";
   import {
@@ -35,6 +37,10 @@
   };
 
   const analyse = $derived(analyser(etat));
+  // Le filet (fiche, § 4) : si le joueur n'a pas creusé cinq minutes après le seuil, une fissure part
+  // du ressort, traverse le plan et monte vers le bouton du bandeau.
+  const fissure = $derived(avanceeFissure(etat.temps, etat.seuilAtteintA));
+  let ressort: HTMLElement | undefined = $state();
   const n = $derived(etat.taille);
   const r = $derived(coinRessort(etat.taille));
   const libres = $derived.by(() => {
@@ -156,6 +162,7 @@
     <div class="plan" aria-label={o("plan")} data-test="plan">
       <div
         class="ressort"
+        bind:this={ressort}
         style="grid-area: {r + 1} / {r + 1} / span 2 / span 2"
         role="img"
         aria-label={o("ressort")}
@@ -333,6 +340,10 @@
       </ol>
     </section>
   </div>
+
+  {#if fissure > 0}
+    <Fissure depart={ressort} avancee={fissure} />
+  {/if}
 </section>
 
 <style>

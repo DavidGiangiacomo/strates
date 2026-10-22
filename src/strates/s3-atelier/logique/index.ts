@@ -1,7 +1,7 @@
 // L'atelier : on place. Une pièce ne vaut que par l'endroit où elle est, et elle ne tourne que si elle
-// tient au ressort, de dent en dent (docs/strates/strate-3.md, § 3). La condition du seuil arrive avec
-// #79 ; l'opacité et les actes de compréhension avec #95 ; les objets d'en haut, hors multiplicateurs,
-// avec #81.
+// tient au ressort, de dent en dent (docs/strates/strate-3.md, § 3). Le seuil : l'assemblage achevé,
+// sans aucune case libre (§ 4). L'opacité et les actes de compréhension arrivent avec #95 ; les objets
+// d'en haut, hors multiplicateurs, avec #81.
 import { EFFETS_NEUTRES } from "../../../noyau/logique/effets";
 import { avanceeFissure } from "../../../noyau/logique/filet";
 import type {
@@ -17,6 +17,7 @@ import { remplir } from "./notation";
 import {
   AGRANDISSEMENTS,
   analyser,
+  assemblageAcheve,
   coteDeBase,
   defPiece,
   dente,
@@ -117,6 +118,16 @@ function actualiser(
       ecrire(etat, ctx, "legende.immobile", { piece });
     }
   }
+}
+
+/**
+ * Le seuil (fiche, § 4) : atteint au geste qui achève l'assemblage, il le reste. La légende l'écrit :
+ * « Il ne reste aucune case. »
+ */
+function verifierSeuil(etat: EtatAtelier, ctx: ContexteTick): void {
+  if (etat.seuilAtteintA !== null || !assemblageAcheve(etat)) return;
+  etat.seuilAtteintA = etat.temps;
+  ecrire(etat, ctx, "cases.aucune");
 }
 
 /** Un frottement se montre : il a duré un tour. */
@@ -296,7 +307,7 @@ function formules(): Formule[] {
 /**
  * Le rappel de reprise (bible, § 10) : la dernière ligne de la légende, puis les cases qui restent,
  * comme l'en-tête les écrit, sauf si cette ligne vient de les dire. Les textes de l'atelier sont
- * provisoires (#68), et son seuil arrive avec #79.
+ * provisoires (#68).
  */
 function rappel(etat: EtatAtelier): string[] {
   const ecrire = (cle: string, valeurs: Record<string, number> = {}) =>
@@ -308,6 +319,37 @@ function rappel(etat: EtatAtelier): string[] {
     casesLibres > 0 ? ecrire("cases.valeur", { cases: casesLibres }) : ecrire("cases.aucune");
   if (!lignes[0]?.includes(cases)) lignes.push(cases);
   return lignes;
+}
+
+/** Applique un geste du joueur. Un geste impossible est ignoré sans erreur (fiche, § 3). */
+function appliquer(etat: EtatAtelier, action: ActionAtelier, ctx: ContexteTick): void {
+  switch (action.type) {
+    case "acheter":
+      acheter(etat, action.piece);
+      return;
+    case "agrandir": {
+      const avant = entrainees(analyser(etat));
+      if (!agrandir(etat)) return;
+      actualiser(etat, ctx, avant);
+      ecrire(etat, ctx, "legende.agrandi", {
+        taille: etat.taille,
+        cases: analyser(etat).casesLibres,
+      });
+      // Au dernier agrandissement, une pièce sans plan paraît sur l'établi, trouvée dessous.
+      if (etat.taille === TAILLE_MAX && !etat.sansPlan) {
+        etat.sansPlan = true;
+        ecrire(etat, ctx, "legende.sans-plan");
+      }
+      return;
+    }
+    default: {
+      const avant = entrainees(analyser(etat));
+      const bougees = geste(etat, action);
+      if (bougees === null) return;
+      if (action.type === "limer") ecrire(etat, ctx, "legende.limee", { piece: action.repere });
+      actualiser(etat, ctx, avant, bougees);
+    }
+  }
 }
 
 export const logique: LogiqueStrate<EtatAtelier, ActionAtelier> = {
@@ -348,36 +390,10 @@ export const logique: LogiqueStrate<EtatAtelier, ActionAtelier> = {
 
   agir(etat, action, ctx) {
     lireEffets(etat, ctx.effets);
-    switch (action.type) {
-      case "acheter":
-        acheter(etat, action.piece);
-        return;
-      case "agrandir": {
-        const avant = entrainees(analyser(etat));
-        if (!agrandir(etat)) return;
-        actualiser(etat, ctx, avant);
-        ecrire(etat, ctx, "legende.agrandi", {
-          taille: etat.taille,
-          cases: analyser(etat).casesLibres,
-        });
-        // Au dernier agrandissement, une pièce sans plan paraît sur l'établi, trouvée dessous.
-        if (etat.taille === TAILLE_MAX && !etat.sansPlan) {
-          etat.sansPlan = true;
-          ecrire(etat, ctx, "legende.sans-plan");
-        }
-        return;
-      }
-      default: {
-        const avant = entrainees(analyser(etat));
-        const bougees = geste(etat, action);
-        if (bougees === null) return;
-        if (action.type === "limer") ecrire(etat, ctx, "legende.limee", { piece: action.repere });
-        actualiser(etat, ctx, avant, bougees);
-      }
-    }
+    appliquer(etat, action, ctx);
+    verifierSeuil(etat, ctx);
   },
 
-  // Le seuil, l'assemblage sans aucune case libre, arrive avec #79.
   seuil: (etat) => ({ atteint: etat.seuilAtteintA !== null }),
   filet: (etat) => avanceeFissure(etat.temps, etat.seuilAtteintA),
   valeurConvertible: (etat) => etat.cumul,

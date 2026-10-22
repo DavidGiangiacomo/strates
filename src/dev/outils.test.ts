@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { creerEtatNoyau, type EtatNoyau } from "../noyau/logique/etat";
 import type { EntreeJournal, NumeroStrate } from "../noyau/logique/types";
+import { assemblageAcheve } from "../strates/s3-atelier/logique/regles";
+import type { EtatAtelier } from "../strates/s3-atelier/logique/etat";
+import { CASE_DERNIERE } from "./atelier";
 import {
+  atelierAvantLeSeuil,
   copierEtat,
   entreeCourante,
   lireArtefacts,
@@ -106,5 +110,20 @@ describe("les outils de développement", () => {
   it("trouvent l'entrée de journal de la strate courante", () => {
     expect(entreeCourante(partie())?.arrivee).toBe(30_000);
     expect(entreeCourante(creerEtatNoyau(1, 0))).toBeUndefined();
+  });
+});
+
+describe("l'atelier avant le seuil", () => {
+  it("saute à l'atelier achevé, la dernière pièce sur l'établi", () => {
+    const etat = atelierAvantLeSeuil(partie());
+    expect(etat.profondeur).toBe(3);
+    expect(etat.meta.journal.strates.map((e) => e.strate)).toEqual([1, 2]);
+    const atelier = etat.strates[3]!.etat as EtatAtelier;
+    expect(etat.strates[3]!.version).toBe(1);
+    expect(atelier.pieces.filter((p) => !p.case)).toHaveLength(1);
+    expect(assemblageAcheve(atelier)).toBe(false);
+    const derniere = atelier.pieces.find((p) => !p.case)!;
+    derniere.case = CASE_DERNIERE;
+    expect(assemblageAcheve(atelier)).toBe(true);
   });
 });
