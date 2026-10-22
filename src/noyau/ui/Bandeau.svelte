@@ -190,4 +190,27 @@
     outline: 1px solid #f2f2f2;
     outline-offset: 1px;
   }
+  /*
+   * Sur un téléphone, le bandeau se resserre. S'il déborde encore, quand « graphe » s'y ajoute, il
+   * défile lui-même au lieu d'élargir la page : « menu » reste toujours atteignable.
+   */
+  @media (max-width: 600px) {
+    .bandeau {
+      gap: 0.6rem;
+      padding: 0 6px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      font-size: 11px;
+      scrollbar-width: none;
+    }
+    .artefacts {
+      margin: 0 -3px;
+    }
+    .creuser,
+    .graphe,
+    .menu {
+      flex: none;
+      padding: 0 6px;
+    }
+  }
 </style>
