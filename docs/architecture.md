@@ -297,13 +297,23 @@ type SourceSon =
   | {
       duree: number;
       stereo?: boolean;
-      calculer(canaux: Float32Array[], frequence: number): void;
+      /** La fréquence du calcul ; celle du contexte par défaut. Le navigateur rééchantillonne. */
+      frequence?: number;
+      /** Écrit les échantillons. Un long calcul cède la main : un générateur, qui s'arrête à chaque `yield`. */
+      calculer(canaux: Float32Array[], frequence: number): void | Iterator<unknown>;
       /** Pour une ambiance : la fin fondue dans le début, sur `raccord` secondes, sans couture. */
       raccord?: number;
     };
 ```
 
-- **La banque** se déclare dans `DefinitionStrate.sons`. Le noyau l'ouvre au montage de la vue : ses fichiers se téléchargent tout de suite, et ses sons calculés se calculent quand le son s'ouvre. Il la libère quand la strate est quittée : tout se tait en un bref fondu.
+- **La banque** se déclare dans `DefinitionStrate.sons`, dans `vue/sons.ts`. Le noyau l'ouvre au montage de la vue : ses fichiers se téléchargent tout de suite. Il la libère quand la strate est quittée : tout se tait en un bref fondu.
+- **Les sons calculés ne figent jamais l'image** ([#59](https://github.com/DavidGiangiacomo/strates/issues/59)) :
+  - après l'ouverture du son, ils se calculent un par un, en tâche de fond ;
+  - un effet demandé avant son tour se calcule aussitôt, pour sonner tout de suite ;
+  - un long calcul cède la main : écrit en générateur, il s'arrête à chaque `yield`, et le moteur le poursuit à la tâche suivante. Une ambiance qui cède la main ne se calcule donc pas d'un coup quand on la demande : elle passe en tête, et part en fondu dès qu'elle est prête ;
+  - une banque étouffée ne calcule rien. La strate qui arrive, ouverte muette pendant la descente, ne fige pas le travelling : ses sons se calculent quand son temps part ;
+  - une rumeur sans aigus peut se calculer plus bas (`frequence`), à moindre coût : le navigateur la rééchantillonne.
+- **La boîte à outils de la synthèse** (`noyau/plateforme/synthese.ts`) donne aux banques des bruits, des filtres, un panoramique et de quoi finir un son. C'est un outil technique, comme le moteur : chaque banque y compose ses propres sons.
 - **Les ambiances et les voix se règlent.** La vue redit ce qui doit sonner à chaque changement (dans un `$effect`, par exemple), et le moteur s'y rend en douceur.
   - Une voix glisse vers sa nouvelle hauteur, et peut respirer : une houle lente de son volume.
   - Deux voix presque justes battent d'elles-mêmes, car rien n'est simulé : c'est ce dont le chœur a besoin ([fiche](strates/strate-5.md), § 6).
@@ -314,6 +324,7 @@ type SourceSon =
 - **Le volume global et le son coupé** se gardent dans le navigateur (`strates.son`) ; le menu système les réglera ([#48](https://github.com/DavidGiangiacomo/strates/issues/48)). Un limiteur protège la sortie.
 - **Un appel ne lève jamais d'erreur** : ni son coupé, ni sans Web Audio, ni après le démontage, ni quand le navigateur en lève une. Celle-ci est signalée une fois dans la console, comme un nom absent de la banque.
 - **Le sol a ses sons**, ceux du noyau, calculés (`noyau/ui/sons.ts`) : le coup sourd du sol qui résiste ; le coup de pioche, avec la fissure qui craque et un éboulement ; le grondement de la descente ([storyboard](strates/descente-1-2.md), P2 et P5).
+- **Les strates ont les leurs** : la surface et les caves ([#59](https://github.com/DavidGiangiacomo/strates/issues/59) ; fiches 1 et 2, § 6). Les outils de développement les font entendre un à un : un effet se joue, une ambiance se met ou s'arrête.
 - **Tests** : une vue montée dans un test reçoit `SILENCE`. Le moteur se teste sur un contexte simulé (`noyau/plateforme/audio.test.ts`). Son rendu réel a été vérifié dans Chromium, hors ligne : deux voix à une quinte juste ne battent pas ; décalées de 10 cents, elles battent à 2 Hz, comme le veut l'acoustique.
 
 ## 6. La boucle du noyau

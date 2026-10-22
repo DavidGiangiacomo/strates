@@ -380,19 +380,121 @@ describe("le volume global", () => {
 });
 
 describe("la banque d'une strate", () => {
-  it("calcule ses sons à l'ouverture du son, à la fréquence du contexte", () => {
+  it("calcule ses sons après l'ouverture du son, un par tâche, à la fréquence du contexte", () => {
     const calculer = vi.fn<(canaux: Float32Array[], frequence: number) => void>((canaux) =>
       canaux.forEach((c) => c.fill(2)),
     );
+    const autre = vi.fn<(canaux: Float32Array[], frequence: number) => void>();
     const e = environnement();
     const moteur = new MoteurAudio(e.env);
-    moteur.banque({ large: { duree: 0.5, stereo: true, calculer } });
-    expect(calculer).not.toHaveBeenCalled();
+    moteur.banque({
+      large: { duree: 0.5, stereo: true, calculer },
+      autre: { duree: 1, calculer: autre },
+    });
     e.geste();
+    expect(calculer).not.toHaveBeenCalled();
+    e.executerDifferes();
     expect(calculer).toHaveBeenCalledTimes(1);
+    expect(autre).not.toHaveBeenCalled();
     const [canaux, frequence] = calculer.mock.calls[0]!;
     expect(frequence).toBe(48000);
     expect(canaux.map((c) => c.length)).toEqual([24000, 24000]);
+    e.executerDifferes();
+    expect(autre).toHaveBeenCalledTimes(1);
+    e.executerDifferes();
+    expect(calculer).toHaveBeenCalledTimes(1);
+  });
+
+  it("calcule une rumeur à sa propre fréquence, si elle en donne une : le navigateur la rééchantillonne", () => {
+    const calculer = vi.fn<(canaux: Float32Array[], frequence: number) => void>();
+    const { banque, contexte } = moteurOuvert({
+      vent: { duree: 2, frequence: 16000, raccord: 0.5, calculer },
+    });
+    banque.ambiance("vent", { volume: 1 });
+    expect(calculer.mock.calls[0]![1]).toBe(16000);
+    const tampon = contexte.lectures()[0]!.buffer!;
+    expect([tampon.sampleRate, tampon.length]).toEqual([16000, 24000]);
+  });
+
+  it("fait un long calcul par étapes, quelques-unes par tâche, et le finit aussitôt s'il est demandé", () => {
+    let etapes = 0;
+    const long: SourceSon = {
+      duree: 0.1,
+      *calculer(canaux) {
+        for (let k = 0; k < 20; k++) {
+          canaux[0]![k] = k / 20;
+          etapes++;
+          yield;
+        }
+      },
+    };
+    const { banque, contexte, executerDifferes } = moteurOuvert({ long, autre: RAMPE });
+    executerDifferes();
+    expect(etapes).toBe(8);
+    executerDifferes();
+    expect(etapes).toBe(16);
+    banque.jouer("long");
+    expect(etapes).toBe(20);
+    expect(contexte.lectures()).toHaveLength(1);
+    expect(contexte.lectures()[0]!.buffer!.getChannelData(0)[19]).toBeCloseTo(0.95);
+  });
+
+  it("ne fige rien pour une rumeur qui cède la main : elle passe en tête, et part dès qu'elle est prête", () => {
+    const longue: SourceSon = {
+      duree: 0.1,
+      *calculer(canaux) {
+        for (let k = 0; k < 10; k++) {
+          canaux[0]![k] = 0.5;
+          yield;
+        }
+      },
+    };
+    const autre = vi.fn<(canaux: Float32Array[]) => void>();
+    const { banque, contexte, executerDifferes } = moteurOuvert({
+      autre: { ...RAMPE, calculer: autre },
+      vent: longue,
+    });
+    banque.ambiance("vent", { volume: 0.5 });
+    expect(contexte.lectures()).toHaveLength(0);
+    executerDifferes();
+    expect(autre).not.toHaveBeenCalled();
+    executerDifferes();
+    expect(contexte.lectures().map((l) => l.loop)).toEqual([true]);
+    executerDifferes();
+    expect(autre).toHaveBeenCalledTimes(1);
+  });
+
+  it("calcule aussitôt un son demandé avant son tour : effet ou ambiance", () => {
+    const vent = vi.fn<(canaux: Float32Array[]) => void>();
+    const { banque, contexte } = moteurOuvert({ clic: RAMPE, vent: { ...RAMPE, calculer: vent } });
+    banque.jouer("clic");
+    expect(contexte.lectures()).toHaveLength(1);
+    expect(vent).not.toHaveBeenCalled();
+    banque.ambiance("vent", { volume: 0.5 });
+    expect(vent).toHaveBeenCalledTimes(1);
+    expect(contexte.lectures()).toHaveLength(2);
+  });
+
+  it("étouffée, elle ne calcule rien ; rendue au jeu, elle fait partir les ambiances qui attendaient", () => {
+    const vent = vi.fn<(canaux: Float32Array[]) => void>();
+    const e = environnement();
+    const banque = new MoteurAudio(e.env).banque(
+      { clic: RAMPE, vent: { ...RAMPE, calculer: vent } },
+      true,
+    );
+    e.geste();
+    banque.ambiance("vent", { volume: 0.5 });
+    banque.jouer("clic");
+    e.executerDifferes();
+    const contexte = e.contextes[0]!;
+    expect(vent).not.toHaveBeenCalled();
+    expect(contexte.lectures()).toHaveLength(0);
+    banque.etouffer(false);
+    expect(vent).toHaveBeenCalledTimes(1);
+    expect(contexte.lectures().map((l) => l.loop)).toEqual([true]);
+    e.executerDifferes();
+    banque.jouer("clic");
+    expect(contexte.lectures()).toHaveLength(2);
   });
 
   it("borne les échantillons calculés entre −1 et 1", () => {

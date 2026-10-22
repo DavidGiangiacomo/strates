@@ -304,7 +304,12 @@ Bois, registres, calendrier circulaire (§5). Tout ce que la surface n'était pa
   - **Le registre**, à droite : un livre de comptes. En tête, les achats, présentés comme des écritures (« Installer une famille — 31 boisseaux »). En dessous, les dernières lignes de la chronique.
   - **La courbe de la réserve**, en bas : les trois dernières années, en échelle linéaire, avec une encoche à chaque achat. C'est une sinusoïde, là où la surface avait une exponentielle.
 - **Mouvement** : lent. L'aiguille tourne en continu et le grain coule dans la coupe. Rien ne défile par à-coups.
-- **Sons** ([#59](https://github.com/DavidGiangiacomo/strates/issues/59)) : du grain versé, du bois, et le vent en hiver, par le moteur audio du noyau ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)).
+- **Sons** ([#59](https://github.com/DavidGiangiacomo/strates/issues/59)) : du grain, du bois, des registres, et les saisons. Rien n'y rappelle la surface.
+  - **Une rumeur par saison**, qui passe à la suivante en fondu : des oiseaux au printemps (la mésange tout près, le pinson, le merle au loin), des grillons l'été, les feuilles sèches dans le vent à l'automne, et le vent l'hiver, quand l'écran se refroidit.
+  - **Glaner** : une poignée de grain, à la mesure de ce que rapporte le glanage. L'hiver, le bouton ne donne rien, et ne sonne pas.
+  - **Les achats sont du bois** : une famille s'installe d'un coup, un stockage se bâtit en trois coups de maillet, un outil claque.
+  - **La plume** gratte le papier à chaque nouvelle ligne du registre, et d'un trait quand les rations changent.
+  - Ils sont calculés (`vue/sons.ts`) et joués par le moteur audio du noyau ([#46](https://github.com/DavidGiangiacomo/strates/issues/46)). La rumeur part avec le temps des caves, à la fin de l'arrivée.
 - **Ce qui la distingue** : c'est la seule strate où le temps est un cercle visible. C'est aussi la première où l'écran n'est pas un logiciel.
 
 ### Dans le code ([#33](https://github.com/DavidGiangiacomo/strates/issues/33))
