@@ -4,6 +4,7 @@
   import Journal from "../../playtest/Journal.svelte";
   import { demarrerGardeJournal, metaNavigateur, ouvrirJournal } from "../../playtest/plateforme";
   import { inventaire } from "../logique/artefacts";
+  import { coupe } from "../logique/coupe";
   import { creerEtatNoyau, type EtatNoyau } from "../logique/etat";
   import type { Reprise } from "../logique/horsligne";
   import { Noyau } from "../logique/noyau";
@@ -28,6 +29,7 @@
   import { creerRegistre } from "../../strates/registre";
   import { rendreStrateReactive } from "./reactivite.svelte";
   import Bandeau from "./Bandeau.svelte";
+  import Coupe from "./Coupe.svelte";
   import Descente from "./Descente.svelte";
   import Fente from "./Fente.svelte";
   import Fouille from "./Fouille.svelte";
@@ -51,6 +53,12 @@
   /** Le retour du joueur (#58) : le rappel de reprise, puis le résumé de l'absence. */
   let retour = $state<MessageReprise | null>(null);
   let bandeau: ReturnType<typeof Bandeau> | undefined = $state();
+  /** La coupe, ouverte depuis la Profondeur du bandeau (#47). */
+  let coupeOuverte = $state(false);
+  function fermerCoupe(): void {
+    coupeOuverte = false;
+    bandeau?.focaliserCoupe();
+  }
   /** L'inventaire des objets, ouvert depuis le compteur du bandeau (#45). */
   let inventaireOuvert = $state(false);
   function fermerInventaire(): void {
@@ -69,8 +77,9 @@
     menuOuvert = false;
     bandeau?.focaliserMenu();
   }
-  /** Un seul volet à la fois, sous le bandeau : l'inventaire, le graphe ou le menu. */
-  function ouvrirVolet(volet: "inventaire" | "graphe" | "menu"): void {
+  /** Un seul volet à la fois, sous le bandeau : la coupe, l'inventaire, le graphe ou le menu. */
+  function ouvrirVolet(volet: "coupe" | "inventaire" | "graphe" | "menu"): void {
+    coupeOuverte = volet === "coupe";
     inventaireOuvert = volet === "inventaire";
     grapheOuvert = volet === "graphe";
     menuOuvert = volet === "menu";
@@ -184,7 +193,9 @@
         opacite: new CoucheOpacite(noyau),
         son: moteur.banque(noyau.strate.sons ?? {}, pendantLaDescente),
       };
-      // Le graphe ouvert était celui de la strate quittée ; l'inventaire montrait l'usure d'en haut.
+      // Le graphe ouvert était celui de la strate quittée ; l'inventaire montrait l'usure d'en haut, et
+      // la coupe, la couche d'en haut en cours.
+      coupeOuverte = false;
       grapheOuvert = false;
       inventaireOuvert = false;
       menuOuvert = false;
@@ -302,8 +313,13 @@
     profondeur={passage.profondeur}
     artefacts={passage.artefacts}
     kappa={passage.kappa}
+    oncoupe={phase === "jeu"
+      ? () => (coupeOuverte ? fermerCoupe() : ouvrirVolet("coupe"))
+      : undefined}
+    {coupeOuverte}
     oncreuser={() => {
       // Le coup de pioche ouvre la strate : les volets se referment d'abord.
+      coupeOuverte = false;
       grapheOuvert = false;
       inventaireOuvert = false;
       menuOuvert = false;
@@ -333,6 +349,13 @@
       onimporter={systeme.importer}
       onrecommencer={systeme.recommencer}
       onfermer={fermerMenu}
+    />
+  {/if}
+  {#if phase === "jeu" && coupeOuverte}
+    <Coupe
+      couches={coupe(noyau.etat.meta.journal, passage.profondeur)}
+      profondeur={passage.profondeur}
+      onfermer={fermerCoupe}
     />
   {/if}
   {#if phase === "jeu" && inventaireOuvert}

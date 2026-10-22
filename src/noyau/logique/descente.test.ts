@@ -13,6 +13,7 @@ import {
   preselection,
   valeurPourPoints,
 } from "./artefacts";
+import { coupe } from "./coupe";
 import { creerEtatNoyau } from "./etat";
 import { Noyau } from "./noyau";
 import { Registre, type ChargeurStrate, type StrateQuelconque } from "./registre";
@@ -350,6 +351,26 @@ describe("la descente", () => {
     expect(repris.suspendu).toBe(false);
     expect(repris.etat.strates[1]?.etat).toMatchObject({ cumul: CUMUL_SURFACE });
     expect(journal(repris)).toHaveLength(2);
+  });
+});
+
+describe("la coupe", () => {
+  it("se met à jour après chaque descente : la couche quittée, ses objets abandonnés, la suivante", async () => {
+    const noyau = await partie();
+    noyau.tick(90);
+    const avant = coupe(noyau.etat.meta.journal, noyau.etat.profondeur);
+    expect(avant.filter((c) => c.atteinte)).toMatchObject([
+      { strate: 1, courante: true, tempsDeJeu: 90 },
+    ]);
+
+    auSeuil(noyau);
+    noyau.ouvrirFouille();
+    await noyau.descendre(DEBUT + H, ["s1-equipe", "s1-serveur", "s1-turbine"]);
+    const apres = coupe(noyau.etat.meta.journal, noyau.etat.profondeur);
+    expect(apres.filter((c) => c.atteinte)).toMatchObject([
+      { strate: 1, courante: false, abandonnes: ["s1-double-ecran", "s1-filiale", "s1-plan"] },
+      { strate: 2, courante: true, tempsDeJeu: 0 },
+    ]);
   });
 });
 

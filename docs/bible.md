@@ -349,7 +349,7 @@ Le noyau parle entre les couches : le bandeau, l'écran de fouille, la descente,
 
 Jamais de résumé de la civilisation, d'indice, ni de « vous ». Les lignes « En une ligne » du § 4 ne sont pas des rappels. La troisième ligne attend donc que la couche ait parlé de son seuil : dans les caves, « Grands hivers de suite » paraît au premier grand hiver, quand le registre l'annonce. La surface donne sa production, qui est son seuil, sans le nommer.
 
-**La coupe et l'épilogue** (§11) : une ligne par couche, le nom de la couche, le temps passé, le seuil franchi, les objets abandonnés sous leurs noms d'en haut, et « stratigraphie perturbée » si l'horloge a reculé. Sans commentaire.
+**La coupe et l'épilogue** (§11) : une ligne par couche, le nom de la couche, le temps passé, le seuil franchi, les objets abandonnés sous leurs noms d'en haut, et « stratigraphie perturbée » si l'horloge a reculé. Sans commentaire. Pendant la partie, « Profondeur » l'ouvre dans le bandeau ([#47](https://github.com/DavidGiangiacomo/strates/issues/47)) : le temps passé y est le temps de jeu, le seuil franchi est le contact entre deux couches, la couche en cours ne dit rien du sien, et les couches pas encore atteintes restent sans nom.
 
 **La remontée ne dit rien.** Les couches vides défilent, puis la surface qui tourne.
 
