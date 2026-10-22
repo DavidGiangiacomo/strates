@@ -2,6 +2,8 @@
 // viennent ↊ (dix) et ↋ (onze), puis 10, une douzaine ; 100 est une grosse, 1 000 une grande grosse.
 // Les chiffres se groupent par trois, séparés par une espace fine. Des nombres entiers, sans suffixe
 // ni décimale. Aucune autre strate ne compte ainsi.
+import { artefact } from "../../../noyau/logique/artefacts";
+import type { LigneLegende } from "./etat";
 
 /** Les douze chiffres : ↊ et ↋ sont un 2 et un 3 retournés. */
 export const CHIFFRES = "0123456789↊↋";
@@ -61,4 +63,14 @@ export function remplir(texte: string, valeurs: Readonly<Record<string, number>>
     if (valeur === undefined) return tout;
     return mot ? formaterQuantite(valeur, mot) : formaterEntier(valeur);
   });
+}
+
+/**
+ * Une ligne de la légende, écrite d'après `texte` : ses nombres en base douze, et l'objet d'en haut
+ * qu'elle cite sous son nom d'en bas.
+ */
+export function ecrireLigne(ligne: LigneLegende, texte: string): string {
+  const ecrite = remplir(texte, ligne.valeurs);
+  if (ligne.objet === undefined) return ecrite;
+  return ecrite.replace("{objet}", artefact(ligne.objet)?.nomDEnBas ?? ligne.objet);
 }

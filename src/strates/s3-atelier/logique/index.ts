@@ -2,6 +2,7 @@
 // tient au ressort, de dent en dent (docs/strates/strate-3.md, § 3). Le seuil : l'assemblage achevé,
 // sans aucune case libre (§ 4). L'opacité et les actes de compréhension arrivent avec #95 ; les objets
 // d'en haut, hors multiplicateurs, avec #81.
+import { CATALOGUE } from "../../../noyau/logique/catalogue";
 import { EFFETS_NEUTRES } from "../../../noyau/logique/effets";
 import { avanceeFissure } from "../../../noyau/logique/filet";
 import type {
@@ -13,7 +14,7 @@ import type {
 } from "../../../noyau/logique/types";
 import { textes } from "../textes.fr";
 import { etatInitial, TAILLE_LEGENDE, type EtatAtelier, type PieceAtelier } from "./etat";
-import { remplir } from "./notation";
+import { ecrireLigne, remplir } from "./notation";
 import {
   AGRANDISSEMENTS,
   analyser,
@@ -58,19 +59,38 @@ function lireEffets(etat: EtatAtelier, effets: EffetsActifs): void {
 
 /**
  * Écrit une ligne à la légende. Avec un contexte, elle laisse aussi une trace pour le journal de
- * session (#26).
+ * session (#26) ; sans, à l'arrivée, elle se déduit des objets emportés.
  */
 function ecrire(
   etat: EtatAtelier,
   ctx: ContexteTick | null,
   cle: string,
   valeurs: Record<string, number> = {},
+  objet?: string,
 ): void {
-  etat.legende.push({ cle, valeurs });
+  etat.legende.push(objet === undefined ? { cle, valeurs } : { cle, valeurs, objet });
   if (etat.legende.length > TAILLE_LEGENDE) {
     etat.legende.splice(0, etat.legende.length - TAILLE_LEGENDE);
   }
-  ctx?.emettre({ type: "trace", cle, valeurs });
+  ctx?.emettre(
+    objet === undefined ? { type: "trace", cle, valeurs } : { type: "trace", cle, valeurs, objet },
+  );
+}
+
+/** Les objets des caves, que l'atelier nomme dès l'arrivée, par leur forme et leur place (fiche, § 8). */
+const NOMMES = CATALOGUE.filter((a) => a.origine === 2).map((a) => a.id);
+
+/**
+ * L'éveil (fiche, § 8) : chaque objet d'en haut qui agit ici a sa ligne à la légende dès l'arrivée,
+ * sous son nom d'en bas. Ceux des caves y prennent le nom que leur donne l'atelier ; ceux de la
+ * surface gardent celui des caves, comme un mot étranger. Il n'y a pas d'éveil retardé.
+ */
+function eveiller(etat: EtatAtelier, effets: EffetsActifs): void {
+  for (const a of CATALOGUE) {
+    if (a.origine < 3 && effets.niveau(a.id) !== null) {
+      ecrire(etat, null, "legende.eveil", {}, a.id);
+    }
+  }
 }
 
 /** Les repères des pièces entraînées. */
@@ -313,7 +333,7 @@ function rappel(etat: EtatAtelier): string[] {
   const ecrire = (cle: string, valeurs: Record<string, number> = {}) =>
     remplir(textes[cle] ?? cle, valeurs);
   const derniere = etat.legende.at(-1);
-  const lignes = derniere ? [ecrire(derniere.cle, derniere.valeurs)] : [];
+  const lignes = derniere ? [ecrireLigne(derniere, textes[derniere.cle] ?? derniere.cle)] : [];
   const { casesLibres } = analyser(etat);
   const cases =
     casesLibres > 0 ? ecrire("cases.valeur", { cases: casesLibres }) : ecrire("cases.aucune");
@@ -363,7 +383,9 @@ export const logique: LogiqueStrate<EtatAtelier, ActionAtelier> = {
 
   etatInitial(ctx) {
     const etat = etatInitial();
-    lireEffets(etat, ctx.effets ?? EFFETS_NEUTRES);
+    const effets = ctx.effets ?? EFFETS_NEUTRES;
+    lireEffets(etat, effets);
+    eveiller(etat, effets);
     return etat;
   },
 
@@ -401,6 +423,9 @@ export const logique: LogiqueStrate<EtatAtelier, ActionAtelier> = {
   graphe,
   formules,
   rappel,
+  // Les objets nommés (descente-1-2.md, § 6) : l'inventaire les montre sous leur nom d'en bas. Le noyau
+  // ne garde que ceux du joueur.
+  nommes: () => NOMMES,
 
   /** Pour le journal de session : le plan, ce qui tourne et ce qui frotte, le stock et la production. */
   releve(etat) {

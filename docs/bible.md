@@ -321,8 +321,8 @@ Environ 5 000 mots pour tout le jeu (§2). Chaque fiche reprend son budget dans 
 |---|---|---|
 | Le noyau | 450 | le bandeau, l'écran de fouille, l'inventaire, la coupe, le menu, les fins |
 | 1 · La surface | 600 | les descriptions et l'aide ; 609 écrits |
-| 2 · Les caves | 750 | le registre, les notes en marge, l'aide ; 742 écrits, rations comprises |
-| 3 · L'atelier | 700 | la nomenclature et les légendes du plan |
+| 2 · Les caves | 750 | le registre, les notes en marge, l'aide ; 741 écrits, rations comprises |
+| 3 · L'atelier | 700 | la nomenclature et les légendes du plan ; 428 écrits |
 | 4 · Le réseau | 600 | le carnet de relevés et la légende du schéma |
 | 5 · Le chœur | 300 | des indications, et pas une phrase |
 | 6 · La dette | 850 | le livre de comptes : la strate la plus longue |
@@ -356,6 +356,7 @@ Jamais de résumé de la civilisation, d'indice, ni de « vous ». Les lignes «
 ## 11. Ce que la bible demande ensuite
 
 - **Les textes des strates 1 et 2** ([#60](https://github.com/DavidGiangiacomo/strates/issues/60)) : faits. Les vieux remplacent les anciens, plus aucun texte ne dit « vous », les deux restes sont plantés (le serveur « au sous-sol, au frais », la cave profonde où « on trouve les roues sans moulin »), et les traces suivent le § 5. Les tests interdisent désormais « vous » et les mots du § 2, comme « creuser ».
+- **Les textes de l'atelier** ([#68](https://github.com/DavidGiangiacomo/strates/issues/68)) : faits ([fiche](strates/strate-3.md), § 11). La légende dit « ajustée » et « à reprendre ». Les objets d'en haut s'y éveillent « Hors plan », sous leur nom d'en bas, et la notice du plan ne dit rien de la fin. La feuille qui annonce écrit, dans les caves, « Il reste 53 cases. ».
 - **Le catalogue** ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : fait ([`artefacts.md`](artefacts.md), § 8). Les noms d'en bas suivent le § 6, dont « la pierre qui oblige » ; au fond, des encoches.
 - **Le rappel de reprise** ([#58](https://github.com/DavidGiangiacomo/strates/issues/58)) : fait, pour la surface, les caves et l'atelier (§ 10). Le résumé d'absence ne dit plus « votre », et les rappels ont écrit 9 de leurs 300 mots : le reste de chaque rappel est une ligne de la couche.
 - **Les fiches** des strates 4, 7 et 8, et la révision de celle du chœur ([#62](https://github.com/DavidGiangiacomo/strates/issues/62), [#63](https://github.com/DavidGiangiacomo/strates/issues/63), [#65](https://github.com/DavidGiangiacomo/strates/issues/65), [#75](https://github.com/DavidGiangiacomo/strates/issues/75)) : leur § 2 part du § 4, leur § 11 du § 5 et du § 9. Celles de l'atelier et de la dette sont faites ([`strate-3.md`](strates/strate-3.md), [`strate-6.md`](strates/strate-6.md)).

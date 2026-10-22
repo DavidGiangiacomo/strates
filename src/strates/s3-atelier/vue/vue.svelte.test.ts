@@ -183,6 +183,54 @@ describe("la vue de l'atelier", () => {
     expect(document.querySelectorAll(".frotte").length).toBeGreaterThan(0);
   });
 
+  it("lie à chaque prix la note de sa pièce, qui paraît au survol ou au clavier", () => {
+    monter((etat) => (etat.cumul = 900));
+    const prix = document.querySelector("[data-test=nomenclature-cliquet] .acheter")!;
+    const note = document.getElementById(prix.getAttribute("aria-describedby")!)!;
+    expect(note.textContent).toBe("Un côté denté : il ferme un bout de rouage.");
+    expect(note.getAttribute("role")).toBe("tooltip");
+  });
+
+  it("ouvre la notice du plan, note l'ouverture, et la referme par Échap", () => {
+    let ouvertures = 0;
+    commandes.ouvrirAide = () => ouvertures++;
+    monter();
+    cliquer("[data-test=lien-aide]");
+    const notice = document.querySelector<HTMLElement>("[data-test=aide]")!;
+    expect(notice.getAttribute("role")).toBe("dialog");
+    expect(document.activeElement).toBe(notice);
+    expect(texte("#aide-titre")).toBe("Notice du plan");
+    expect([...notice.querySelectorAll("h4")].map((h) => h.textContent)).toEqual([
+      "Le plan",
+      "Les dents",
+      "Le mouvement",
+      "La nomenclature",
+      "Les nombres",
+    ]);
+    expect(ouvertures).toBe(1);
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    flushSync();
+    expect(document.querySelector("[data-test=aide]")).toBeNull();
+    expect(document.activeElement).toBe(document.querySelector("[data-test=lien-aide]"));
+    commandes.ouvrirAide = () => {};
+  });
+
+  it("écrit la légende : une pièce à reprendre, et l'objet d'en haut sous son nom d'en bas", () => {
+    monter((etat) => {
+      etat.legende.push(
+        { cle: "legende.eveil", valeurs: {}, objet: "s2-meule" },
+        { cle: "legende.immobile", valeurs: { piece: 14 } },
+      );
+    });
+    const lignes = [...document.querySelectorAll("[data-test=legende] li")].map((li) =>
+      li.textContent?.trim(),
+    );
+    expect(lignes.slice(0, 2)).toEqual([
+      "Pièce 12 : à reprendre.",
+      "Hors plan : la roue de pierre.",
+    ]);
+  });
+
   it("pendant la remontée, se montre sans rien laisser faire", () => {
     const { actions } = monter((e) => (e.stock = 1000), "remontee");
     cliquer("[data-test=nomenclature-roue] .acheter");

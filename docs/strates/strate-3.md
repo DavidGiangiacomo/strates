@@ -398,7 +398,7 @@ Les objets des caves sont **puissants** ici, ceux de la surface **utiles**. Les 
 - **Les objets ne rapportent pas de points** : 16 avec ou sans (§ 9). Ils rapportent du temps.
 - **I2** : le noyau plafonne le produit des multiplicateurs à × 4. Au plafond, tout sur le ressort, la strate dure encore 1 h 39 pour le joueur parfait, 2 h pour le naturel.
 - **I5** : toute la simulation du § 4 est faite sans aucun artefact. Les joueurs réguliers finissent entre 2 h 26 et 2 h 55, sous les 3 h 15. Le joueur qui ne range jamais son plan, lui, les dépasse (§ 13, question 6).
-- **L'éveil** : un objet agit dès l'arrivée, et la légende le note, une ligne par objet, sous « Hors plan » : « Hors plan : la roue chaude. » Les objets des caves y prennent leur nom d'en bas, celui que leur donne l'atelier, par leur forme et leur place (« la lame courbe », « la roue de pierre »). Ceux de la surface gardent celui que les caves leur ont donné, comme un mot étranger ([bible](../bible.md), § 6).
+- **L'éveil** : un objet agit dès l'arrivée, et la légende le note, une ligne par objet, sous « Hors plan » : « Hors plan : la roue chaude. » Les objets des caves y prennent leur nom d'en bas, celui que leur donne l'atelier, par leur forme et leur place (« la lame courbe », « la roue de pierre »). Ceux de la surface gardent celui que les caves leur ont donné, comme un mot étranger ([bible](../bible.md), § 6). Codé avec les textes ([#68](https://github.com/DavidGiangiacomo/strates/issues/68)) : voir § 11.
 - **Pas d'éveil retardé** : dans les caves, il protégeait le choc du premier hiver. Ici, le choc est de placer, et aucun multiplicateur ne fait tourner une pièce mal posée.
 
 ## 9. Valeur convertible
@@ -424,7 +424,7 @@ Les objets des caves sont **puissants** ici, ceux de la surface **utiles**. Les 
 - **Budget** : environ 700 mots ([`bible.md`](../bible.md), § 9). La rédaction est l'objet de [#68](https://github.com/DavidGiangiacomo/strates/issues/68).
 - **Ton** : les légendes d'un plan et sa nomenclature. Des désignations, des repères, des mentions brèves : « ajustée », « gêne sa voisine », « à reprendre ». Personne ne s'adresse au joueur, et aucun texte ne dit « horloge ».
 - **Les nombres** s'écrivent en base douze partout, en chiffres : « Il reste 53 cases. »
-- **La ligne de la feuille qui annonce**, dans les caves, est une ligne de l'atelier : elle s'écrit donc aussi en base douze. « Il reste soixante-trois cases. » devient « Il reste 53 cases. » : 63 cases en base dix, et le joueur ne le saura qu'en bas. À changer avec [#68](https://github.com/DavidGiangiacomo/strates/issues/68).
+- **La ligne de la feuille qui annonce**, dans les caves, est une ligne de l'atelier : elle s'écrit donc aussi en base douze. « Il reste soixante-trois cases. » est devenu « Il reste 53 cases. » ([#68](https://github.com/DavidGiangiacomo/strates/issues/68)) : 63 cases en base dix, et le joueur ne le saura qu'en bas.
 - **À écrire** :
   - les douze désignations de la nomenclature, et une note de quelques mots pour chacune, comme une ligne de nomenclature ;
   - les en-têtes de la nomenclature, l'agrandissement du plan, l'établi et la lime ;
@@ -437,6 +437,23 @@ Les objets des caves sont **puissants** ici, ceux de la surface **utiles**. Les 
 - **Le reste** ([`bible.md`](../bible.md), § 3) : au dernier agrandissement, une **pièce sans plan** paraît sur l'établi, trouvée dessous. Creuse, sans dents ni cote, elle ne se pose nulle part. Elle n'est pas dans la nomenclature, et le seuil ne la compte pas. La légende la note : « Pièce sans plan : mise de côté. » C'est une conduite du réseau, avec sa vanne ; aucun texte ne le dit.
 - **Traces laissées au fond** (strate 8 ; [bible](../bible.md), § 5) : trois lignes de la légende au plus. « Il ne reste aucune case. », le compte des pièces du dernier assemblage (« Pièces : ↊6 », 126 avec le ressort), et « Pièce sans plan : mise de côté. » Le compte des coups de lime pourrait faire varier la trace selon le parcours (« Dents limées : 4↊. ») : à voir avec [#109](https://github.com/DavidGiangiacomo/strates/issues/109).
 - **Aucun texte ne mentionne « creuser ».**
+
+### Dans le code ([#68](https://github.com/DavidGiangiacomo/strates/issues/68))
+
+Tous les textes sont dans `textes.fr.ts` : 428 mots, dont 183 pour la notice, 63 pour les notes de la nomenclature et 53 pour la légende. Les formules (`formule.*`, 59 mots), lues au-delà de κ = 50 seulement, n'entrent pas dans le budget. Un test vérifie :
+- le budget ;
+- l'absence de « creuser », de l'horloge, du nom de la couche, de point d'exclamation et des mots que la bible interdit ;
+- qu'aucun texte ne s'adresse au joueur ;
+- que la notice ne dit rien de la fin, de la lime ni du bandeau.
+
+Ce que les textes ont tranché :
+- **Le titre** : « Plan d'assemblage ». Le nom de la couche, « L'atelier », appartient au noyau ([bible](../bible.md), § 2).
+- **Les notes** : une par pièce, comme une ligne de nomenclature (« Deux côtés dentés, en équerre : le mouvement tourne d'un quart. »). La seconde série renvoie à la première : « Profil du renvoi. » Une note paraît sous la désignation au survol de sa ligne, ou quand son prix a le focus. Elle est liée au bouton (`aria-describedby`).
+- **La légende** : « Pièce 14 : ajustée. » quand une pièce se met à tourner, « Pièce 14 : à reprendre. » quand elle s'arrête, comme la mention d'un plan.
+- **L'éveil** : à l'arrivée, une ligne par objet d'en haut qui agit ici, sous son nom d'en bas : « Hors plan : la lame courbe. » (§ 8). L'atelier nomme les objets des caves dès l'arrivée (`nommes`), et l'inventaire du noyau les montre sous ce nom.
+- **La notice** : un lien « Aide », au bout de l'en-tête, ouvre « Notice du plan », qu'on referme par « Refermer » ou Échap. Elle a cinq parties : le plan, les dents, le mouvement, la nomenclature et les nombres. Chaque ouverture est notée, pour l'acte « sans aide » (§ 7).
+- **Les traces pour le fond** (`trace.cases`, `trace.pieces`, `trace.sans-plan`) attendent la strate 8 ([#109](https://github.com/DavidGiangiacomo/strates/issues/109)).
+- **Pour l'opacité** ([#95](https://github.com/DavidGiangiacomo/strates/issues/95)) : les notes de la seconde série citent une pièce de la première (« Profil du cliquet. »). Elles devront rester opaques tant que ce nom l'est.
 
 ## 12. Critère R5
 

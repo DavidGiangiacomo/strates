@@ -110,7 +110,7 @@ export const textes: Record<string, string> = {
   "registre.attente": "{objets} objets venus d'en haut, que personne ne sait employer.",
   "registre.attente.un": "Un objet venu d'en haut, que personne ne sait employer.",
   // La feuille qui annonce : une ligne de l'atelier (strate 3), d'une autre main (bible, § 4 ; #68).
-  "registre.feuille": "Il reste soixante-trois cases.",
+  "registre.feuille": "Il reste 53 cases.",
 
   // ——— Le retour d'une absence (fiche, § 10) : l'hiver attend
   "absence.hiver": "L'hiver attendait : rien n'a bougé.",

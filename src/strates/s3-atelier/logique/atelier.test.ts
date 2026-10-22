@@ -70,6 +70,36 @@ describe("l'arrivée dans l'atelier", () => {
     expect(logique.horsLigne.type).toBe("standard");
   });
 
+  it("note chaque objet d'en haut qui agit, dès l'arrivée, sous son nom d'en bas (fiche, § 8)", () => {
+    const niveaux: Record<string, "puissant" | "utile"> = {
+      "s1-turbine": "utile",
+      "s2-faucille": "puissant",
+    };
+    const etat = logique.etatInitial({
+      graine: 1,
+      journal: { strates: [] },
+      effets: { multiplicateur: () => 1, niveau: (id) => niveaux[id] ?? null },
+    });
+    expect(etat.legende.slice(1)).toEqual([
+      { cle: "legende.eveil", valeurs: {}, objet: "s1-turbine" },
+      { cle: "legende.eveil", valeurs: {}, objet: "s2-faucille" },
+    ]);
+    // La dernière ligne de la légende, telle que le rappel de reprise la reprend.
+    expect(logique.rappel!(etat)[0]).toBe("Hors plan : la lame courbe.");
+    // Sans objet qui agit, rien n'est noté.
+    expect(logique.etatInitial({ graine: 1, journal: { strates: [] } }).legende).toHaveLength(1);
+  });
+
+  it("nomme les objets des caves, et le noyau ne garde que ceux du joueur", () => {
+    expect(logique.nommes!(etatInitial())).toEqual([
+      "s2-faucille",
+      "s2-calendrier",
+      "s2-registre",
+      "s2-meule",
+      "s2-corde",
+    ]);
+  });
+
   it("lit les multiplicateurs des objets d'en haut dès l'arrivée", () => {
     const etat = logique.etatInitial({
       graine: 1,
