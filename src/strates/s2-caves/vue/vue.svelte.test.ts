@@ -245,7 +245,7 @@ describe("la vue des caves", () => {
       );
     });
     const lignes = [...document.querySelectorAll("[data-test=registre] li")];
-    expect(lignes[0]!.textContent).toBe("Il reste soixante-trois cases.");
+    expect(lignes[0]!.textContent).toBe("Il reste 53 cases.");
     expect(lignes[0]!.classList.contains("autre-main")).toBe(true);
     expect(lignes[1]!.textContent).toBe("Les familles ont compris la roue chaude.");
   });

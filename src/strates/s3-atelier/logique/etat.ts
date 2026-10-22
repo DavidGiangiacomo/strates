@@ -14,6 +14,8 @@ export const TAILLE_LEGENDE = 30;
 export interface LigneLegende {
   cle: string;
   valeurs: Record<string, number>;
+  /** Un objet d'en haut (« s2-faucille »), que la légende nomme de son nom d'en bas. */
+  objet?: string;
 }
 
 export interface PieceAtelier {

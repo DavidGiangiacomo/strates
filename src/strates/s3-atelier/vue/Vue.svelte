@@ -7,7 +7,7 @@
   import type { ProprietesVue } from "../../../noyau/logique/types";
   import Fissure from "../../../noyau/ui/Fissure.svelte";
   import type { ActionAtelier, EtatAtelier, PieceAtelier } from "../logique";
-  import { formaterEntier, remplir } from "../logique/notation";
+  import { ecrireLigne, formaterEntier, remplir } from "../logique/notation";
   import {
     agrandissementVisible,
     analyser,
@@ -28,7 +28,7 @@
   import Piece from "./Piece.svelte";
   import { VARIABLES } from "./theme";
 
-  let { etat, agir, o, mode }: ProprietesVue<EtatAtelier, ActionAtelier> = $props();
+  let { etat, agir, noyau, o, mode }: ProprietesVue<EtatAtelier, ActionAtelier> = $props();
 
   const t = (cle: string, valeurs: Record<string, number> = {}) => remplir(o(cle), valeurs);
   /** Pendant la remontée, l'atelier se montre, et rien ne s'y fait. */
@@ -126,8 +126,31 @@
     );
   }
 
+  // La notice (fiche, § 11) : une page courte, comme la notice d'un plan. L'ouvrir est noté, pour
+  // l'acte « sans aide » (§ 7).
+  const SECTIONS_AIDE = ["plan", "dents", "mouvement", "nomenclature", "nombres"];
+  let aideOuverte = $state(false);
+  let lienAide: HTMLButtonElement | undefined = $state();
+  let pageAide: HTMLElement | undefined = $state();
+  function ouvrirAide(): void {
+    aideOuverte = true;
+    noyau.ouvrirAide();
+  }
+  function refermerAide(): void {
+    aideOuverte = false;
+    lienAide?.focus();
+  }
+  // À l'ouverture, le focus va à la page : la lecture commence par son titre.
+  $effect(() => {
+    if (aideOuverte) pageAide?.focus();
+  });
+
   function touche(e: KeyboardEvent): void {
     if (dansUnChamp(e)) return;
+    if (e.key === "Escape" && aideOuverte) {
+      refermerAide();
+      return;
+    }
     if (e.key === "Escape") main = null;
     // Ctrl+R et ses semblables appartiennent au navigateur.
     const modifiee = e.ctrlKey || e.metaKey || e.altKey;
@@ -156,6 +179,14 @@
         ? t("cases.valeur", { cases: analyse.casesLibres })
         : o("cases.aucune")}
     </p>
+    <button
+      class="lien-aide"
+      bind:this={lienAide}
+      aria-expanded={aideOuverte}
+      aria-controls="aide-atelier"
+      onclick={() => (aideOuverte ? refermerAide() : ouvrirAide())}
+      data-test="lien-aide">{o("aide")}</button
+    >
   </header>
 
   <div class="centre">
@@ -292,7 +323,13 @@
             {@const prix = prixPiece(etat, d)}
             <tr data-test="nomenclature-{d.id}">
               <td>{formaterEntier(i + 1)}</td>
-              <td>{o(`piece.${d.id}`)}</td>
+              <td class="designation">
+                {o(`piece.${d.id}`)}
+                <!-- La note de la pièce, au survol de sa ligne ou quand son prix a le focus. -->
+                <span class="note" id="note-{d.id}" role="tooltip" data-test="note-{d.id}"
+                  >{o(`piece.${d.id}.note`)}</span
+                >
+              </td>
               <td class="profil" style="--s: {d.largeur}">
                 <Piece piece={{ id: d.id, repere: 0, case: null, rot: 0, limees: [] }} />
               </td>
@@ -302,6 +339,7 @@
                 {#if reste > 0}
                   <button
                     class="acheter"
+                    aria-describedby="note-{d.id}"
                     disabled={mode !== "jeu" || etat.stock < prix}
                     onclick={() => acheter(d.id)}>{formaterEntier(prix)}</button
                   >
@@ -335,11 +373,30 @@
       <h3>{o("legende")}</h3>
       <ol data-test="legende">
         {#each legende as ligne, i (etat.legende.length - i)}
-          <li>{t(ligne.cle, ligne.valeurs)}</li>
+          <li>{ecrireLigne(ligne, o(ligne.cle))}</li>
         {/each}
       </ol>
     </section>
   </div>
+
+  {#if aideOuverte}
+    <div
+      class="aide"
+      id="aide-atelier"
+      bind:this={pageAide}
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="aide-titre"
+      data-test="aide"
+    >
+      <h3 id="aide-titre">{o("aide.titre")}</h3>
+      {#each SECTIONS_AIDE as section (section)}
+        <h4>{o(`aide.${section}.titre`)}</h4>
+        <p>{o(`aide.${section}`)}</p>
+      {/each}
+      <button class="refermer" onclick={refermerAide}>{o("aide.fermer")}</button>
+    </div>
+  {/if}
 
   {#if fissure > 0}
     <Fissure depart={ressort} avancee={fissure} />
@@ -554,6 +611,16 @@
   .nomenclature td:last-child {
     text-align: end;
   }
+  /* La note d'une pièce : une ligne de nomenclature de plus, au survol ou au clavier. */
+  .note {
+    display: none;
+    font-size: 12px;
+    color: var(--graphite-doux);
+  }
+  .nomenclature tr:hover .note,
+  .nomenclature tr:focus-within .note {
+    display: block;
+  }
   .profil > :global(svg) {
     width: calc(var(--s) * 14px);
     height: calc(var(--s) * 14px);
@@ -564,6 +631,64 @@
   }
   .legende li + li {
     color: var(--graphite-doux);
+  }
+
+  /* Le lien de la notice : un mot au graphite, au bout de l'en-tête. */
+  .lien-aide {
+    margin-inline-start: auto;
+    padding: 2px 4px;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: var(--graphite-doux);
+    text-transform: uppercase;
+    cursor: pointer;
+    background: none;
+    border: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .lien-aide:hover {
+    color: var(--graphite);
+  }
+  .lien-aide:focus-visible,
+  .refermer:focus-visible {
+    outline: 1px solid var(--graphite);
+    outline-offset: 2px;
+  }
+  /* La notice : une feuille posée sur le plan, au trait. L'atelier continue de tourner dessous. */
+  .aide {
+    position: fixed;
+    top: 40px;
+    right: 16px;
+    z-index: 4;
+    box-sizing: border-box;
+    width: min(26rem, calc(100vw / var(--zoom, 1) - 32px));
+    max-height: calc(100vh / var(--zoom, 1) - 56px);
+    padding: 16px 20px 18px;
+    overflow: auto;
+    background: var(--papier);
+    border: 1px solid var(--graphite);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.18);
+  }
+  .aide:focus {
+    outline: none;
+  }
+  .aide h4 {
+    margin: 12px 0 2px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .aide p {
+    color: var(--graphite-doux);
+  }
+  .refermer {
+    margin-top: 14px;
+    padding: 0;
+    cursor: pointer;
+    background: none;
+    border: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   @media (max-width: 900px) {
