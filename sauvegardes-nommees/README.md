@@ -14,7 +14,9 @@ Des points précis du jeu, au format de la décision D-005, pour le développeme
 
 En développement (`npm run dev`), le panneau des outils (bouton « dev », en bas à droite) les propose sous « Parties ». Il les **recale sur l'heure courante** : sans cela, une sauvegarde écrite il y a des semaines subirait aussitôt 12 h d'absence au chargement.
 
-Le même panneau importe aussi n'importe quel fichier de sauvegarde, recalé de la même façon. Le jeu publié n'a pas encore d'import.
+Le même panneau importe aussi n'importe quel fichier de sauvegarde, recalé de la même façon.
+
+Il propose enfin `atelier-avant-le-seuil`, qui n'est pas un fichier : l'atelier achevé, construit à la volée par `src/dev/atelier.ts`, avec sa dernière pièce sur l'établi. La poser sur la dernière case libre, en bas à gauche, franchit le seuil (#79).
 
 ## Les régénérer
 

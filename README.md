@@ -58,7 +58,7 @@ Avec `npm run dev`, un bouton « dev » en bas à droite ouvre le panneau des ou
 
 - **Temps** : vitesse ×1, ×10, ×100 ou ×1000 ; avance immédiate de 1 min, 10 min ou 1 h.
 - **Horloge** : absence simulée (1 min à 3 jours) et recul d'horloge (2 min à 2 h), pour tester le hors-ligne et les perturbations du journal.
-- **Parties** : les [sauvegardes nommées](sauvegardes-nommees/README.md), le saut direct à une strate, une nouvelle partie, le téléchargement et l'import d'une sauvegarde.
+- **Parties** : les [sauvegardes nommées](sauvegardes-nommees/README.md), l'atelier juste avant son seuil (la dernière pièce sur l'établi), le saut direct à une strate, une nouvelle partie, le téléchargement et l'import d'une sauvegarde.
 - **État** : l'état de la strate courante en JSON, les artefacts et κ, à modifier à la main.
 - **Son** : le volume et le son coupé ; les trois sons du sol ; deux voix, un bourdon et sa quinte, à désaccorder pour entendre leurs battements ; un accord.
 

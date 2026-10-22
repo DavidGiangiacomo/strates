@@ -461,6 +461,20 @@ export function analyser(etat: EtatAtelier): Analyse {
   return { pieces, production, frottements, casesLibres, dentsLibres };
 }
 
+/**
+ * Le seuil (fiche, § 4) : le plan à 12 × 12, toute la nomenclature posée (plus une case libre, plus
+ * rien sur l'établi), rien ne frotte, et toutes les pièces entraînées. La pièce sans plan n'est pas de
+ * la nomenclature : elle ne compte pas. L'accumulation achète tout, mais ne monte rien (I4).
+ */
+export function assemblageAcheve(etat: EtatAtelier, analyse?: Analyse): boolean {
+  // Le plus simple d'abord : la plupart des gestes n'ont pas besoin de l'analyse.
+  if (etat.taille !== TAILLE_MAX || etat.pieces.some((p) => !p.case)) return false;
+  const a = analyse ?? analyser(etat);
+  if (a.casesLibres > 0 || a.frottements.length > 0) return false;
+  for (const info of a.pieces.values()) if (!info.entrainee) return false;
+  return true;
+}
+
 /** Les cases libres du plan. */
 export function casesLibres(etat: EtatAtelier): number {
   let libres = 0;

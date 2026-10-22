@@ -3,6 +3,8 @@
 import type { EtatNoyau } from "../noyau/logique/etat";
 import { ecrireSauvegarde, lireSauvegarde } from "../noyau/logique/sauvegarde";
 import type { EntreeJournal, NumeroStrate } from "../noyau/logique/types";
+import { logique as logiqueAtelier } from "../strates/s3-atelier/logique";
+import { atelierDernierePiece } from "./atelier";
 
 /** Une copie indépendante de l'état, passée par le format de sauvegarde : exactement ce qui s'écrirait. */
 export function copierEtat(etat: EtatNoyau, versionJeu: string): EtatNoyau {
@@ -25,6 +27,16 @@ export function sauterA(etat: EtatNoyau, n: NumeroStrate): EtatNoyau {
     if (Number(cle) >= n) delete etat.strates[Number(cle) as NumeroStrate];
   }
   etat.meta.journal.strates = etat.meta.journal.strates.filter((e) => e.strate < n);
+  return etat;
+}
+
+/**
+ * Saute à l'atelier achevé, moins sa dernière pièce restée sur l'établi (modifie `etat`) : un geste
+ * avant le seuil (#79), au lieu de deux heures et demie de jeu.
+ */
+export function atelierAvantLeSeuil(etat: EtatNoyau): EtatNoyau {
+  sauterA(etat, 3);
+  etat.strates[3] = { version: logiqueAtelier.versionEtat, etat: atelierDernierePiece() };
   return etat;
 }
 

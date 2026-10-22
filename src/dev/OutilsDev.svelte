@@ -19,6 +19,7 @@
   import type { GestionnaireSauvegarde } from "../noyau/plateforme/sauvegarde";
   import { VERSION_JEU } from "../noyau/plateforme/version";
   import {
+    atelierAvantLeSeuil,
     copierEtat,
     entreeCourante,
     lireArtefacts,
@@ -289,6 +290,15 @@
             <small>{s.minutes} min</small>
           </li>
         {/each}
+        {#if profondeurs.includes(3)}
+          <li>
+            <button
+              onclick={() => executer(() => remplacer(atelierAvantLeSeuil(copie())))}
+              data-test="atelier-avant-le-seuil">atelier-avant-le-seuil</button
+            >
+            <small>la dernière pièce sur l'établi</small>
+          </li>
+        {/if}
       </ul>
       <p>
         Sauter à la strate

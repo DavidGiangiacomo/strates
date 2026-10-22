@@ -175,7 +175,7 @@ Ce que la boucle a tranché en la codant ([#67](https://github.com/DavidGiangiac
 - **Un frottement se nomme** par la pièce dont la dent frotte (ou dont le côté lisse frotte le ressort), sa direction, son demi-côté et ce qu'elle frotte : `3:1.0:7`, la pièce 3 qui frotte à droite contre la pièce 7 ; `C` pour le cadre, `R` pour le ressort. Le nom ne dépend pas de la place sur le plan : un frottement qui dure garde son heure quand le plan grandit, ou quand un geste ailleurs ne le défait pas. Mais une pièce qu'on vient de poser ou de déplacer repart pour un tour : ses frottements, et ceux que d'autres pièces lui font, prennent l'heure du geste, même quand elle frotte comme avant. Ils ne sont pas défaits pour autant : l'acte « la gêne défaite avant que l'atelier ne la montre » (§ 7) ne compte que les frottements qui disparaissent.
 - **Échanger** se fait entre deux pièces de même taille, dont l'une peut être sur l'établi : elle prend la place de l'autre, qui y retourne.
 - **La légende** note une pièce qui se met à tourner (« ajustée ») ou qui s'arrête, toute pièce qu'on vient de poser ou de déplacer, une gêne au bout d'un tour, un coup de lime, le plan agrandi et la pièce sans plan. Elle garde ses trente dernières lignes.
-- **Le seuil** reste à coder ([#79](https://github.com/DavidGiangiacomo/strates/issues/79)), comme l'opacité et les actes ([#95](https://github.com/DavidGiangiacomo/strates/issues/95)) et les objets d'en haut hors multiplicateurs ([#81](https://github.com/DavidGiangiacomo/strates/issues/81)). Les leviers `ressort` et `plan` agissent déjà.
+- **Le seuil** est codé ([#79](https://github.com/DavidGiangiacomo/strates/issues/79)) : voir § 4. Restent l'opacité et les actes ([#95](https://github.com/DavidGiangiacomo/strates/issues/95)), et les objets d'en haut hors multiplicateurs ([#81](https://github.com/DavidGiangiacomo/strates/issues/81)). Les leviers `ressort` et `plan` agissent déjà.
 - **En développement seulement** : tant que le test du MVP se joue sur la version publiée, l'atelier n'est enregistré à la profondeur 3 que par `npm run dev`. Les outils de développement y sautent.
 
 ## 4. Boucle moyenne et seuil de fouille
@@ -208,10 +208,13 @@ Le joueur naturel fait 126 achats. Après la première heure, il en fait encore 
 - **Condition** : le plan à 12 × 12, **toutes les pièces de la nomenclature posées** (plus une case libre, plus rien sur l'établi), **rien ne frotte**, et **toutes les pièces entraînées**.
 - **Ce qu'il dit de la civilisation** : chaque pièce avait sa place, et la liste disait d'avance lesquelles. Quand tout a été ajusté, il n'y avait plus rien à placer.
 - **Pas d'accumulation seule (I4)** : l'accumulation achète toute la nomenclature, mais ne la monte pas. Le joueur réflexe, qui pose chaque pièce sur la première case libre sans la tourner, n'atteint jamais le seuil. Après cinq heures, il a acheté 47 pièces, presque aucune ne tourne, et il a produit 2,7 × 10⁶ pièces.
-- **Il existe des solutions, et beaucoup** : en partant d'un plan plein mélangé au hasard, un solveur simple en trouve une à chaque essai.
+- **Il existe des solutions, et beaucoup** : en partant d'un plan plein mélangé au hasard, un solveur simple en trouve une à chaque essai. Les outils de développement en construisent une d'un coup, avec la nomenclature réelle (`src/dev/atelier.ts`). Quatre colonnes descendent du haut du plan, et chacune tient, une ligne sur deux, ses deux voisines. Les grandes pièces tiennent par un seul côté, et toute dent sans vis-à-vis est limée. Les comptes y tombent juste : les tests le vérifient, et tout changement de la nomenclature à l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)) devra le garder.
 - **Issues** : une seule.
 - **L'objectif n'est jamais affiché comme tel.** Mais la légende compte les cases libres (« Il reste 53 cases. »), et l'atelier montre ce qui frotte et ce qui ne tourne pas. Au seuil, la légende écrit « Il ne reste aucune case. », et tout le plan tourne.
 - **Une fois atteint**, le seuil le reste.
+- **Dans le code** ([#79](https://github.com/DavidGiangiacomo/strates/issues/79)) : `assemblageAcheve` (`logique/regles.ts`) vérifie la condition après chaque geste, et le seuil tombe au geste qui achève l'assemblage. La légende écrit alors « Il ne reste aucune case. ». La pièce sans plan n'est pas de la nomenclature : elle reste sur l'établi sans compter.
+- **Ce que vérifient les tests** : l'assemblage achevé franchit le seuil au dernier geste, puis le garde quand on le défait. Une grille pleine ne le franchit pas si une dent frotte, si une pièce n'est pas entraînée, même sans frottement, ou si le plan n'a pas sa taille. Une pièce sur l'établi suffit aussi à l'empêcher. Toute la nomenclature achetée et posée telle quelle remplit le plan sans franchir le seuil (I4).
+- **Sans strate dessous**, tant que le réseau n'existe pas, « creuser » au seuil dit que la descente n'existe pas encore.
 
 ### La dernière ajustée
 
@@ -225,7 +228,7 @@ Quand la dernière pièce est achetée, il reste à tout poser, à tout relier, 
 
 - Le plan tourne, et les pièces viennent encore. Il n'y a plus rien à acheter ni à poser.
 - Un rouage achevé, où toutes les dents engrènent, produit neuf fois plus que pendant la montée : rester rapporte un point en un quart d'heure, puis un autre en une heure et demie (§ 9).
-- **Filet** : comme partout, si le joueur n'a pas creusé 5 minutes après le seuil, une fissure part du ressort, traverse le plan et monte vers le bouton du bandeau (`src/noyau/logique/filet.ts`).
+- **Filet** : comme partout, si le joueur n'a pas creusé 5 minutes après le seuil, une fissure part du ressort, traverse le plan et monte vers le bouton du bandeau (`src/noyau/logique/filet.ts`, `Fissure.svelte`).
 
 ### En simulation
 
