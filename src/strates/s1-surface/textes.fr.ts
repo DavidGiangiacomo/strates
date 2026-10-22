@@ -42,6 +42,11 @@ export const textes: Record<string, string> = {
   "objectif.9": "Atteindre 100 k cr/s",
   "objectif.10": "Atteindre 1 M cr/s",
 
+  // ——— Le rappel de reprise (bible, § 10) : l'objectif en cours, puis la production. Ses mots comptent
+  // dans le budget des rappels (bible, § 9), pas dans celui de la surface.
+  "rappel.objectif": "Objectif : {objectif}.",
+  "rappel.production": "Production : {production}.",
+
   // ——— Les moyens de production, et leur infobulle
   "generateur.poste": "Poste",
   "generateur.poste.description": "Un poste de travail, occupé à plein temps.",

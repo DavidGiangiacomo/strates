@@ -76,6 +76,14 @@ export interface LogiqueStrate<E, A extends ActionBase> {
    * Une strate qui ne l'implémente pas n'en nomme aucun.
    */
   nommes?(etat: E): readonly string[];
+
+  /**
+   * Le rappel de reprise (bible, § 10 ; #58) : deux lignes au plus, dans la voix et la notation de la
+   * strate. La dernière ligne qu'elle a écrite, puis où en est son seuil, sans rien dire que le joueur
+   * n'ait déjà lu : ni indice, ni « vous ». Le noyau les fait précéder du lieu. Une strate qui ne
+   * l'implémente pas ne rappelle que le lieu.
+   */
+  rappel?(etat: E): readonly string[];
 }
 
 /** Un relevé : des valeurs simples, sérialisables en JSON. */

@@ -118,6 +118,10 @@ export const textes: Record<string, string> = {
   "absence.premiers-froids": "Les premiers froids sont là. L'hiver attend.",
   "absence.rupture": "Le grain allait manquer : le calendrier s'est arrêté.",
 
+  // ——— Le rappel de reprise (bible, § 10) : après la dernière ligne du registre, la série des grands
+  // hivers, dès que le registre en a parlé. Ses mots comptent dans le budget des rappels (bible, § 9).
+  "rappel.serie": "Grands hivers de suite : {serie}.",
+
   // La valeur convertible, nommée à l'écran de fouille (docs/strates/descente-1-2.md, P3).
   "fouille.valeur": "Grain récolté",
 

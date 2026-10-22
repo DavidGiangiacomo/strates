@@ -3,7 +3,9 @@
 import { describe, expect, it } from "vitest";
 import type { ContexteTick, EvenementStrate } from "../../../noyau/logique/types";
 import { logique, type ActionAtelier } from ".";
+import { textes } from "../textes.fr";
 import { etatInitial, type EtatAtelier, type PieceAtelier } from "./etat";
+import { remplir } from "./notation";
 import { analyser, TOUR, type IdPiece } from "./regles";
 
 function contexte(
@@ -458,5 +460,26 @@ describe("le déterminisme", () => {
       return etat;
     };
     expect(partie()).toEqual(partie());
+  });
+});
+
+describe("le rappel de reprise", () => {
+  const rappel = (etat: EtatAtelier) => logique.rappel!(etat);
+  const ecrit = (cle: string, valeurs: Record<string, number> = {}) =>
+    remplir(textes[cle]!, valeurs);
+
+  it("donne la dernière ligne de la légende, qui dit déjà les cases à l'arrivée", () => {
+    const etat = logique.etatInitial({ graine: 1, journal: { strates: [] } });
+    expect(rappel(etat)).toEqual([ecrit("legende.arrivee", { taille: 6, cases: 30 })]);
+    expect(rappel(etat)[0]).toContain(ecrit("cases.valeur", { cases: 30 }));
+  });
+
+  it("puis les cases qui restent, comme l'en-tête les écrit", () => {
+    const etat = etatInitial();
+    const r = ajouter(etat, "roue", [1, 4]);
+    expect(rappel(etat)).toEqual([
+      ecrit("legende.ajustee", { piece: r }),
+      ecrit("cases.valeur", { cases: analyser(etat).casesLibres }),
+    ]);
   });
 });

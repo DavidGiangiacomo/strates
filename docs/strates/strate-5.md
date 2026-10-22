@@ -384,7 +384,7 @@ L'écran de fouille appartient au noyau. Il écrit la valeur convertible, les po
 
 - **Les Voix viennent** pendant l'absence comme ailleurs : 80 % du temps, plafonné à 12 h, au rythme du chœur tel qu'il a été laissé. Rien ne détonne tout seul : un chœur accordé le reste.
 - **La tenue ne compte pas.** Les 90 secondes ne s'écoulent qu'en présence du joueur. Le compte ne repart pas de zéro non plus : il attend.
-- **Au retour**, le résumé ne donne aucun chiffre : « Pendant votre absence : le chœur a tenu. Des voix sont venues. »
+- **Au retour**, le résumé du chœur ne donne aucun chiffre ; le noyau écrit la durée avant lui : « Absence : 8 h. », puis « Le chœur a tenu. Des voix sont venues. »
 
 **Pourquoi.** Avec la politique standard, il suffirait de régler l'accord plein et de fermer l'onglet : le seuil tomberait en l'absence du joueur. Or ces 90 secondes sont le seul moment où le chœur chante sans qu'on le dérange. Elles s'écoutent.
 
@@ -404,6 +404,7 @@ L'écran de fouille appartient au noyau. Il écrit la valeur convertible, les po
   - une note de quelques mots pour chaque jauge, montrée une fois le rôle levé ;
   - la légende des arcs et du battement ;
   - le résumé d'absence (§ 10) ;
+  - le rappel de reprise : une indication ([`bible.md`](../bible.md), § 10) ;
   - `fouille.valeur`, le nom de la valeur à l'écran de fouille : « Voix venues » ;
   - l'aide : une page courte, écrite comme la première page d'une partition. Elle dit qu'une barre se tire, qu'un chœur juste attire, et qu'un rang dérange. Elle ne nomme aucun rapport, et ne dit rien de la tenue ni du bandeau.
 - **Traces laissées au fond** (strate 8) : pas de phrase. Le dernier accord, dessiné : huit barres et leur voûte. Une ligne au plus, pour la tenue.

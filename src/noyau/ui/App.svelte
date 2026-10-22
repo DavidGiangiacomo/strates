@@ -40,14 +40,16 @@
   import { CoucheOpacite } from "./opacite.svelte";
   import { DUREES, DUREES_REDUITES, Passage } from "./passage.svelte";
   import Pioche from "./Pioche.svelte";
-  import { resumerReprise } from "./reprise";
+  import Retour from "./Retour.svelte";
+  import { composerReprise, type MessageReprise } from "./reprise";
   import { SONS_NOYAU } from "./sons";
 
   type VueStrate = Component<ProprietesVue<object, ActionBase>>;
 
   const arrets: (() => void)[] = [];
   let avis = $state<string | null>(null);
-  let resume = $state<string[] | null>(null);
+  /** Le retour du joueur (#58) : le rappel de reprise, puis le résumé de l'absence. */
+  let retour = $state<MessageReprise | null>(null);
   let bandeau: ReturnType<typeof Bandeau> | undefined = $state();
   /** L'inventaire des objets, ouvert depuis le compteur du bandeau (#45). */
   let inventaireOuvert = $state(false);
@@ -162,7 +164,7 @@
           releve: session.journal.releve(),
         });
       }
-      resume = resumerReprise(reprise) ?? resume;
+      retour = composerReprise(reprise, noyau.strate.logique.numero, noyau.rappel()) ?? retour;
     };
     // Rattrape le temps passé depuis la dernière sauvegarde, avant de rendre l'état réactif.
     reprendre(noyau.rattraper(maintenant()));
@@ -195,7 +197,11 @@
       maintenant,
       attendre,
       sauvegarder,
-      changerStrate: () => monter(true),
+      changerStrate: () => {
+        // Le rappel parlait de la couche quittée.
+        retour = null;
+        monter(true);
+      },
       resister: () => bandeau?.resister(),
       sonner: (son, duree) => sol.jouer(son, { duree }),
       signaler: (message) => (avis = message),
@@ -373,19 +379,15 @@
   {#if phase === "descente" || phase === "arrivee"}
     <Descente {phase} transportes={passage.transportes} poche={() => bandeau?.poche() ?? null} />
   {/if}
-  {#if avis || resume}
-    <!-- Au-dessus de la séquence : une descente refusée doit se lire sur l'écran de fouille. -->
+  {#if avis || (retour && phase === "jeu")}
+    <!-- Au-dessus de la séquence : une descente refusée doit se lire sur l'écran de fouille. Le
+         retour du joueur, lui, ne parle que de la strate en jeu. -->
     <div class="messages">
       {#if avis}
         <p role="status">{avis}</p>
       {/if}
-      {#if resume}
-        <section role="status" aria-label="Pendant votre absence">
-          {#each resume as ligne, i (i)}
-            <p>{ligne}</p>
-          {/each}
-          <button onclick={() => (resume = null)}>D'accord</button>
-        </section>
+      {#if retour && phase === "jeu"}
+        <Retour message={retour} onreprendre={() => (retour = null)} />
       {/if}
     </div>
   {/if}
@@ -463,23 +465,6 @@
   }
   .messages p {
     margin: 0 0 4px;
-  }
-  .messages button {
-    margin-top: 4px;
-    padding: 1px 10px;
-    font: inherit;
-    color: inherit;
-    cursor: pointer;
-    background: transparent;
-    border: 1px solid #5c5c5c;
-    border-radius: 2px;
-  }
-  .messages button:hover {
-    border-color: #8c8c8c;
-  }
-  .messages button:focus-visible {
-    outline: 1px solid #f2f2f2;
-    outline-offset: 1px;
   }
   /*
    * Opaque : pendant la séquence, la strate cache le sol, puis le recouvre en montant. Sa vue en

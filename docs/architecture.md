@@ -115,6 +115,13 @@ interface LogiqueStrate<E, A extends ActionBase> {
   nommes?(etat: E): readonly string[];
 
   /**
+   * Le rappel de reprise (bible, § 10 ; #58) : deux lignes au plus, dans la voix et la notation de la
+   * strate. La dernière ligne qu'elle a écrite, puis où en est son seuil, sans rien dire que le joueur
+   * n'ait déjà lu. Le noyau les fait précéder du lieu. Sans elle, le rappel ne donne que le lieu.
+   */
+  rappel?(etat: E): readonly string[];
+
+  /**
    * Un relevé de l'état, pour le journal de session des playtests (#26) : quelques grandeurs à plat,
    * celles que le protocole observe. Le noyau ne les lit pas.
    */
@@ -338,7 +345,7 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
   - Tant que l'onglet est caché, la boucle passe les images que le navigateur lui donne encore (Firefox en donne quelques-unes, de plus en plus rares). L'absence est rattrapée en une fois, à la première image du retour : un seul plafond, un seul résumé.
   - La sauvegarde écrit la référence sans la déplacer : une sauvegarde faite pendant que l'onglet est caché garde l'absence à rattraper.
 - **Hors-ligne standard** : le noyau simule 80 % de l'absence, plafonnée à 12 h, par ticks de `pasMax` au plus. En politique propre, il appelle `absence()`. Le temps rattrapé s'ajoute à `tempsHorsLigne`, pas à `tempsDeJeu`. Le rattrapage du chargement se fait avant l'enveloppe réactive, sur l'objet brut ; en session, il passe par l'enveloppe, comme les ticks (12 h de la strate factice : moins de 0,1 s dans Chromium).
-- **Bandeau** (`noyau/ui/Bandeau.svelte`, §12) : 24 px en haut de l'écran, identique quelle que soit la strate montée, avec la Profondeur, les artefacts, la Compréhension (« Compréhension 22 % ») et le bouton « creuser ». À partir de κ = 50, un bouton « graphe » ouvre le graphe de dépendances de la strate. Au-delà, les formules réelles s'y écrivent une à une, et celle de la conversion sur l'écran de fouille ([`comprehension.md`](comprehension.md), § 8). Le bouton « creuser » a le même aspect avant et après le seuil ; seule sa réponse change. Avant le seuil, `demanderFouille()` refuse : le bandeau tressaille et le sol sonne sourd, sans texte ni pénalité (un bref assombrissement si le joueur préfère moins de mouvement). Le bouton d'une strate qui appellerait `CommandesNoyau.demanderFouille()` a la même réponse. Au bout, après « creuser », le bouton « menu » ouvre le menu système.
+- **Bandeau** (`noyau/ui/Bandeau.svelte`, §12) : 24 px en haut de l'écran, identique quelle que soit la strate montée, avec la Profondeur, les artefacts, la Compréhension (« Compréhension 22 % ») et le bouton « creuser ». À partir de κ = 50, un bouton « graphe » ouvre le graphe de dépendances de la strate. Au-delà, les formules réelles s'y écrivent une à une, et celle de la conversion sur l'écran de fouille ([`comprehension.md`](comprehension.md), § 8). Le bouton « creuser » a le même aspect avant et après le seuil ; seule sa réponse change. Avant le seuil, `demanderFouille()` refuse : le bandeau tressaille et le sol sonne sourd, sans texte ni pénalité (un bref assombrissement si le joueur préfère moins de mouvement). Le bouton d'une strate qui appellerait `CommandesNoyau.demanderFouille()` a la même réponse. Au bout, après « creuser », le bouton « menu » ouvre le menu système. Sur un téléphone (600 px de large au plus), le bandeau se resserre ; s'il déborde encore, quand « graphe » s'y ajoute ou que le texte est agrandi, il défile lui-même au lieu d'élargir la page, et « menu » reste atteignable.
 - **Menu système** (`noyau/ui/Menu.svelte`, [#48](https://github.com/DavidGiangiacomo/strates/issues/48)) : un volet sous le bandeau, à droite, dans sa palette, ouvert pendant le jeu. Un seul volet est ouvert à la fois : l'inventaire, le graphe ou le menu.
   - **Le son** : le volume et le son coupé du moteur, gardés dans le navigateur.
   - **La taille du texte** : 100, 115 ou 130 %, un zoom de tout le jeu (`noyau/plateforme/affichage.ts`), gardé dans le navigateur (`strates.texte`) et appliqué avant le premier rendu (`main.ts`). Chaque strate garde sa disposition, en plus grand.
@@ -352,7 +359,10 @@ Implémentation : la classe `Noyau` (`src/noyau/logique/noyau.ts`) pour la logiq
   - Les objets y sont rangés par couche d'origine, de la surface vers le bas (`inventaire`, dans `noyau/logique/artefacts.ts`). Chacun montre son nom et son usure : trois crans qui se vident, puissant, utile, décoratif, puis un caillou au nom gris, et toujours le mot (`noyau/ui/Usure.svelte`).
   - Le nom est celui d'en haut jusqu'à ce que la strate d'en dessous l'ait nommé, puis celui d'en bas. Le noyau le sait par `nommes()`, qu'il interroge pour la strate courante et dont il note la réponse au journal à la descente (`Noyau.nommes`) : l'objet garde ce nom plus bas.
   - L'inventaire ne dit pas ce que fait un objet : la découverte reste dans la strate.
-- **Résumé au retour** : `noyau/ui/reprise.ts` rédige le résumé d'une absence d'au moins une minute (durée, taux, plafond atteint, ou les lignes de la strate en politique propre). L'interface l'affiche sous le bandeau, dans sa palette, jusqu'à ce que le joueur le ferme.
+- **Le retour du joueur** ([#58](https://github.com/DavidGiangiacomo/strates/issues/58) ; [`bible.md`](bible.md), § 10) : `noyau/ui/reprise.ts` le rédige, `noyau/ui/Retour.svelte` l'affiche sous le bandeau, dans sa palette, jusqu'à « reprendre ». La strate vit dessous.
+  - **Le rappel de reprise** vient après une absence d'au moins 30 minutes (`ABSENCE_A_RAPPELER`), au chargement comme au retour sur un onglet resté ouvert : une pause ne rappelle rien. Il tient en trois lignes : le lieu, écrit par le noyau (« Profondeur 2 · Les caves »), puis les deux lignes de la strate, lues par `Noyau.rappel()` dans `rappel()`. Une strate qui n'en a pas ne rappelle que le lieu.
+  - **Le résumé de l'absence** suit le rappel, à partir d'une minute d'absence : « Absence : 8 h 12 min, comptée à 80 %. », et « sur 12 h » au plafond. En politique propre, les lignes de la strate suivent la durée. Le fond n'a pas de résumé.
+  - Le bloc ne parle que de la strate en jeu : il se cache pendant la fouille et s'efface quand la strate change. Une nouvelle absence le remplace.
 - **Actions** : mises en file, appliquées au début du tick suivant dans l'ordre d'arrivée.
 - **Journal de session** ([#26](https://github.com/DavidGiangiacomo/strates/issues/26), `src/playtest/`) : pour les playtests, et seulement si l'observateur l'a demandé (`?journal=T3` dans l'adresse).
   - Il observe le noyau (`Noyau.observateur`), qui le prévient de chaque action appliquée et de chaque événement des strates.

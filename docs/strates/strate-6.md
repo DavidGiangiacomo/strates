@@ -377,7 +377,7 @@ Ce sont des **gages** (bible, § 6) : on les nomme par ce qu'ils valent ou ce qu
 ## 10. Hors-ligne
 
 - **Politique propre** ([`architecture.md`](../architecture.md), § 9) : la dette calcule elle-même l'absence. Les échéances tombent à leur crue, à 100 % et sans plafond. Le rapport compte à 80 %, douze heures au plus : c'est la règle commune. Reports et défaut s'appliquent comme en jeu.
-- **C'est annoncé à l'entrée.** La première page du livre l'écrit : « Les échéances tombent à leur crue, qu'on soit là ou non. » Au retour, le résumé compte ce qui est tombé : « Pendant l'absence : 14 échéances honorées, 2 reportées. »
+- **C'est annoncé à l'entrée.** La première page du livre l'écrit : « Les échéances tombent à leur crue, qu'on soit là ou non. » Au retour, le résumé compte ce qui est tombé, après la durée qu'écrit le noyau : « Absence : 2 j. », puis « 14 échéances honorées, 2 reportées. »
 - **Ce que fait une absence**, en simulation :
   - le joueur naturel, ou l'hésitant, s'absente une heure, douze heures ou deux jours, à n'importe quel moment des quatre premières tablettes, ou dans la dernière avant d'avoir fixé la grande crue. Il revient sans défaut : le rapport à 80 % lui coûte de 0 à 4 reports, puis il solde ;
   - une longue absence lui fait même gagner du temps de jeu, jusqu'à 27 minutes : douze heures de rapport ;
@@ -399,7 +399,8 @@ Ce sont des **gages** (bible, § 6) : on les nomme par ce qu'ils valent ou ce qu
   - la dernière tablette : « Tout ce qui reste dû tombe à la grande crue. » Puis, à la dernière promesse : « La grande crue : à la 348ᵉ crue. » ;
   - les deux fins, mot pour mot ceux de la bible (§ 7) : « Honoré. Plus rien n'est dû. » et « Échu. Le reste demeure dû. » Même voix, même longueur, même place ;
   - l'éveil d'un objet : « Les témoins ont reconnu le gage qui chante. » ;
-  - le retour d'une absence : « Pendant l'absence : 14 échéances honorées, 2 reportées. »
+  - le retour d'une absence : « 14 échéances honorées, 2 reportées. » ;
+  - le rappel de reprise ([`bible.md`](../bible.md), § 10) : la dernière ligne du livre, puis où en est son seuil.
 - **Les dates** s'écrivent en chiffres, « à la 42ᵉ crue » : elles montent à plusieurs centaines. La bible les écrit désormais ainsi (§ 4).
 - **Le reste**, « le compte des crues » : la bande des couches porte ce nom. Le joueur reverra ces couches dans le lit, sans que rien ne fasse le lien.
 - **Les noms des promesses** (§ 3) : quinze noms, de « une mesure d'orge » à « toutes les crues ».

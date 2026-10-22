@@ -293,6 +293,23 @@ function formules(): Formule[] {
   ];
 }
 
+/**
+ * Le rappel de reprise (bible, § 10) : la dernière ligne de la légende, puis les cases qui restent,
+ * comme l'en-tête les écrit, sauf si cette ligne vient de les dire. Les textes de l'atelier sont
+ * provisoires (#68), et son seuil arrive avec #79.
+ */
+function rappel(etat: EtatAtelier): string[] {
+  const ecrire = (cle: string, valeurs: Record<string, number> = {}) =>
+    remplir(textes[cle] ?? cle, valeurs);
+  const derniere = etat.legende.at(-1);
+  const lignes = derniere ? [ecrire(derniere.cle, derniere.valeurs)] : [];
+  const { casesLibres } = analyser(etat);
+  const cases =
+    casesLibres > 0 ? ecrire("cases.valeur", { cases: casesLibres }) : ecrire("cases.aucune");
+  if (!lignes[0]?.includes(cases)) lignes.push(cases);
+  return lignes;
+}
+
 export const logique: LogiqueStrate<EtatAtelier, ActionAtelier> = {
   numero: 3,
   versionEtat: 1,
@@ -367,6 +384,7 @@ export const logique: LogiqueStrate<EtatAtelier, ActionAtelier> = {
 
   graphe,
   formules,
+  rappel,
 
   /** Pour le journal de session : le plan, ce qui tourne et ce qui frotte, le stock et la production. */
   releve(etat) {

@@ -339,15 +339,15 @@ Environ 5 000 mots pour tout le jeu (§2). Chaque fiche reprend son budget dans 
 Le noyau parle entre les couches : le bandeau, l'écran de fouille, la descente, l'inventaire des objets ([#45](https://github.com/DavidGiangiacomo/strates/issues/45)), la coupe ([#47](https://github.com/DavidGiangiacomo/strates/issues/47)), le menu ([#48](https://github.com/DavidGiangiacomo/strates/issues/48)), les rappels de reprise ([#58](https://github.com/DavidGiangiacomo/strates/issues/58)) et les fins ([#128](https://github.com/DavidGiangiacomo/strates/issues/128), [#131](https://github.com/DavidGiangiacomo/strates/issues/131)).
 
 - **Sa voix** : un inventaire de fouille. Des libellés courts, des nombres, des constats. Ses verbes sont des infinitifs en minuscules : « creuser », « descendre », « reboucher », « remonter », « rester ».
-- **Il ne dit jamais « vous »**, ne qualifie rien (ni « bon », ni « rare », ni « précieux ») et ne raconte rien. Le titre du résumé d'absence, « Pendant votre absence », est donc à reprendre.
-- **Ses mots** : Profondeur, Artefacts, Compréhension (le bandeau) ; points de fouille, à emporter, laissé en haut, abandonné (la fouille) ; la coupe, soldée, en défaut, stratigraphie perturbée (D-005) ; menu, exporter, copier, importer, recommencer, garder la partie (le menu, [#48](https://github.com/DavidGiangiacomo/strates/issues/48)).
+- **Il ne dit jamais « vous »**, ne qualifie rien (ni « bon », ni « rare », ni « précieux ») et ne raconte rien. Le résumé d'absence ne dit plus « Pendant votre absence » : « Absence : 8 h 12 min, comptée à 80 %. »
+- **Ses mots** : Profondeur, Artefacts, Compréhension (le bandeau) ; points de fouille, à emporter, laissé en haut, abandonné (la fouille) ; la coupe, soldée, en défaut, stratigraphie perturbée (D-005) ; menu, exporter, copier, importer, recommencer, garder la partie (le menu, [#48](https://github.com/DavidGiangiacomo/strates/issues/48)) ; Absence, comptée, reprendre (le retour, [#58](https://github.com/DavidGiangiacomo/strates/issues/58)).
 
-**Les rappels de reprise** (R4, §13) : trois lignes au plus, à chaque reprise de session, avec le résumé de l'absence.
+**Les rappels de reprise** (R4, §13) : trois lignes au plus, à chaque reprise de session, avant le résumé de l'absence. Une reprise, c'est une absence d'au moins une demi-heure, page rouverte ou onglet resté ouvert ; une pause n'a que son résumé.
 1. Le lieu, écrit par le noyau : « Profondeur 2 · Les caves ».
 2. La dernière ligne que la couche a écrite, dans sa voix. Le chœur donne une indication ; le lit, rien.
 3. Où en est le seuil, dans la voix de la couche, fourni par la strate : « Grands hivers de suite : 2. »
 
-Jamais de résumé de la civilisation, d'indice, ni de « vous ». Les lignes « En une ligne » du § 4 ne sont pas des rappels.
+Jamais de résumé de la civilisation, d'indice, ni de « vous ». Les lignes « En une ligne » du § 4 ne sont pas des rappels. La troisième ligne attend donc que la couche ait parlé de son seuil : dans les caves, « Grands hivers de suite » paraît au premier grand hiver, quand le registre l'annonce. La surface donne sa production, qui est son seuil, sans le nommer.
 
 **La coupe et l'épilogue** (§11) : une ligne par couche, le nom de la couche, le temps passé, le seuil franchi, les objets abandonnés sous leurs noms d'en haut, et « stratigraphie perturbée » si l'horloge a reculé. Sans commentaire.
 
@@ -357,7 +357,7 @@ Jamais de résumé de la civilisation, d'indice, ni de « vous ». Les lignes «
 
 - **Les textes des strates 1 et 2** ([#60](https://github.com/DavidGiangiacomo/strates/issues/60)) : faits. Les vieux remplacent les anciens, plus aucun texte ne dit « vous », les deux restes sont plantés (le serveur « au sous-sol, au frais », la cave profonde où « on trouve les roues sans moulin »), et les traces suivent le § 5. Les tests interdisent désormais « vous » et les mots du § 2, comme « creuser ».
 - **Le catalogue** ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : fait ([`artefacts.md`](artefacts.md), § 8). Les noms d'en bas suivent le § 6, dont « la pierre qui oblige » ; au fond, des encoches.
-- **Le rappel de reprise** ([#58](https://github.com/DavidGiangiacomo/strates/issues/58)) : le § 10, et le titre du résumé d'absence, sans « votre ».
+- **Le rappel de reprise** ([#58](https://github.com/DavidGiangiacomo/strates/issues/58)) : fait, pour la surface, les caves et l'atelier (§ 10). Le résumé d'absence ne dit plus « votre », et les rappels ont écrit 9 de leurs 300 mots : le reste de chaque rappel est une ligne de la couche.
 - **Les fiches** des strates 4, 7 et 8, et la révision de celle du chœur ([#62](https://github.com/DavidGiangiacomo/strates/issues/62), [#63](https://github.com/DavidGiangiacomo/strates/issues/63), [#65](https://github.com/DavidGiangiacomo/strates/issues/65), [#75](https://github.com/DavidGiangiacomo/strates/issues/75)) : leur § 2 part du § 4, leur § 11 du § 5 et du § 9. Celles de l'atelier et de la dette sont faites ([`strate-3.md`](strates/strate-3.md), [`strate-6.md`](strates/strate-6.md)).
 - **Les textes du lit** ([#92](https://github.com/DavidGiangiacomo/strates/issues/92)) : le § 8.
 - **Les traces du fond** ([#109](https://github.com/DavidGiangiacomo/strates/issues/109)) : les § 5 et 7.

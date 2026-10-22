@@ -431,7 +431,8 @@ Ces lignes de l'arrivée et du seuil sont codées avec l'orchestration de la des
   - ou à la veille d'une rupture, si elle venait avant.
 - **En hiver**, l'absence ne compte pas : le calendrier s'arrête.
 - **Pas de plafond** : une saison chaude dure au plus 350 jours, soit moins de 6 minutes. Une nuit d'absence ne fait donc jamais passer plus d'une saison.
-- **Au retour**, le résumé de la strate dit où en est l'année. Par exemple : « Pendant votre absence (8 h) : la récolte a continué jusqu'aux premiers froids. L'hiver attend. »
+- **Au retour**, le résumé de la strate dit où en est l'année, après la durée qu'écrit le noyau. Par exemple : « Absence : 12 h. », puis « La récolte a continué 278 jours : 4 500 boisseaux. Les premiers froids sont là. L'hiver attend. »
+- **Après une demi-heure**, le rappel de reprise précède ce résumé ([`bible.md`](../bible.md), § 10) : « Profondeur 2 · Les caves », la dernière ligne du registre, puis « Grands hivers de suite : 2. ». Cette dernière ligne attend le premier jour du premier grand hiver, quand le registre l'annonce : avant, ce serait un indice. Le seuil franchi, le rappel redit la ligne du seuil. La ligne de l'atelier, d'une autre main, n'est pas celle du registre : le rappel prend la précédente.
 
 **Pourquoi.** Un hiver est une épreuve, et il se joue en présence du joueur. Si l'absence pouvait faire passer un hiver, elle pourrait faire perdre la série des grands hivers sans que le joueur puisse réagir. Pire, elle pourrait la faire gagner sans qu'il la joue.
 
@@ -455,6 +456,7 @@ Ces lignes de l'arrivée et du seuil sont codées avec l'orchestration de la des
     - le premier grand hiver, la série, le seuil ;
     - l'éveil des objets d'en haut (« Les familles ont compris la roue chaude. »), et la ligne de l'atelier qu'écrit la feuille qui annonce ;
   - le résumé d'absence (§ 10) ;
+  - le rappel de reprise ([`bible.md`](../bible.md), § 10) : la série des grands hivers ;
   - les rations de l'hiver : l'écriture, ses quatre mots, ce qu'ils donnent, et la ligne du registre qui les annonce ;
   - l'aide de la strate : une page courte, écrite comme une page du registre, qui décrit le calendrier, la réserve et les stockages, et ne dit rien du bandeau.
 - **Traces laissées au fond** (strate 8) : trois lignes du registre au plus. Par exemple la dernière ligne écrite, le nombre d'hivers passés sans rupture, et la profondeur de la cave la plus basse.
@@ -468,6 +470,7 @@ Tous les textes sont dans `textes.fr.ts` : 742 mots, dont 209 pour l'aide, 124 p
 - **L'aide** : un lien « Aide », en haut à droite de la vallée, ouvre une page du registre, « Comment tient la vallée », qu'on referme par « Refermer » ou Échap. Elle décrit le calendrier, la réserve, les stockages, les familles et les écritures. Elle ne nomme pas la marque d'hiver, qui ne prend son nom qu'au premier bilan (§ 7), et ne dit pas quand acheter : c'est la leçon du premier hiver (§ 5). Chaque ouverture est notée, comme à la surface.
 - **Les rations** : l'écriture « Rations de l'hiver », ses quatre mots et ce que chacun donne (« Une demi-ration ; personne ne naît. »), avec sa note en marge. Le registre les annonce au premier hiver long (« An 5 : on compte désormais les rations de l'hiver. »), et note un hiver sans naissance (« Aucune naissance. »). L'aide leur ajoute une page à partir de l'an 5. Celle-ci nomme la marque d'hiver, dévoilée depuis longtemps.
 - **Le reste** ([`bible.md`](../bible.md), § 3) : la note en marge de la cave profonde nomme les roues sans moulin, « On y trouve les roues sans moulin. » Ce sont des engrenages de l'atelier ; aucun texte ne le dit.
+- **Le rappel de reprise** (`rappel.serie`, § 10) : 5 mots, qui comptent dans le budget des rappels de la bible (§ 9). Le reste du rappel est une ligne du registre.
 - **Les traces pour le fond** (`trace.hivers`, `trace.profondeur.*`) attendent la strate 8 ([#109](https://github.com/DavidGiangiacomo/strates/issues/109)).
 - **Les noms d'en bas** des objets de la surface restent dans le catalogue du noyau (`src/noyau/logique/catalogue.ts` ; [`artefacts.md`](../artefacts.md), § 8), comme le veut le modèle des artefacts : le registre les lit de là.
 
