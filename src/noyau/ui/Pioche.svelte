@@ -3,21 +3,35 @@
   // traverse la strate jusqu'au bas de l'écran, en 0,4 s. Même tracé que le filet (fissure.ts), qu'elle
   // prolonge quand il avait paru : il s'arrêtait au bouton. Un calque qui ne capte aucun clic.
   // Après « reboucher », elle reste dessinée, sans animation : le sol a été ouvert une fois.
+  import { milieuCreuser, zoomEcran } from "./ecran";
   import { cheminFissure, ramificationsFissure, traitPioche } from "./fissure";
 
   let { cicatrice = false }: { cicatrice?: boolean } = $props();
 
-  let largeur = $state(0);
-  let hauteur = $state(0);
+  // La fenêtre se mesure en pixels de l'écran ; le calque, en pixels du jeu (#48).
+  let largeurFenetre = $state(0);
+  let hauteurFenetre = $state(0);
+  let zoom = $state(zoomEcran());
+  let bouton = $state(milieuCreuser());
+  const largeur = $derived(largeurFenetre / zoom);
+  const hauteur = $derived(hauteurFenetre / zoom);
+  function mesurer(): void {
+    zoom = zoomEcran();
+    bouton = milieuCreuser();
+  }
 
-  const trait = $derived(traitPioche(largeur, hauteur));
+  const trait = $derived(traitPioche(largeur, hauteur, bouton ?? undefined));
   const chemin = $derived(largeur > 0 ? cheminFissure(trait.depart, trait.arrivee) : "");
   const ramifications = $derived(
     largeur > 0 ? ramificationsFissure(trait.depart, trait.arrivee) : [],
   );
 </script>
 
-<svelte:window bind:innerWidth={largeur} bind:innerHeight={hauteur} />
+<svelte:window
+  bind:innerWidth={largeurFenetre}
+  bind:innerHeight={hauteurFenetre}
+  onresize={mesurer}
+/>
 
 {#if chemin}
   <svg

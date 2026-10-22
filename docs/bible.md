@@ -340,7 +340,7 @@ Le noyau parle entre les couches : le bandeau, l'écran de fouille, la descente,
 
 - **Sa voix** : un inventaire de fouille. Des libellés courts, des nombres, des constats. Ses verbes sont des infinitifs en minuscules : « creuser », « descendre », « reboucher », « remonter », « rester ».
 - **Il ne dit jamais « vous »**, ne qualifie rien (ni « bon », ni « rare », ni « précieux ») et ne raconte rien. Le titre du résumé d'absence, « Pendant votre absence », est donc à reprendre.
-- **Ses mots** : Profondeur, Artefacts, Compréhension (le bandeau) ; points de fouille, à emporter, laissé en haut, abandonné (la fouille) ; la coupe, soldée, en défaut, stratigraphie perturbée (D-005).
+- **Ses mots** : Profondeur, Artefacts, Compréhension (le bandeau) ; points de fouille, à emporter, laissé en haut, abandonné (la fouille) ; la coupe, soldée, en défaut, stratigraphie perturbée (D-005) ; menu, exporter, copier, importer, recommencer, garder la partie (le menu, [#48](https://github.com/DavidGiangiacomo/strates/issues/48)).
 
 **Les rappels de reprise** (R4, §13) : trois lignes au plus, à chaque reprise de session, avec le résumé de l'absence.
 1. Le lieu, écrit par le noyau : « Profondeur 2 · Les caves ».

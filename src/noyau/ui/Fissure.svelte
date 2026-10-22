@@ -2,6 +2,7 @@
   // La fissure, le filet commun aux strates : un calque sur toute la fenêtre, qui ne capte aucun clic.
   // Elle part d'un élément de la strate (le graphique de la surface, le fond de la coupe des caves) et
   // s'allonge jusqu'au bouton « creuser », à droite du bandeau commun de 24 px (§12). Aucun texte.
+  import { milieuCreuser, zoomEcran } from "./ecran";
   import {
     BANDEAU,
     BOUTON_DEPUIS_LA_DROITE,
@@ -12,13 +13,23 @@
 
   let { depart, avancee }: { depart: Element | undefined; avancee: number } = $props();
 
-  let largeur = $state(0);
-  let hauteur = $state(0);
+  // La fenêtre se mesure en pixels de l'écran ; le calque, en pixels du jeu, que la taille du texte
+  // peut avoir zoomé (#48).
+  let largeurFenetre = $state(0);
+  let hauteurFenetre = $state(0);
+  let zoom = $state(1);
+  const largeur = $derived(largeurFenetre / zoom);
+  const hauteur = $derived(hauteurFenetre / zoom);
   let origine = $state<Point | null>(null);
+  let bouton = $state<number | null>(null);
 
   function mesurer(): void {
+    zoom = zoomEcran();
+    bouton = milieuCreuser();
     const r = depart?.getBoundingClientRect();
-    origine = r ? { x: r.left + r.width * 0.72, y: r.top + r.height * 0.5 } : null;
+    origine = r
+      ? { x: (r.left + r.width * 0.72) / zoom, y: (r.top + r.height * 0.5) / zoom }
+      : null;
   }
 
   // Le départ peut bouger (défilement, message au-dessus) : on remesure à chaque progression.
@@ -27,7 +38,7 @@
     mesurer();
   });
 
-  const arrivee = $derived({ x: largeur - BOUTON_DEPUIS_LA_DROITE, y: BANDEAU });
+  const arrivee = $derived({ x: bouton ?? largeur - BOUTON_DEPUIS_LA_DROITE, y: BANDEAU });
   const chemin = $derived(origine ? cheminFissure(origine, arrivee) : "");
   const ramifications = $derived(origine ? ramificationsFissure(origine, arrivee) : []);
 
@@ -35,7 +46,12 @@
   const pousse = (a: number) => Math.min(1, Math.max(0, (avancee - a) / 0.06));
 </script>
 
-<svelte:window bind:innerWidth={largeur} bind:innerHeight={hauteur} onscroll={mesurer} />
+<svelte:window
+  bind:innerWidth={largeurFenetre}
+  bind:innerHeight={hauteurFenetre}
+  onscroll={mesurer}
+  onresize={mesurer}
+/>
 
 {#if chemin}
   <svg class="fissure" width={largeur} height={hauteur} aria-hidden="true" data-test="fissure">

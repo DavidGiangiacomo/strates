@@ -461,7 +461,7 @@
 
   /* Le graphique, au centre. */
   .courbe {
-    height: clamp(240px, 40vh, 360px);
+    height: clamp(240px, 40vh / var(--zoom, 1), 360px);
   }
 
   /* Les objectifs atteints : une coche d'un vert discret. */
@@ -639,8 +639,8 @@
     right: 16px;
     z-index: 4;
     box-sizing: border-box;
-    width: min(28rem, calc(100vw - 32px));
-    max-height: calc(100vh - 56px);
+    width: min(28rem, calc(100vw / var(--zoom, 1) - 32px));
+    max-height: calc(100vh / var(--zoom, 1) - 56px);
     padding: 18px 20px;
     overflow: auto;
     background: var(--carte);

@@ -337,7 +337,7 @@
 
 <style>
   .atelier {
-    --case: min(44px, calc((100vw - 32px) / var(--n, 12)));
+    --case: min(44px, calc((100vw / var(--zoom, 1) - 32px) / var(--n, 12)));
     display: grid;
     flex: 1 0 auto;
     grid-template-areas: "entete entete" "centre droite";

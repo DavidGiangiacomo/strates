@@ -6,6 +6,7 @@
   // deviennent des cailloux (#45). À l'arrivée, ils glissent vers le compteur du bandeau, leur poche.
   // Les durées suivent celles du passage (passage.svelte.ts, DUREES).
   import type { ObjetInventaire } from "../logique/artefacts";
+  import { zoomEcran } from "./ecran";
   import { etiquette, NIVEAUX, parCouche } from "./inventaire";
   import Usure from "./Usure.svelte";
 
@@ -30,10 +31,14 @@
     if (phase !== "arrivee" || !liste) return;
     const cible = poche?.();
     if (!cible) return;
+    // Les rectangles sont en pixels de l'écran ; le déplacement, en pixels du jeu (#48).
+    const zoom = zoomEcran();
     for (const objet of liste.querySelectorAll<HTMLElement>("li")) {
       const ici = objet.getBoundingClientRect();
-      objet.style.setProperty("--dx", `${cible.x + cible.width / 2 - (ici.x + ici.width / 2)}px`);
-      objet.style.setProperty("--dy", `${cible.y + cible.height / 2 - (ici.y + ici.height / 2)}px`);
+      const dx = (cible.x + cible.width / 2 - (ici.x + ici.width / 2)) / zoom;
+      const dy = (cible.y + cible.height / 2 - (ici.y + ici.height / 2)) / zoom;
+      objet.style.setProperty("--dx", `${dx}px`);
+      objet.style.setProperty("--dy", `${dy}px`);
     }
   });
 </script>
@@ -100,7 +105,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    width: min(92vw, 44rem);
+    width: min(calc(92vw / var(--zoom, 1)), 44rem);
     transform: translate(-50%, -50%);
     font:
       13px/1.5 system-ui,
@@ -170,7 +175,11 @@
   }
   @keyframes ranger {
     to {
-      transform: translate(var(--dx, calc(-50vw + 150px)), var(--dy, calc(-50vh + 12px))) scale(0.3);
+      transform: translate(
+          var(--dx, calc(-50vw / var(--zoom, 1) + 150px)),
+          var(--dy, calc(-50vh / var(--zoom, 1) + 12px))
+        )
+        scale(0.3);
       opacity: 0;
     }
   }

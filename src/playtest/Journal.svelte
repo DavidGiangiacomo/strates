@@ -72,7 +72,7 @@
     left: 8px;
     bottom: 36px;
     z-index: 30;
-    max-width: min(560px, calc(100vw - 16px));
+    max-width: min(560px, calc(100vw / var(--zoom, 1) - 16px));
     padding: 8px 12px;
     font:
       12px/1.4 ui-monospace,

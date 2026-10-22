@@ -36,7 +36,7 @@ Le test ne juge ni la qualité de la surface, ni l'équilibrage de la fin des ca
 
 ## 3. Le matériel
 
-- **La version de playtest publiée** : <https://davidgiangiacomo.github.io/strates/>. Le bas de la page affiche la version et le commit du build ; ils sont notés pour chaque séance.
+- **La version de playtest publiée** : <https://davidgiangiacomo.github.io/strates/>. Le menu, au bout du bandeau, affiche la version et le commit du build ; ils sont notés pour chaque séance.
   - **Tout le test se fait sur le même build.** Rien n'est mergé sur `main` pendant la campagne, puisque chaque merge republie le jeu.
 - **Un navigateur de bureau récent**, dans un profil vierge, pour une partie neuve. Pas de navigation privée : le navigateur peut y refuser le stockage.
   - La fenêtre fait au moins 1280 × 720.

@@ -3,9 +3,10 @@
   // Le bouton « creuser » a le même aspect avant et après le seuil : seule sa réponse change
   // (docs/strates/strate-1.md, § 4). Le compteur des artefacts ouvre l'inventaire des objets (#45). À
   // partir de κ = 50, le bouton « graphe » ouvre le graphe de dépendances de la strate
-  // (docs/comprehension.md, § 5).
+  // (docs/comprehension.md, § 5). Au bout, le bouton « menu » ouvre le menu système (#48).
   import type { NumeroStrate } from "../logique/types";
   import { TEXTES_GRAPHE } from "./graphe";
+  import { TEXTES_MENU } from "./menu";
 
   let {
     profondeur,
@@ -16,6 +17,8 @@
     inventaireOuvert = false,
     ongraphe,
     grapheOuvert = false,
+    onmenu,
+    menuOuvert = false,
   }: {
     profondeur: NumeroStrate;
     artefacts: readonly string[];
@@ -28,11 +31,15 @@
     /** Ouvre ou referme le graphe ; sans elle, pas de bouton : κ < 50, ou la strate n'en a pas. */
     ongraphe?: () => void;
     grapheOuvert?: boolean;
+    /** Ouvre ou referme le menu ; sans elle, pendant la descente, le bouton ne s'ouvre pas. */
+    onmenu?: () => void;
+    menuOuvert?: boolean;
   } = $props();
 
   let barre: HTMLElement | undefined = $state();
   let boutonInventaire: HTMLButtonElement | undefined = $state();
   let boutonGraphe: HTMLButtonElement | undefined = $state();
+  let boutonMenu: HTMLButtonElement | undefined = $state();
 
   /** L'inventaire refermé, le focus revient au compteur. */
   export function focaliserInventaire(): void {
@@ -42,6 +49,11 @@
   /** Le graphe refermé, le focus revient à son bouton. */
   export function focaliserGraphe(): void {
     boutonGraphe?.focus();
+  }
+
+  /** Le menu refermé, le focus revient à son bouton. */
+  export function focaliserMenu(): void {
+    boutonMenu?.focus();
   }
 
   /** Où est le compteur des artefacts : les objets qui arrivent y rejoignent leur poche. */
@@ -89,7 +101,15 @@
       data-test="ouvrir-graphe">{TEXTES_GRAPHE.ouvrir}</button
     >
   {/if}
-  <button class="creuser" onclick={oncreuser}>creuser</button>
+  <button class="creuser" onclick={oncreuser} data-test="creuser">creuser</button>
+  <button
+    class="menu"
+    bind:this={boutonMenu}
+    aria-expanded={menuOuvert}
+    disabled={!onmenu}
+    onclick={onmenu}
+    data-test="ouvrir-menu">{TEXTES_MENU.ouvrir}</button
+  >
 </header>
 
 <style>
@@ -141,7 +161,8 @@
     border-color: #8c8c8c;
   }
   .creuser,
-  .graphe {
+  .graphe,
+  .menu {
     height: 18px;
     padding: 0 10px;
     font: inherit;
@@ -153,12 +174,19 @@
   }
   .creuser:hover,
   .graphe:hover,
-  .graphe[aria-expanded="true"] {
+  .graphe[aria-expanded="true"],
+  .menu:enabled:hover,
+  .menu[aria-expanded="true"] {
     border-color: #8c8c8c;
+  }
+  /* Le menu garde son aspect pendant la descente, où il ne s'ouvre pas. */
+  .menu:disabled {
+    cursor: default;
   }
   .creuser:focus-visible,
   .artefacts:focus-visible,
-  .graphe:focus-visible {
+  .graphe:focus-visible,
+  .menu:focus-visible {
     outline: 1px solid #f2f2f2;
     outline-offset: 1px;
   }
