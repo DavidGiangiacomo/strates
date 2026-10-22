@@ -21,6 +21,7 @@ function monter(artefacts: string[] = [], kappa = 22, autres: Record<string, unk
     oncreuser,
     bandeau: composant as unknown as {
       resister: () => void;
+      focaliserCoupe: () => void;
       focaliserInventaire: () => void;
       focaliserMenu: () => void;
     },
@@ -37,6 +38,25 @@ describe("le bandeau commun", () => {
     expect(texte("artefacts")).toBe("Artefacts 2");
     expect(texte("comprehension")).toBe("Compréhension 22 %");
     expect(document.querySelector(".creuser")?.textContent).toBe("creuser");
+  });
+
+  it("ouvre la coupe par la Profondeur, et dit si elle est ouverte", () => {
+    const oncoupe = vi.fn();
+    const { bandeau } = monter([], 22, { oncoupe, coupeOuverte: true });
+    const profondeur = document.querySelector<HTMLButtonElement>("[data-test=profondeur]")!;
+    expect(profondeur.tagName).toBe("BUTTON");
+    expect(profondeur.getAttribute("aria-expanded")).toBe("true");
+    profondeur.click();
+    expect(oncoupe).toHaveBeenCalledOnce();
+    bandeau.focaliserCoupe();
+    expect(document.activeElement).toBe(profondeur);
+  });
+
+  it("ne l'ouvre pas pendant la descente, sans changer d'aspect", () => {
+    monter();
+    expect(document.querySelector<HTMLButtonElement>("[data-test=profondeur]")!.disabled).toBe(
+      true,
+    );
   });
 
   it("ouvre l'inventaire par le compteur des artefacts, et dit s'il est ouvert", () => {

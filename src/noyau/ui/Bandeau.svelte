@@ -1,9 +1,10 @@
 <script lang="ts">
   // Le bandeau commun (§12) : 24 px, identique dans les huit strates, le seul élément stable du jeu.
   // Le bouton « creuser » a le même aspect avant et après le seuil : seule sa réponse change
-  // (docs/strates/strate-1.md, § 4). Le compteur des artefacts ouvre l'inventaire des objets (#45). À
-  // partir de κ = 50, le bouton « graphe » ouvre le graphe de dépendances de la strate
-  // (docs/comprehension.md, § 5). Au bout, le bouton « menu » ouvre le menu système (#48).
+  // (docs/strates/strate-1.md, § 4). « Profondeur » ouvre la coupe (#47), et le compteur des artefacts
+  // l'inventaire des objets (#45). À partir de κ = 50, le bouton « graphe » ouvre le graphe de
+  // dépendances de la strate (docs/comprehension.md, § 5). Au bout, le bouton « menu » ouvre le menu
+  // système (#48).
   import type { NumeroStrate } from "../logique/types";
   import { TEXTES_GRAPHE } from "./graphe";
   import { TEXTES_MENU } from "./menu";
@@ -13,6 +14,8 @@
     artefacts,
     kappa,
     oncreuser,
+    oncoupe,
+    coupeOuverte = false,
     oninventaire,
     inventaireOuvert = false,
     ongraphe,
@@ -25,6 +28,9 @@
     /** La Compréhension, de 0 à 100 : un pourcentage entier (docs/comprehension.md, § 7). */
     kappa: number;
     oncreuser: () => void;
+    /** Ouvre ou referme la coupe ; sans elle, pendant la descente, la Profondeur ne s'ouvre pas. */
+    oncoupe?: () => void;
+    coupeOuverte?: boolean;
     /** Ouvre ou referme l'inventaire ; sans elle, pendant la descente, le compteur ne s'ouvre pas. */
     oninventaire?: () => void;
     inventaireOuvert?: boolean;
@@ -37,9 +43,15 @@
   } = $props();
 
   let barre: HTMLElement | undefined = $state();
+  let boutonCoupe: HTMLButtonElement | undefined = $state();
   let boutonInventaire: HTMLButtonElement | undefined = $state();
   let boutonGraphe: HTMLButtonElement | undefined = $state();
   let boutonMenu: HTMLButtonElement | undefined = $state();
+
+  /** La coupe refermée, le focus revient à la Profondeur. */
+  export function focaliserCoupe(): void {
+    boutonCoupe?.focus();
+  }
 
   /** L'inventaire refermé, le focus revient au compteur. */
   export function focaliserInventaire(): void {
@@ -80,7 +92,14 @@
 </script>
 
 <header class="bandeau" bind:this={barre} data-test="bandeau">
-  <span data-test="profondeur">Profondeur <strong>{profondeur}</strong></span>
+  <button
+    class="profondeur"
+    bind:this={boutonCoupe}
+    aria-expanded={coupeOuverte}
+    disabled={!oncoupe}
+    onclick={oncoupe}
+    data-test="profondeur">Profondeur <strong>{profondeur}</strong></button
+  >
   <button
     class="artefacts"
     bind:this={boutonInventaire}
@@ -138,9 +157,11 @@
     margin-inline-start: auto;
   }
   /*
-   * Le compteur se lit comme les autres, à sa place : son cadre, plus discret que celui des boutons
-   * d'action, dit seulement qu'il s'ouvre. Il garde son aspect pendant la descente, où il ne s'ouvre pas.
+   * La Profondeur et le compteur se lisent comme les autres, à leur place : leur cadre, plus discret
+   * que celui des boutons d'action, dit seulement qu'ils s'ouvrent. Ils gardent leur aspect pendant la
+   * descente, où ils ne s'ouvrent pas.
    */
+  .profondeur,
   .artefacts {
     height: 18px;
     margin: 0 -5px;
@@ -153,9 +174,12 @@
     border-radius: 2px;
     cursor: pointer;
   }
+  .profondeur:disabled,
   .artefacts:disabled {
     cursor: default;
   }
+  .profondeur:enabled:hover,
+  .profondeur[aria-expanded="true"],
   .artefacts:enabled:hover,
   .artefacts[aria-expanded="true"] {
     border-color: #8c8c8c;
@@ -184,6 +208,7 @@
     cursor: default;
   }
   .creuser:focus-visible,
+  .profondeur:focus-visible,
   .artefacts:focus-visible,
   .graphe:focus-visible,
   .menu:focus-visible {
@@ -196,13 +221,14 @@
    */
   @media (max-width: 600px) {
     .bandeau {
-      gap: 0.6rem;
+      gap: 0.5rem;
       padding: 0 6px;
       overflow-x: auto;
       overflow-y: hidden;
       font-size: 11px;
       scrollbar-width: none;
     }
+    .profondeur,
     .artefacts {
       margin: 0 -3px;
     }

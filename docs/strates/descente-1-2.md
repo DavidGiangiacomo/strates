@@ -343,7 +343,7 @@ Les raccords sont des rimes, pas des copies. Tout le reste change : la palette, 
 - **Aucun chemin ne remonte.** « reboucher » était la dernière porte ; après « descendre », rien ne mène à la surface avant la fin.
 - **Sa production « tourne toujours »** (§11), mais sans être simulée. À la fin « Remonter », `remontee()` rend l'état rangé, augmenté de la production de toute la durée écoulée (fiche 1, § 10). L'état figé suffit.
 - **Les crédits ne deviennent pas du grain.** Tout le monde arrive dans les caves avec 250 boisseaux (fiche 2, § 3). Seuls la Profondeur, les objets et, plus tard, la Compréhension traversent.
-- Dans le MVP, il n'y a ni remontée ni coupe : la surface reste dans la sauvegarde, intacte, pour [#128](https://github.com/DavidGiangiacomo/strates/issues/128), [#47](https://github.com/DavidGiangiacomo/strates/issues/47) et [#131](https://github.com/DavidGiangiacomo/strates/issues/131).
+- Dans le MVP, il n'y avait ni remontée ni coupe. La coupe est venue ensuite ([#47](https://github.com/DavidGiangiacomo/strates/issues/47)) ; la surface reste dans la sauvegarde, intacte, pour la remontée ([#128](https://github.com/DavidGiangiacomo/strates/issues/128)) et l'épilogue ([#131](https://github.com/DavidGiangiacomo/strates/issues/131)).
 
 ## 8. Durées et mouvement réduit
 
@@ -395,7 +395,7 @@ Ces durées sont des cibles de départ, réglables au playtest. La descente et l
 - **Avec la direction artistique des caves ([#33](https://github.com/DavidGiangiacomo/strates/issues/33))** :
   - l'écran des caves monte sur le sol traversé, et sa coupe des stockages en prend la suite : un sol sombre, le grenier posé sur le champ, et rien dessous. La marque d'hiver flotte au-dessus du grenier (P6) ;
   - les quatre choses que le joueur doit voir d'abord (P6) sont là où ses yeux et sa main allaient en haut : le calendrier à la place du graphique, la réserve à la place des crédits, « Glaner » à la place de « Produire », et les achats du registre à la place des générateurs.
-- **Restent pour la coupe du jeu ([#47](https://github.com/DavidGiangiacomo/strates/issues/47))** : le sol traversé est fait de bandes dans la palette du noyau, et les objets emportés sont des étiquettes aux couleurs du bandeau.
+- **La coupe du jeu ([#47](https://github.com/DavidGiangiacomo/strates/issues/47))** reprend les bruns du sol traversé, une bande par couche, et ses textes ont les couleurs du bandeau, comme les étiquettes des objets emportés.
 - **Vérifié dans Chromium**, depuis la sauvegarde nommée « surface-seuil-atteint », avec et sans mouvement : le passage complet, « reboucher », la première page du registre, le sol qui résiste dans les caves, et le rechargement.
 
 ## 11. Questions ouvertes
