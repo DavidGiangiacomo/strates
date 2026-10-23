@@ -246,6 +246,12 @@ export interface DemiCote {
 export interface EtatPiece {
   /** Reliée au ressort par une chaîne de dents engrenées : elle tourne. */
   entrainee: boolean;
+  /**
+   * Sa place dans le rouage : le plus court chemin de dents engrenées qui la relie au ressort, 1 pour
+   * une pièce qui engrène avec lui ; 0 si elle n'est pas entraînée. Chaque pièce tourne dans le sens
+   * contraire de celle qui l'entraîne : le rang dit le sens (fiche, § 6).
+   */
+  rang: number;
   /** Ses demi-côtés engrenés et ses frottements : un demi-côté par côté, deux pour une grande pièce. */
   engrenes: number;
   frottements: number;
@@ -279,6 +285,8 @@ export interface Analyse {
   casesLibres: number;
   /** Les dents du rouage, ressort compris, qui regardent une case libre : il peut encore grandir. */
   dentsLibres: number;
+  /** Ce que touchent les demi-côtés du ressort, par direction du plan, comme pour une pièce. */
+  ressort: DemiCote[][];
 }
 
 /**
@@ -345,6 +353,7 @@ export function analyser(etat: EtatAtelier): Analyse {
     const s = largeur(piece);
     const info: EtatPiece = {
       entrainee: false,
+      rang: 0,
       engrenes: 0,
       frottements: 0,
       dentsLibres: 0,
@@ -414,13 +423,15 @@ export function analyser(etat: EtatAtelier): Analyse {
     pieces.set(piece.repere, info);
   });
 
-  // L'entraînement : de dent en dent, depuis les pièces qui engrènent avec le ressort.
-  const entrainees = new Set(auRessort);
+  // L'entraînement : de dent en dent, depuis les pièces qui engrènent avec le ressort. Le parcours se
+  // fait en largeur : chaque pièce y prend son rang, le plus court chemin qui la relie au ressort.
+  const rangs = new Map(auRessort.map((i) => [i, 1]));
   const file = [...auRessort];
-  while (file.length > 0) {
-    for (const j of engrenees[file.pop()!]!) {
-      if (!entrainees.has(j)) {
-        entrainees.add(j);
+  for (let k = 0; k < file.length; k++) {
+    const i = file[k]!;
+    for (const j of engrenees[i]!) {
+      if (!rangs.has(j)) {
+        rangs.set(j, rangs.get(i)! + 1);
         file.push(j);
       }
     }
@@ -428,10 +439,11 @@ export function analyser(etat: EtatAtelier): Analyse {
 
   let production = 0;
   let dentsLibres = 0;
-  for (const i of entrainees) {
+  for (const [i, rang] of rangs) {
     const piece = etat.pieces[i]!;
     const info = pieces.get(piece.repere)!;
     info.entrainee = true;
+    info.rang = rang;
     info.production = productionPiece(
       def(piece),
       info.engrenes,
@@ -442,23 +454,31 @@ export function analyser(etat: EtatAtelier): Analyse {
     dentsLibres += info.dentsLibres;
   }
 
-  // Les dents du ressort qui regardent une case libre : deux par côté.
+  // Le ressort, denté sur ses quatre côtés : ce que touchent ses demi-côtés, vus de lui. Le plan a
+  // toujours une couronne de cases autour de lui. Ses dents qui regardent une case libre, deux par
+  // côté, comptent dans celles du rouage.
   const r = coinRessort(n);
-  for (let k = 0; k < 2; k++) {
-    for (const [x, y] of [
-      [r - 1, r + k],
-      [r + 2, r + k],
-      [r + k, r - 1],
-      [r + k, r + 2],
-    ] as const) {
-      if (g[x * n + y] === LIBRE) dentsLibres++;
-    }
-  }
+  const ressort = COTES.map((d) =>
+    [0, 1].map((h): DemiCote => {
+      const [x, y] = caseTouchee(r, r, 2, d, h);
+      const o = g[x * n + y]!;
+      if (o === LIBRE) {
+        dentsLibres++;
+        return { contact: "rien" };
+      }
+      const autre = etat.pieces[o - 1]!;
+      const da = oppose(d);
+      if (dente(autre, da)) return { contact: "engrene" };
+      const [la, ca] = autre.case!;
+      const h2 = demiTouche(la, ca, da, caseDuBord(r, r, 2, d, h));
+      return { contact: "frotte", cle: cleFrottement(autre.repere, da, h2, "R") };
+    }),
+  );
 
   let casesLibres = 0;
   for (const o of g) if (o === LIBRE) casesLibres++;
 
-  return { pieces, production, frottements, casesLibres, dentsLibres };
+  return { pieces, production, frottements, casesLibres, dentsLibres, ressort };
 }
 
 /**

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { creerEtatNoyau, type EtatNoyau } from "../noyau/logique/etat";
 import type { EntreeJournal, NumeroStrate } from "../noyau/logique/types";
+import { logique as logiqueAtelier } from "../strates/s3-atelier/logique";
 import { assemblageAcheve } from "../strates/s3-atelier/logique/regles";
 import type { EtatAtelier } from "../strates/s3-atelier/logique/etat";
 import { CASE_DERNIERE } from "./atelier";
@@ -119,7 +120,7 @@ describe("l'atelier avant le seuil", () => {
     expect(etat.profondeur).toBe(3);
     expect(etat.meta.journal.strates.map((e) => e.strate)).toEqual([1, 2]);
     const atelier = etat.strates[3]!.etat as EtatAtelier;
-    expect(etat.strates[3]!.version).toBe(1);
+    expect(etat.strates[3]!.version).toBe(logiqueAtelier.versionEtat);
     expect(atelier.pieces.filter((p) => !p.case)).toHaveLength(1);
     expect(assemblageAcheve(atelier)).toBe(false);
     const derniere = atelier.pieces.find((p) => !p.case)!;

@@ -322,7 +322,7 @@ Environ 5 000 mots pour tout le jeu (§2). Chaque fiche reprend son budget dans 
 | Le noyau | 450 | le bandeau, l'écran de fouille, l'inventaire, la coupe, le menu, les fins |
 | 1 · La surface | 600 | les descriptions et l'aide ; 609 écrits |
 | 2 · Les caves | 750 | le registre, les notes en marge, l'aide ; 741 écrits, rations comprises |
-| 3 · L'atelier | 700 | la nomenclature et les légendes du plan ; 428 écrits |
+| 3 · L'atelier | 700 | la nomenclature et les légendes du plan ; 430 écrits |
 | 4 · Le réseau | 600 | le carnet de relevés et la légende du schéma |
 | 5 · Le chœur | 300 | des indications, et pas une phrase |
 | 6 · La dette | 850 | le livre de comptes : la strate la plus longue |
