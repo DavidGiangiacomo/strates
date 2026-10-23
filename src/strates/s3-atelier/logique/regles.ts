@@ -259,6 +259,15 @@ export function dente(piece: PieceAtelier, d: Cote): boolean {
   return def(piece).dents.includes(b) && !piece.limees.includes(b);
 }
 
+/**
+ * Le côté qu'une pièce montre en `d` se lime-t-il ? Il faut qu'il soit denté, et que la pièce garde
+ * une autre dent : sans dent, elle ne tournerait plus jamais, et le seuil, qui veut toutes les pièces
+ * entraînées, deviendrait impossible (fiche, § 3).
+ */
+export function limable(piece: PieceAtelier, d: Cote): boolean {
+  return dente(piece, d) && COTES.some((x) => x !== d && dente(piece, x));
+}
+
 /** Ce que touche un demi-côté : une dent face à une dent, un frottement, ou rien. */
 export interface DemiCote {
   contact: "engrene" | "frotte" | "rien";

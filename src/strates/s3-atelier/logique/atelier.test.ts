@@ -10,6 +10,8 @@ import { etatInitial, type EtatAtelier, type PieceAtelier } from "./etat";
 import { remplir } from "./notation";
 import {
   analyser,
+  COTES,
+  limable,
   PIECES,
   pieceVisible,
   prochainAgrandissement,
@@ -386,11 +388,31 @@ describe("limer", () => {
     agir(etat, { type: "limer", repere: r, cote: 2 });
     expect(piece(etat, r).limees).toEqual([1]);
     expect(lignes(etat).at(-1)).toBe(`legende.limee {"piece":${r}}`);
-    // Un côté lisse, ou déjà limé, ne se lime pas.
+    // Un côté lisse, ou déjà limé, ne se lime pas, ni la dernière dent qui lui reste.
     agir(etat, { type: "limer", repere: r, cote: 0 });
     agir(etat, { type: "limer", repere: r, cote: 2 });
     agir(etat, { type: "limer", repere: r, cote: 5 });
+    agir(etat, { type: "limer", repere: r, cote: 1 });
     expect(piece(etat, r).limees).toEqual([1]);
+  });
+
+  it("ne prend jamais la dernière dent d'une pièce : sans dent, elle ne tournerait plus jamais", () => {
+    const etat = etatInitial();
+    // Le cliquet et le balancier n'ont qu'une dent : posé ou sur l'établi, elle ne se lime pas.
+    const c = ajouter(etat, "cliquet", [4, 2]);
+    const b = ajouter(etat, "balancier", null);
+    agir(etat, { type: "limer", repere: c, cote: 0 });
+    agir(etat, { type: "limer", repere: b, cote: 0 });
+    expect(piece(etat, c).limees).toEqual([]);
+    expect(piece(etat, b).limees).toEqual([]);
+    expect(lignes(etat).some((l) => l.startsWith("legende.limee"))).toBe(false);
+    // Le renvoi en a deux, en haut et à droite : l'une se lime, et l'autre devient la dernière.
+    const r = ajouter(etat, "renvoi", [4, 4]);
+    const limables = () => COTES.filter((d) => limable(piece(etat, r), d));
+    expect(limables()).toEqual([0, 1]);
+    agir(etat, { type: "limer", repere: r, cote: 0 });
+    expect(piece(etat, r).limees).toEqual([0]);
+    expect(limables()).toEqual([]);
   });
 
   it("défait un frottement, mais coupe le mouvement si la dent engrenait", () => {

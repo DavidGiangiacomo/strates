@@ -23,9 +23,9 @@ import {
   assemblageAcheve,
   coteDeBase,
   defPiece,
-  dente,
   estCase,
   largeur,
+  limable,
   PIECES,
   placeLibre,
   premierPlanPlein,
@@ -290,10 +290,11 @@ function geste(etat: EtatAtelier, action: ActionAtelier): number[] | null {
       return [];
     }
     case "limer": {
-      // `cote` est le côté tel qu'il se montre : la lime le rend lisse, pour toujours.
+      // `cote` est le côté tel qu'il se montre : la lime le rend lisse, pour toujours. Elle ne prend
+      // jamais la dernière dent d'une pièce.
       const p = trouver(etat, action.repere);
       const d = action.cote;
-      if (!p || !Number.isInteger(d) || d < 0 || d > 3 || !dente(p, d as Cote)) return null;
+      if (!p || !Number.isInteger(d) || d < 0 || d > 3 || !limable(p, d as Cote)) return null;
       p.limees.push(coteDeBase(p, d as Cote));
       return [];
     }
