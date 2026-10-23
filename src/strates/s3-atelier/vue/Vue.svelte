@@ -24,6 +24,7 @@
     grille,
     largeur,
     PIECES,
+    pieceDAvance,
     pieceVisible,
     prixPiece,
     prochainAgrandissement,
@@ -531,7 +532,8 @@
             {#if pieceVisible(etat, d)}
               {@const reste = restantes(etat, d)}
               {@const prix = prixPiece(etat, d)}
-              <tr data-test="nomenclature-{d.id}">
+              <!-- Montrée d'avance par un objet d'en haut : d'un trait plus clair, en italique. -->
+              <tr data-test="nomenclature-{d.id}" class:avance={pieceDAvance(etat, d)}>
                 <td>{@render lu(formaterEntier(i + 1), enMots(i + 1))}</td>
                 <th scope="row" class="designation">
                   {o(`piece.${d.id}`)}
@@ -981,6 +983,19 @@
   .nomenclature th[scope="row"] {
     font-weight: 400;
     text-align: start;
+  }
+  /*
+   * Une pièce que les objets d'en haut montrent d'avance (fiche, § 8) : un trait plus clair, et
+   * l'italique, qui ne tient pas à la seule couleur.
+   */
+  .nomenclature tr.avance {
+    color: var(--graphite-doux);
+  }
+  .nomenclature tr.avance .designation {
+    font-style: italic;
+  }
+  .nomenclature tr.avance .profil :global(.dessin) {
+    opacity: 0.55;
   }
   .nomenclature td:nth-child(4),
   .nomenclature td:nth-child(5),

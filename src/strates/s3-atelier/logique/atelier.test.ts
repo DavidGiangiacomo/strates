@@ -1,12 +1,21 @@
 // La boucle de l'atelier (fiche, § 3) : les gestes, la production et les gênes qui se montrent au bout
 // d'un tour.
 import { describe, expect, it } from "vitest";
+import { effetsActifs } from "../../../noyau/logique/artefacts";
+import { CATALOGUE } from "../../../noyau/logique/catalogue";
 import type { ContexteTick, EvenementStrate } from "../../../noyau/logique/types";
 import { logique, type ActionAtelier } from ".";
 import { textes } from "../textes.fr";
 import { etatInitial, type EtatAtelier, type PieceAtelier } from "./etat";
 import { remplir } from "./notation";
-import { analyser, TOUR, type IdPiece } from "./regles";
+import {
+  analyser,
+  PIECES,
+  pieceVisible,
+  prochainAgrandissement,
+  TOUR,
+  type IdPiece,
+} from "./regles";
 
 function contexte(
   evenements: EvenementStrate[] = [],
@@ -131,6 +140,66 @@ describe("l'arrivée dans l'atelier", () => {
     delete version1.horsPlan;
     expect(logique.versionEtat).toBe(2);
     expect(logique.migrations[1]!(version1)).toEqual(etatInitial());
+  });
+});
+
+describe("les objets d'en haut (fiche, § 8 ; #81)", () => {
+  /** Un tick, avec les effets que le noyau calcule pour ces objets, à la profondeur de l'atelier. */
+  const avec = (...ids: string[]): ContexteTick => ({
+    effets: effetsActifs(ids, 3, logique.leviers),
+    emettre: () => {},
+  });
+
+  it("tendent le ressort : chacun des quatre multiplicateurs, utile ou puissant", () => {
+    for (const [id, facteur] of [
+      ["s1-equipe", 1.1],
+      ["s1-turbine", 1.25],
+      ["s2-faucille", 1.3],
+      ["s2-meule", 1.5],
+    ] as const) {
+      const etat = etatInitial();
+      logique.tick(etat, 0.1, avec(id));
+      expect(etat.multiplicateurs, id).toEqual({ ressort: facteur, plan: 1 });
+    }
+  });
+
+  it("ne renforcent que les pièces qui engrènent avec le ressort", () => {
+    // Les deux roues de l'arrivée engrènent avec lui, la troisième avec la première seulement.
+    const sans = etatInitial();
+    ajouter(sans, "roue", [0, 2]);
+    const etat = structuredClone(sans);
+    logique.tick(etat, 0.1, avec("s2-meule"));
+    const [a, b] = [analyser(sans).pieces, analyser(etat).pieces];
+    expect(b.get(1)!.production).toBe(1.5 * a.get(1)!.production);
+    expect(b.get(2)!.production).toBe(1.5 * a.get(2)!.production);
+    expect(b.get(3)!.production).toBe(a.get(3)!.production);
+  });
+
+  it("rendent le plan moins cher : le grenier d'ailleurs, sur le levier secondaire", () => {
+    const etat = etatInitial();
+    logique.tick(etat, 0.1, avec("s1-filiale"));
+    expect(etat.multiplicateurs).toEqual({ ressort: 1, plan: 1.25 });
+    expect(prochainAgrandissement(etat)?.prix).toBe(56_000);
+  });
+
+  it("restent sous le plafond × 4, même avec les deux catalogues entiers (I2)", () => {
+    const tous = CATALOGUE.filter((a) => a.origine < 3).map((a) => a.id);
+    const effets = effetsActifs(tous, 3, logique.leviers);
+    expect(effets.plafonne).toBe(false);
+    expect(effets.multiplicateur("ressort")).toBeCloseTo(1.1 * 1.25 * 1.3 * 1.5, 9);
+    expect(effets.multiplicateur("plan")).toBeCloseTo(1.25, 9);
+    expect(effets.multiplicateur("ressort") * effets.multiplicateur("plan")).toBeLessThan(4);
+  });
+
+  it("montrent d'avance la nomenclature : l'armoire une pièce, la roue peinte deux, ensemble trois", () => {
+    const etat = etatInitial();
+    logique.tick(etat, 0.1, avec("s1-serveur", "s2-calendrier"));
+    expect(PIECES.filter((d) => pieceVisible(etat, d)).map((d) => d.id)).toEqual([
+      "roue",
+      "cliquet",
+      "renvoi",
+      "pignon",
+    ]);
   });
 });
 

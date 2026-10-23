@@ -353,6 +353,16 @@ describe("la vue de l'atelier", () => {
     expect(entendu("[data-test=nomenclature-roue] td:nth-child(4)")).toBe("dix");
   });
 
+  it("dessine d'un trait plus clair les pièces que les objets d'en haut montrent d'avance", () => {
+    monter((etat) => (etat.horsPlan = ["s1-serveur", "s2-calendrier"]));
+    const ligne = (id: string) => document.querySelector(`[data-test=nomenclature-${id}]`);
+    expect(ligne("roue")?.classList.contains("avance")).toBe(false);
+    for (const id of ["cliquet", "renvoi", "pignon"]) {
+      expect(ligne(id)?.classList.contains("avance"), id).toBe(true);
+    }
+    expect(ligne("secteur")).toBeNull();
+  });
+
   it("ajoute à la nomenclature les objets d'en haut qui agissent, sous « Hors plan »", () => {
     monter((etat) => (etat.horsPlan = ["s1-turbine", "s2-faucille"]));
     const lignes = [...document.querySelectorAll("[data-test=hors-plan] th")].map((th) =>
