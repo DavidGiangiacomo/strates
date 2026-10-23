@@ -518,6 +518,31 @@ export function assemblageAcheve(etat: EtatAtelier, analyse?: Analyse): boolean 
   return true;
 }
 
+// ——— La Compréhension (fiche, § 7)
+
+/** Les actes propres de l'atelier, que la logique signale au noyau, qui en tient le barème. */
+export const ACTES = {
+  /** Un frottement défait avant d'avoir duré un tour : avant que l'atelier ne le montre. */
+  geneDefaite: "gene-defaite",
+  /** Le plan de l'arrivée rempli, tout entraîné et sans rien qui frotte, avant d'être agrandi. */
+  premierPlanPlein: "premier-plan-plein",
+  /** Le seuil sans un seul coup de lime. */
+  sansLimer: "sans-limer",
+} as const;
+
+/** Le plan de 6 × 6 est-il plein, tout entraîné, sans rien qui frotte ? */
+export function premierPlanPlein(etat: EtatAtelier, analyse: Analyse): boolean {
+  if (etat.taille !== TAILLE_ARRIVEE || analyse.casesLibres > 0) return false;
+  if (analyse.frottements.length > 0) return false;
+  for (const info of analyse.pieces.values()) if (!info.entrainee) return false;
+  return true;
+}
+
+/** Aucun coup de lime : aucune pièce n'a de dent limée, et la lime ne rend rien à une pièce. */
+export function sansLimer(etat: EtatAtelier): boolean {
+  return etat.pieces.every((p) => p.limees.length === 0);
+}
+
 /** Les cases libres du plan. */
 export function casesLibres(etat: EtatAtelier): number {
   let libres = 0;

@@ -38,7 +38,7 @@
   import Piece from "./Piece.svelte";
   import { VARIABLES } from "./theme";
 
-  let { etat, agir, noyau, o, mode }: ProprietesVue<EtatAtelier, ActionAtelier> = $props();
+  let { etat, agir, noyau, o, lisible, mode }: ProprietesVue<EtatAtelier, ActionAtelier> = $props();
 
   installerChiffres();
 
@@ -246,6 +246,11 @@
 
   /** La lime levée au clavier : le repère de la pièce visée, dont la flèche suivante désigne le côté. */
   let lime: number | null = $state(null);
+  /**
+   * Le rôle de la lime est-il levé (fiche, § 7) ? Avant le premier coup, elle n'a pas de légende, et
+   * les boutons qui liment montrent l'outil sans dire ce qu'il fait.
+   */
+  const roleLime = $derived(lisible("lime"));
 
   // La notice (fiche, § 11) : une page courte, comme la notice d'un plan. L'ouvrir est noté, pour
   // l'acte « sans aide » (§ 7).
@@ -300,6 +305,19 @@
 </script>
 
 <svelte:window onkeydown={touche} />
+
+<!-- La lime : un manche, une lame taillée. -->
+{#snippet dessinLime()}
+  <svg class="dessin-lime" viewBox="0 0 64 12" aria-hidden="true">
+    <rect class="manche" x="0.5" y="3" width="17" height="6" rx="2.6" />
+    <line class="virole" x1="15" y1="3" x2="15" y2="9" />
+    <path class="soie" d="M17.5 4.6 L21 5.2 L21 6.8 L17.5 7.4 Z" />
+    <path class="lame" d="M21 2.6 L60 4.4 Q63.4 6 60 7.6 L21 9.4 Z" />
+    {#each Array.from({ length: 22 }, (_, k) => 23 + k * 1.7) as x (x)}
+      <line class="taille" x1={x} y1="9" x2={x + 1.6} y2="3" />
+    {/each}
+  </svg>
+{/snippet}
 
 <!-- Un texte et ses nombres : en chiffres à l'écran, en mots pour un lecteur d'écran. -->
 {#snippet lu(ecrit: string, dit: string)}
@@ -455,15 +473,7 @@
           {/if}
         </ul>
         <figure class="lime" class:levee={lime !== null}>
-          <svg viewBox="0 0 64 12" aria-hidden="true">
-            <rect class="manche" x="0.5" y="3" width="17" height="6" rx="2.6" />
-            <line class="virole" x1="15" y1="3" x2="15" y2="9" />
-            <path class="soie" d="M17.5 4.6 L21 5.2 L21 6.8 L17.5 7.4 Z" />
-            <path class="lame" d="M21 2.6 L60 4.4 Q63.4 6 60 7.6 L21 9.4 Z" />
-            {#each Array.from({ length: 22 }, (_, k) => 23 + k * 1.7) as x (x)}
-              <line class="taille" x1={x} y1="9" x2={x + 1.6} y2="3" />
-            {/each}
-          </svg>
+          {@render dessinLime()}
           <figcaption>{o("lime")}</figcaption>
         </figure>
       </div>
@@ -498,10 +508,14 @@
           {/if}
           {#each COTES as d (d)}
             {#if dente(enMain, d)}
+              <!-- Avant le premier coup, la lime dessinée, sans le mot qui dit ce qu'elle fait. -->
               <button
+                class="limer"
                 data-test="limer-{d}"
+                aria-label={roleLime ? undefined : `${o("main.limer")} ${o(`cote.${d}`)}`}
                 onclick={() => envoyer({ type: "limer", repere: enMain.repere, cote: d })}
-                >{o("main.limer")} {o(`cote.${d}`)}</button
+                >{#if roleLime}{o("main.limer")}{:else}{@render dessinLime()}{/if}
+                {o(`cote.${d}`)}</button
               >
             {/if}
           {/each}
@@ -546,7 +560,12 @@
                   <Piece piece={{ id: d.id, repere: 0, case: null, rot: 0, limees: [] }} />
                 </td>
                 <td>{@render lu(formaterEntier(reste), enMots(reste))}</td>
-                <td>{@render lu(formaterEntier(d.base), enMots(d.base))}</td>
+                <td
+                  >{@render lu(
+                    t("nomenclature.base.valeur", { base: d.base }),
+                    dire("nomenclature.base.valeur", { base: d.base }),
+                  )}</td
+                >
                 <td>
                   {#if reste > 0}
                     <button
@@ -882,9 +901,15 @@
     font-size: 13px;
     color: var(--graphite-doux);
   }
-  .lime svg {
+  .lime .dessin-lime {
     width: 7rem;
     height: calc(7rem * 12 / 64);
+  }
+  /* Dans un bouton, la lime tient dans la ligne. */
+  .limer .dessin-lime {
+    width: 2.6em;
+    height: calc(2.6em * 12 / 64);
+    vertical-align: middle;
   }
   .manche {
     fill: var(--papier);

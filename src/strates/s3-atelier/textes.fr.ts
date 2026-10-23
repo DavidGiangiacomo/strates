@@ -40,6 +40,8 @@ export const textes: Record<string, string> = {
   "nomenclature.base": "Base, par tour",
   "nomenclature.prix": "Prix",
   "nomenclature.epuisee": "—",
+  // La production de base d'une pièce, que l'opacité cache jusqu'au premier agrandissement (§ 7).
+  "nomenclature.base.valeur": "{base}",
   "piece.roue": "Roue dentée",
   "piece.roue.note": "Quatre côtés dentés.",
   "piece.cliquet": "Cliquet",

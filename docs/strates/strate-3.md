@@ -370,6 +370,25 @@ Le seuil dépend de trois choses visibles, qu'on ne cache jamais : les dents, le
 
   Elles s'écrivent en base douze. À κ ≤ 38, aucune ne se lit dans l'atelier.
 
+### Dans le code ([#95](https://github.com/DavidGiangiacomo/strates/issues/95))
+
+*Choix tranchés le 23 octobre 2026 : avant le premier coup, les boutons qui liment montrent la lime dessinée, sans le mot ; chaque note se lève avec le nom qu'elle dit ; les glyphes sont ceux du noyau.*
+
+- **Les éléments opaques** (`opacite`, dans `logique/index.ts`) :
+  - *les noms* : onze, un par pièce, sauf la roue, qui tourne dès l'arrivée. Chaque note se lève avec le nom qu'elle dit ; celles de la seconde série citent la pièce de la première dont elles ont le profil (« Profil du cliquet. ») ;
+  - *les valeurs* : la colonne « Base, par tour » de la nomenclature, la roue comprise ;
+  - *le rôle de la lime* : sa légende sur l'établi, et le mot « Limer » sur les boutons de la pièce en main.
+- **Ce qui se montre à leur place** : les glyphes du noyau, un par mot. Les boutons qui liment montrent la lime dessinée et le côté, sans dire ce qu'elle fait ; un lecteur d'écran entend le glyphe, puis le côté.
+- **Les levées par l'usage** : le nom d'une pièce quand un exemplaire tourne, les valeurs au premier agrandissement, la lime au premier coup. Chaque geste les redit : une partie commencée avant l'opacité les retrouve au geste suivant.
+- **Par les objets** : les deux fenêtres lèvent les noms dès l'arrivée, le cahier à lignes tout ([#81](https://github.com/DavidGiangiacomo/strates/issues/81) renvoyait ici ces deux raccourcis).
+- **Par le délai** : L(κ), treize minutes à κ = 22, pour tous.
+- **Les actes** (`ACTES`, dans `logique/regles.ts`) : la logique les signale, le noyau en tient le barème. L'atelier y a ses 16 points.
+  - *La gêne défaite* : un frottement disparaît avant d'avoir duré un tour, par un geste de la main : tourner, déplacer, échanger, mettre de côté. La lime n'en est pas, ni l'agrandissement, qui éloigne le cadre.
+  - *Le premier plan plein* : après un geste, le plan de 6 × 6 est plein, tout entraîné, sans rien qui frotte.
+  - *Sans limer* : au seuil, aucune pièce n'a de dent limée.
+  - *Sans aide* et *sans artefact* sont constatés par le noyau.
+- **Un assemblage sans un coup de lime existe** sur le plan de 12 × 12 : des renvois aux coins, des secteurs sur les bords, leur côté lisse contre le cadre, des roues partout ailleurs. Il sert aux tests, mais ne suit pas la nomenclature (question 12).
+
 ## 8. Artefacts reçus
 
 Les objets des caves sont **puissants** ici, ceux de la surface **utiles**. Les deux catalogues sont dans [`artefacts.md`](../artefacts.md), § 8 ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) ; leurs effets suivent la réception par famille ci-dessous, et seront codés par [#81](https://github.com/DavidGiangiacomo/strates/issues/81).
@@ -431,7 +450,7 @@ Les objets des caves sont **puissants** ici, ceux de la surface **utiles**. Les 
 - **Les affichages** montrent la nomenclature d'avance : l'armoire, la pièce qui suit celles que le cumul a fait paraître ; la roue peinte, les deux suivantes ; les deux ensemble, trois (`pieceDAvance`).
   - Une pièce montrée d'avance a sa ligne d'un trait plus clair, et sa désignation en italique, qui ne tient pas à la seule couleur. Elle reprend son trait quand le cumul l'aurait fait paraître.
   - Elle ne s'achète pas plus tôt : tant qu'elle n'a pas paru, son prix dépasse le double du cumul, donc le stock.
-- **Les raccourcis** viendront avec l'opacité de l'atelier ([#95](https://github.com/DavidGiangiacomo/strates/issues/95)). Elle déclarera chaque élément opaque avec les objets qui le lèvent, comme dans les caves : les noms, par les deux fenêtres et par le cahier à lignes ; les valeurs et le rôle de la lime, par le cahier.
+- **Les raccourcis** sont venus avec l'opacité de l'atelier ([#95](https://github.com/DavidGiangiacomo/strates/issues/95), § 7). Chaque élément opaque y nomme les objets qui le lèvent, comme dans les caves : les noms, les deux fenêtres et le cahier à lignes ; les valeurs et le rôle de la lime, le cahier.
 - **Les objets étranges**, la feuille qui annonce et le fil qui descend, agissent au seuil avec une ligne et un tracé du réseau. Ils viendront avec [#118](https://github.com/DavidGiangiacomo/strates/issues/118), quand le réseau aura sa fiche. D'ici là, ils n'ont que leur ligne d'éveil et leur ligne « Hors plan ».
 - **En jeu**, avec les objets d'un jeu correct, le joueur naturel des tests agrandit son plan à 10 minutes au lieu de 20, et produit 2,6 fois plus au bout de dix minutes. La durée de la strate se mesurera avec l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)).
 
@@ -487,7 +506,7 @@ Ce que les textes ont tranché :
 - **L'éveil** : à l'arrivée, une ligne par objet d'en haut qui agit ici, sous son nom d'en bas : « Hors plan : la lame courbe. » (§ 8). L'atelier nomme les objets des caves dès l'arrivée (`nommes`), et l'inventaire du noyau les montre sous ce nom.
 - **La notice** : un lien « Aide », au bout de l'en-tête, ouvre « Notice du plan », qu'on referme par « Refermer » ou Échap. Elle a cinq parties : le plan, les dents, le mouvement, la nomenclature et les nombres. Chaque ouverture est notée, pour l'acte « sans aide » (§ 7).
 - **Les traces pour le fond** (`trace.cases`, `trace.pieces`, `trace.sans-plan`) attendent la strate 8 ([#109](https://github.com/DavidGiangiacomo/strates/issues/109)).
-- **Pour l'opacité** ([#95](https://github.com/DavidGiangiacomo/strates/issues/95)) : les notes de la seconde série citent une pièce de la première (« Profil du cliquet. »). Elles devront rester opaques tant que ce nom l'est.
+- **Pour l'opacité** ([#95](https://github.com/DavidGiangiacomo/strates/issues/95)) : les notes de la seconde série citent une pièce de la première (« Profil du cliquet. »). Elles restent opaques tant que ce nom l'est (§ 7).
 
 ## 12. Critère R5
 
@@ -521,3 +540,4 @@ Ce qui le fait tenir :
 9. **Le toucher** : sur un écran tactile, on prend et on pose d'un toucher, et l'on tourne par le bouton « Tourner » de la pièce en main ([#80](https://github.com/DavidGiangiacomo/strates/issues/80)). Est-ce encore le même jeu ? À voir au playtest.
 10. **Les objets des caves** : leur réception est décrite par famille (§ 8). À préciser avec le catalogue ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)), et à mesurer avec [#81](https://github.com/DavidGiangiacomo/strates/issues/81).
 11. **La remontée finale** (§ 10) : à décider avec [#128](https://github.com/DavidGiangiacomo/strates/issues/128).
+12. **Sans limer avec la vraie nomenclature** (§ 7) : un assemblage sans un coup de lime existe sur le plan de 12 × 12, mais avec d'autres pièces. Les comptes de la nomenclature le permettent : 316 demi-côtés dentés et 204 lisses, juste ce qu'il faut pour que les dents engrènent toutes et que 48 côtés lisses bordent le cadre. Aucun assemblage n'a encore été construit avec elle. S'il n'en existe pas, l'acte du maître est impossible : à vérifier avec l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)).

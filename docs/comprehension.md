@@ -190,7 +190,12 @@ Ce sont les formules des fiches (§ 3 et § 7) : le coût d'un exemplaire, la r�
   - Le chœur et le fond n'en ont pas. Une strate ajoutée au registre y passera, avec son joueur.
 - **En jeu**, aucune formule ne se voit encore : κ vaut au plus 8 dans les caves. Les outils de développement fixent κ pour les voir.
 
-**À venir** : les actes propres des strates 3 à 7, avec leurs fiches.
+**Fait par [#95](https://github.com/DavidGiangiacomo/strates/issues/95)** : l'atelier branché sur κ et sur l'opacité ([fiche](strates/strate-3.md), § 7).
+- **Ses trois actes propres** entrent au barème : la gêne défaite avant que l'atelier ne la montre, le premier plan plein qui tourne, le seuil sans limer. Avec « sans aide » et « sans artefact », l'atelier a ses 16 points.
+- **Son opacité** : les noms des pièces (sauf la roue), leurs valeurs et le rôle de la lime. Ils se lèvent à l'usage, par les deux fenêtres et le cahier à lignes, ou au délai.
+- **Mesuré** : rien encore. Les joueurs automatiques de l'atelier viendront avec l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)).
+
+**À venir** : les actes propres des strates 4 à 7, avec leurs fiches.
 
 ## 9. Questions ouvertes
 
