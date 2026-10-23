@@ -22,7 +22,25 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-function monter(modifs: (etat: EtatAtelier) => void = () => {}, mode: "jeu" | "remontee" = "jeu") {
+/**
+ * La couche d'opacité, simulée : les éléments encore opaques rendent un glyphe à la place de leurs
+ * textes, comme le noyau (docs/comprehension.md, § 4).
+ */
+function couche(opaques: readonly string[] = []) {
+  const cachees = new Set(
+    (logique.opacite ?? []).filter((e) => opaques.includes(e.id)).flatMap((e) => e.cles ?? []),
+  );
+  return {
+    o: (cle: string) => (cachees.has(cle) ? "◇" : (strate.textes[cle] ?? `?${cle}`)),
+    lisible: (element: string) => !opaques.includes(element),
+  };
+}
+
+function monter(
+  modifs: (etat: EtatAtelier) => void = () => {},
+  mode: "jeu" | "remontee" = "jeu",
+  opaques: readonly string[] = [],
+) {
   const etat = $state(etatInitial());
   modifs(etat);
   const actions: ActionAtelier[] = [];
@@ -32,8 +50,7 @@ function monter(modifs: (etat: EtatAtelier) => void = () => {}, mode: "jeu" | "r
       etat,
       agir: (action: ActionAtelier) => actions.push(action),
       noyau: commandes,
-      o: (cle: string) => strate.textes[cle] ?? `?${cle}`,
-      lisible: () => true,
+      ...couche(opaques),
       mode,
       son: SILENCE,
     },
@@ -263,6 +280,30 @@ describe("la vue de l'atelier", () => {
     expect(actions).toEqual([{ type: "tourner", repere: 1 }]);
   });
 
+  it("cache, tant qu'ils sont opaques, les noms, les valeurs et le mot qui dit ce que fait la lime", () => {
+    monter(
+      (e) => {
+        e.cumul = 900;
+        e.pieces.push({ id: "cliquet", repere: 3, case: null, rot: 1, limees: [] });
+      },
+      "jeu",
+      ["nom.cliquet", "valeurs", "lime"],
+    );
+    // Le nom du cliquet et sa valeur : des glyphes. Ceux de la roue, qui tourne dès l'arrivée, non.
+    expect(texte("[data-test=nomenclature-cliquet] .designation")).toBe("◇ ◇");
+    expect(texte("[data-test=nomenclature-cliquet] td:nth-child(5)")).toBe("◇");
+    expect(texte("[data-test=nomenclature-roue] .designation")).toBe(
+      "Roue dentée Quatre côtés dentés.",
+    );
+    // La lime sur l'établi, sans légende ; en main, ses boutons la montrent sans dire « Limer ».
+    expect(texte(".lime figcaption")).toBe("◇");
+    cliquer('.etabli [data-piece="3"]');
+    const bouton = document.querySelector("[data-test=limer-1]")!;
+    expect(bouton.querySelector(".dessin-lime")).not.toBeNull();
+    expect(texte("[data-test=limer-1]")).toBe("à droite");
+    expect(bouton.getAttribute("aria-label")).toBe("◇ à droite");
+  });
+
   it("propose de limer les côtés dentés de la pièce en main", () => {
     const { actions } = monter((e) =>
       e.pieces.push({ id: "cliquet", repere: 3, case: null, rot: 1, limees: [] }),
@@ -271,6 +312,9 @@ describe("la vue de l'atelier", () => {
     expect(document.querySelectorAll("[data-test^=limer-]")).toHaveLength(1);
     cliquer("[data-test=limer-1]");
     expect(actions).toEqual([{ type: "limer", repere: 3, cote: 1 }]);
+    // La lime a son rôle : le bouton le dit, sans dessin.
+    expect(texte("[data-test=limer-1]")).toBe("Limer à droite");
+    expect(document.querySelector("[data-test=limer-1] .dessin-lime")).toBeNull();
   });
 
   it("ne dit un frottement qu'au bout d'un tour, en mots comme en trait", () => {

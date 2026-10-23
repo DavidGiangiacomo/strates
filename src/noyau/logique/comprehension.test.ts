@@ -26,10 +26,10 @@ describe("le barème de la Compréhension", () => {
     expect(paliers).toEqual([8, 22, 38, 55, 70, 85, 96, 100]);
   });
 
-  it("donne aux strates 1, 2 et 8 toute leur progression, et jamais plus aux autres", () => {
-    for (const n of [1, 2, 8] as const) expect(somme(BAREME[n])).toBe(PROGRESSION[n]);
-    // Les actes propres des strates 3 à 7 viendront avec leurs fiches.
-    for (const n of [3, 4, 5, 6, 7] as const) {
+  it("donne aux strates 1, 2, 3 et 8 toute leur progression, et jamais plus aux autres", () => {
+    for (const n of [1, 2, 3, 8] as const) expect(somme(BAREME[n])).toBe(PROGRESSION[n]);
+    // Les actes propres des strates 4 à 7 viendront avec leurs fiches.
+    for (const n of [4, 5, 6, 7] as const) {
       expect(somme(BAREME[n])).toBeLessThan(PROGRESSION[n]);
     }
   });

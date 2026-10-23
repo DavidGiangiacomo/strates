@@ -1,13 +1,14 @@
 // L'atelier : on place. Une pièce ne vaut que par l'endroit où elle est, et elle ne tourne que si elle
 // tient au ressort, de dent en dent (docs/strates/strate-3.md, § 3). Le seuil : l'assemblage achevé,
-// sans aucune case libre (§ 4). L'opacité et les actes de compréhension arrivent avec #95 ; les objets
-// d'en haut, hors multiplicateurs, avec #81.
+// sans aucune case libre (§ 4). L'opacité lève les noms, les valeurs et le rôle de la lime, et la
+// logique signale ses actes de compréhension (§ 7).
 import { CATALOGUE } from "../../../noyau/logique/catalogue";
 import { EFFETS_NEUTRES } from "../../../noyau/logique/effets";
 import { avanceeFissure } from "../../../noyau/logique/filet";
 import type {
   ContexteTick,
   EffetsActifs,
+  ElementOpaque,
   Formule,
   GrapheDependances,
   LogiqueStrate,
@@ -16,6 +17,7 @@ import { textes } from "../textes.fr";
 import { etatInitial, TAILLE_LEGENDE, type EtatAtelier, type PieceAtelier } from "./etat";
 import { ecrireLigne, remplir } from "./notation";
 import {
+  ACTES,
   AGRANDISSEMENTS,
   analyser,
   assemblageAcheve,
@@ -24,10 +26,14 @@ import {
   dente,
   estCase,
   largeur,
+  PIECES,
   placeLibre,
+  premierPlanPlein,
   prixPiece,
   prochainAgrandissement,
   restantes,
+  sansLimer,
+  TAILLE_ARRIVEE,
   TAILLE_MAX,
   TOUR,
   type Analyse,
@@ -110,32 +116,65 @@ function entrainees(analyse: Analyse): Set<number> {
  * Les gênes en cours, après un geste : un frottement qui dure garde son heure, un nouveau prend celle
  * du geste, et un frottement défait est oublié. Une pièce qu'on vient de poser ou de déplacer repart
  * pour un tour : ses frottements, et ceux qu'elle subit, prennent l'heure du geste, même quand elle
- * frotte comme avant.
+ * frotte comme avant. Renvoie le nombre de frottements défaits avant d'avoir duré un tour.
  */
-function suivreGenes(etat: EtatAtelier, analyse: Analyse, bougees: readonly number[]): void {
+function suivreGenes(etat: EtatAtelier, analyse: Analyse, bougees: readonly number[]): number {
   const actuels = new Set(analyse.frottements.map((f) => f.cle));
-  for (const cle of Object.keys(etat.genes)) if (!actuels.has(cle)) delete etat.genes[cle];
+  let defaites = 0;
+  for (const [cle, debut] of Object.entries(etat.genes)) {
+    if (actuels.has(cle)) continue;
+    if (etat.temps - debut < TOUR - EPSILON) defaites++;
+    delete etat.genes[cle];
+  }
   for (const f of analyse.frottements) {
     const bouge = bougees.includes(f.piece) || (f.autre !== undefined && bougees.includes(f.autre));
     if (bouge) etat.genes[f.cle] = etat.temps;
     else etat.genes[f.cle] ??= etat.temps;
   }
+  return defaites;
+}
+
+/**
+ * Les gestes qui défont une gêne en la comprenant (fiche, § 7) : tourner, déplacer, échanger, mettre
+ * de côté. La lime n'en est pas, ni l'agrandissement, qui éloigne le cadre.
+ */
+const DEFONT_UNE_GENE: ReadonlySet<string> = new Set([
+  "tourner",
+  "deplacer",
+  "echanger",
+  "mettreDeCote",
+]);
+
+/**
+ * Les levées par l'usage (fiche, § 7) : une pièce prend son nom quand un exemplaire tourne, les
+ * valeurs se lèvent au premier agrandissement, la lime prend sa légende au premier coup. Chaque geste
+ * les redit : le noyau ne note une levée qu'une fois, et une partie commencée avant l'opacité les
+ * retrouve au geste suivant.
+ */
+function lever(etat: EtatAtelier, analyse: Analyse, ctx: ContexteTick): void {
+  const nommees = new Set<IdPiece>();
+  for (const p of etat.pieces) if (analyse.pieces.get(p.repere)?.entrainee) nommees.add(p.id);
+  for (const id of nommees) ctx.emettre({ type: "levee", element: `nom.${id}` });
+  if (etat.taille > TAILLE_ARRIVEE) ctx.emettre({ type: "levee", element: "valeurs" });
+  if (!sansLimer(etat)) ctx.emettre({ type: "levee", element: "lime" });
 }
 
 /**
  * Après chaque geste, la logique refait les contacts, l'entraînement et la production (fiche, § 3), et
  * la légende note ce qui a changé : une pièce qui se met à tourner est ajustée, une pièce qui s'arrête
  * ne tourne plus. Une pièce qu'on vient de poser ou de déplacer a toujours sa ligne. Un frottement ne
- * s'y écrit qu'au bout d'un tour.
+ * s'y écrit qu'au bout d'un tour. Les levées sont redites, et les actes du plan constatés (§ 7) : une
+ * gêne défaite avant d'avoir duré un tour, le premier plan plein qui tourne.
  */
 function actualiser(
   etat: EtatAtelier,
   ctx: ContexteTick,
   avant: Set<number>,
   bougees: readonly number[] = [],
+  geste?: ActionAtelier["type"],
 ): void {
   const analyse = analyser(etat);
-  suivreGenes(etat, analyse, bougees);
+  const defaites = suivreGenes(etat, analyse, bougees);
   for (const [piece, info] of analyse.pieces) {
     const bougee = bougees.includes(piece);
     if (info.entrainee && (bougee || !avant.has(piece)))
@@ -144,16 +183,22 @@ function actualiser(
       ecrire(etat, ctx, "legende.immobile", { piece });
     }
   }
+  lever(etat, analyse, ctx);
+  if (defaites > 0 && geste !== undefined && DEFONT_UNE_GENE.has(geste)) {
+    ctx.emettre({ type: "acte", acte: ACTES.geneDefaite });
+  }
+  if (premierPlanPlein(etat, analyse)) ctx.emettre({ type: "acte", acte: ACTES.premierPlanPlein });
 }
 
 /**
  * Le seuil (fiche, § 4) : atteint au geste qui achève l'assemblage, il le reste. La légende l'écrit :
- * « Il ne reste aucune case. »
+ * « Il ne reste aucune case. » Sans un seul coup de lime, c'est un acte (§ 7).
  */
 function verifierSeuil(etat: EtatAtelier, ctx: ContexteTick): void {
   if (etat.seuilAtteintA !== null || !assemblageAcheve(etat)) return;
   etat.seuilAtteintA = etat.temps;
   ecrire(etat, ctx, "cases.aucune");
+  if (sansLimer(etat)) ctx.emettre({ type: "acte", acte: ACTES.sansLimer });
 }
 
 /** Un frottement se montre : il a duré un tour. */
@@ -373,9 +418,41 @@ function appliquer(etat: EtatAtelier, action: ActionAtelier, ctx: ContexteTick):
       const bougees = geste(etat, action);
       if (bougees === null) return;
       if (action.type === "limer") ecrire(etat, ctx, "legende.limee", { piece: action.repere });
-      actualiser(etat, ctx, avant, bougees);
+      actualiser(etat, ctx, avant, bougees, action.type);
     }
   }
+}
+
+/** Les objets d'en haut qui lèvent l'opacité dès l'arrivée (fiche, § 8). */
+const FENETRES = "s1-double-ecran";
+const CAHIER = "s2-registre";
+
+/**
+ * L'opacité (fiche, § 7) : le sens des choses. Les dents, le mouvement, le cadre, les cases libres, les
+ * prix et le stock, dont dépend le seuil, ne se cachent jamais.
+ * - Les noms : une pièce prend le sien quand un exemplaire tourne ; la roue, qui tourne dès l'arrivée,
+ *   l'a toujours. Chaque note se lève avec le nom qu'elle dit : celles de la seconde série citent la
+ *   pièce de la première dont elles ont le profil, dans le même ordre (« Profil du cliquet. »).
+ * - Les valeurs, la production de base de chaque pièce, se lèvent au premier agrandissement.
+ * - Le rôle de la lime : sa légende et le mot « Limer », au premier coup.
+ * Le délai L(κ) les lève toutes ; les deux fenêtres lèvent les noms, le cahier à lignes tout.
+ */
+function opacite(): ElementOpaque[] {
+  const notes = new Map(PIECES.map((d) => [d.id, [`piece.${d.id}.note`]]));
+  for (let i = 0; i < 5; i++) {
+    notes.set(PIECES[i]!.id, [...notes.get(PIECES[i]!.id)!, `piece.${PIECES[i + 5]!.id}.note`]);
+    notes.set(PIECES[i + 5]!.id, []);
+  }
+  const noms: ElementOpaque[] = PIECES.filter((d) => d.id !== "roue").map((d) => ({
+    id: `nom.${d.id}`,
+    cles: [`piece.${d.id}`, ...notes.get(d.id)!],
+    objets: [FENETRES, CAHIER],
+  }));
+  return [
+    ...noms,
+    { id: "valeurs", cles: ["nomenclature.base.valeur"], objets: [CAHIER] },
+    { id: "lime", cles: ["lime", "main.limer", "noeud.lime"], objets: [CAHIER] },
+  ];
 }
 
 export const logique: LogiqueStrate<EtatAtelier, ActionAtelier> = {
@@ -432,6 +509,7 @@ export const logique: LogiqueStrate<EtatAtelier, ActionAtelier> = {
 
   graphe,
   formules,
+  opacite: opacite(),
   rappel,
   // Les objets nommés (descente-1-2.md, § 6) : l'inventaire les montre sous leur nom d'en bas. Le noyau
   // ne garde que ceux du joueur.
