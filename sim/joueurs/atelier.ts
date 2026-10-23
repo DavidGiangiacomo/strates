@@ -25,6 +25,7 @@ import {
   dente,
   grille,
   largeur,
+  limable,
   oppose,
   PIECES,
   pieceVisible,
@@ -836,7 +837,8 @@ export function creerJoueur(noyau: Noyau, profil: ProfilAtelier, graine = 1) {
 
   /**
    * Lime une dent qui frotte, si elle n'engrène nulle part : une grande pièce peut engrener d'une moitié.
-   * Jamais la dent d'une pièce qui ne tourne pas, ni la dernière d'une pièce : il faudra la relier.
+   * Jamais la dent d'une pièce qui ne tourne pas : il faudra la relier. La dernière d'une pièce, le jeu
+   * la refuse.
    */
   function limerUneDent(e: EtatAtelier, a: Analyse): boolean {
     for (const f of a.frottements) {
@@ -845,7 +847,7 @@ export function creerJoueur(noyau: Noyau, profil: ProfilAtelier, graine = 1) {
       const info = a.pieces.get(f.piece)!;
       if (!info.entrainee || info.cotes[d]!.some((x) => x.contact === "engrene")) continue;
       const p = e.pieces.find((x) => x.repere === f.piece)!;
-      if (!dente(p, d) || COTES.filter((x) => dente(p, x)).length < 2) continue;
+      if (!limable(p, d)) continue;
       faire({ type: "limer", repere: f.piece, cote: d });
       return true;
     }

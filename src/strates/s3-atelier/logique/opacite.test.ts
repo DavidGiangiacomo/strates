@@ -97,31 +97,35 @@ describe("l'opacité de l'atelier", () => {
 });
 
 describe("les actes de l'atelier", () => {
-  /** L'arrivée, et un cliquet au-dessus de la première roue : son dos lisse contre la roue, sa dent contre le cadre. */
-  function gene() {
+  /**
+   * L'arrivée, et une pièce au-dessus de la première roue, un cliquet si on ne dit rien : son dos lisse
+   * contre la roue, sa dent du haut contre le cadre.
+   */
+  function gene(id: IdPiece = "cliquet") {
     const c = contexte();
     const etat = etatInitial();
-    const cliquet = ajouter(etat, "cliquet");
-    logique.agir(etat, { type: "poser", repere: cliquet, case: [0, 2] }, c.ctx);
+    const piece = ajouter(etat, id);
+    logique.agir(etat, { type: "poser", repere: piece, case: [0, 2] }, c.ctx);
     expect(Object.keys(etat.genes)).toHaveLength(2);
-    return { ...c, etat, cliquet };
+    return { ...c, etat, piece };
   }
 
   it("la gêne défaite avant que l'atelier ne la montre : tournée avant un tour", () => {
-    const { ctx, etat, cliquet, actes } = gene();
+    const { ctx, etat, piece, actes } = gene();
     for (let i = 0; i < 10; i++) logique.tick(etat, 0.5, ctx);
-    logique.agir(etat, { type: "tourner", repere: cliquet }, ctx);
+    logique.agir(etat, { type: "tourner", repere: piece }, ctx);
     expect(actes()).toEqual([ACTES.geneDefaite]);
   });
 
   it("ne compte pas une gêne déjà montrée, ni celle que la lime ou l'agrandissement défont", () => {
     const tard = gene();
     logique.tick(tard.etat, TOUR, tard.ctx);
-    logique.agir(tard.etat, { type: "tourner", repere: tard.cliquet }, tard.ctx);
+    logique.agir(tard.etat, { type: "tourner", repere: tard.piece }, tard.ctx);
     expect(tard.actes()).toEqual([]);
-    // La dent du cliquet, contre le cadre, limée tout de suite.
-    const lime = gene();
-    logique.agir(lime.etat, { type: "limer", repere: lime.cliquet, cote: 0 }, lime.ctx);
+    // La dent du haut, contre le cadre, limée tout de suite : celle d'un renvoi, qui garde l'autre.
+    // Le cliquet n'en a qu'une, que la lime ne prend pas.
+    const lime = gene("renvoi");
+    logique.agir(lime.etat, { type: "limer", repere: lime.piece, cote: 0 }, lime.ctx);
     expect(Object.keys(lime.etat.genes)).toHaveLength(1);
     expect(lime.actes()).toEqual([]);
     // Le plan agrandi éloigne le cadre : la gêne contre lui disparaît, sans acte.

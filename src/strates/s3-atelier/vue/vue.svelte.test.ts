@@ -217,6 +217,22 @@ describe("la vue de l'atelier", () => {
     expect(piece.classList.contains("limee")).toBe(false);
   });
 
+  it("au clavier, ne lève pas la lime sur une pièce qui n'a qu'une dent", () => {
+    const { actions } = monter((e) =>
+      e.pieces.push({ id: "cliquet", repere: 3, case: [4, 0], rot: 0, limees: [] }),
+    );
+    const piece = document.querySelector<HTMLElement>('.plan [data-piece="3"]')!;
+    piece.focus();
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "l" }));
+    flushSync();
+    expect(piece.classList.contains("limee")).toBe(false);
+    expect(document.querySelector('[role="status"]')?.textContent?.trim()).toBe("");
+    // La flèche suivante déplace le curseur, sans rien limer.
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp" }));
+    flushSync();
+    expect(actions).toEqual([]);
+  });
+
   it("garde le focus sur le plan quand la case du curseur se remplit", () => {
     const { appliquer } = monter((e) =>
       e.pieces.push({ id: "roue", repere: 3, case: null, rot: 0, limees: [] }),
@@ -315,7 +331,7 @@ describe("la vue de l'atelier", () => {
     monter(
       (e) => {
         e.cumul = 900;
-        e.pieces.push({ id: "cliquet", repere: 3, case: null, rot: 1, limees: [] });
+        e.pieces.push({ id: "renvoi", repere: 3, case: null, rot: 1, limees: [] });
       },
       "jeu",
       ["nom.cliquet", "valeurs", "lime"],
@@ -335,17 +351,28 @@ describe("la vue de l'atelier", () => {
     expect(bouton.getAttribute("aria-label")).toBe("◇ à droite");
   });
 
-  it("propose de limer les côtés dentés de la pièce en main", () => {
-    const { actions } = monter((e) =>
-      e.pieces.push({ id: "cliquet", repere: 3, case: null, rot: 1, limees: [] }),
-    );
+  it("propose de limer les côtés dentés de la pièce en main, sauf sa dernière dent", () => {
+    const { actions, appliquer } = monter((e) => {
+      e.pieces.push({ id: "renvoi", repere: 3, case: null, rot: 1, limees: [] });
+      e.pieces.push({ id: "cliquet", repere: 4, case: null, rot: 1, limees: [] });
+    });
+    const boutons = () =>
+      [...document.querySelectorAll("[data-test^=limer-]")].map((b) => b.getAttribute("data-test"));
+    // Le renvoi, tourné d'un quart, montre ses deux dents à droite et en bas.
     cliquer('.etabli [data-piece="3"]');
-    expect(document.querySelectorAll("[data-test^=limer-]")).toHaveLength(1);
+    expect(boutons()).toEqual(["limer-1", "limer-2"]);
     cliquer("[data-test=limer-1]");
     expect(actions).toEqual([{ type: "limer", repere: 3, cote: 1 }]);
     // La lime a son rôle : le bouton le dit, sans dessin.
     expect(texte("[data-test=limer-1]")).toBe("Limer à droite");
     expect(document.querySelector("[data-test=limer-1] .dessin-lime")).toBeNull();
+    // Limé à droite, il ne garde que sa dent du bas : la dernière, que la lime ne prend pas.
+    appliquer();
+    expect(boutons()).toEqual([]);
+    // Le cliquet n'en a qu'une : la lime ne s'y propose jamais.
+    cliquer('.etabli [data-piece="4"]');
+    expect(document.querySelector("[data-test=main]")).not.toBeNull();
+    expect(boutons()).toEqual([]);
   });
 
   it("ne dit un frottement qu'au bout d'un tour, en mots comme en trait", () => {
@@ -506,7 +533,7 @@ describe("les sons de l'atelier", () => {
     const { appliquer, sons } = monter((e) => {
       e.stock = 1e6;
       e.cumul = 1e6;
-      e.pieces.push({ id: "cliquet", repere: 3, case: null, rot: 0, limees: [] });
+      e.pieces.push({ id: "renvoi", repere: 3, case: null, rot: 0, limees: [] });
     });
     // Poser : un clic de métal, à gauche du plan, d'où vient la pièce.
     cliquer('.etabli [data-piece="3"]');
@@ -527,7 +554,7 @@ describe("les sons de l'atelier", () => {
       .dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
     appliquer();
     expect(sons.joues().at(-1)).toBe("cran");
-    // Limer : la dent du cliquet, tournée à droite.
+    // Limer : la dent du haut du renvoi, tournée à droite. Il garde l'autre.
     cliquer('.plan [data-piece="3"]');
     cliquer("[data-test=limer-1]");
     appliquer();

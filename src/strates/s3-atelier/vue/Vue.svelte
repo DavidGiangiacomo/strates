@@ -23,6 +23,7 @@
     dente,
     grille,
     largeur,
+    limable,
     PIECES,
     pieceDAvance,
     pieceVisible,
@@ -372,11 +373,14 @@
       avancer(direction);
       return;
     }
-    // R tourne, L lève la lime : la pièce sous le curseur, sinon celle qu'on tient.
+    // R tourne, L lève la lime : la pièce sous le curseur, sinon celle qu'on tient. La lime ne se
+    // lève pas sur une pièce qui n'a plus qu'une dent : elle ne la prend jamais.
     const cible = visee() ?? enMain;
     if (!cible) return;
     if (e.key === "r" || e.key === "R") envoyer({ type: "tourner", repere: cible.repere });
-    if ((e.key === "l" || e.key === "L") && COTES.some((d) => dente(cible, d))) lime = cible.repere;
+    if ((e.key === "l" || e.key === "L") && COTES.some((d) => limable(cible, d))) {
+      lime = cible.repere;
+    }
   }
 </script>
 
@@ -582,8 +586,9 @@
               }}>{o("main.de-cote")}</button
             >
           {/if}
+          <!-- La lime ne se propose pas sur la dernière dent d'une pièce. -->
           {#each COTES as d (d)}
-            {#if dente(enMain, d)}
+            {#if limable(enMain, d)}
               <!-- Avant le premier coup, la lime dessinée, sans le mot qui dit ce qu'elle fait. -->
               <button
                 class="limer"
