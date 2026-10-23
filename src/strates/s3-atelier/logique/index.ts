@@ -192,13 +192,12 @@ function actualiser(
 
 /**
  * Le seuil (fiche, § 4) : atteint au geste qui achève l'assemblage, il le reste. La légende l'écrit :
- * « Il ne reste aucune case. » Sans un seul coup de lime, c'est un acte (§ 7).
+ * « Il ne reste aucune case. »
  */
 function verifierSeuil(etat: EtatAtelier, ctx: ContexteTick): void {
   if (etat.seuilAtteintA !== null || !assemblageAcheve(etat)) return;
   etat.seuilAtteintA = etat.temps;
   ecrire(etat, ctx, "cases.aucune");
-  if (sansLimer(etat)) ctx.emettre({ type: "acte", acte: ACTES.sansLimer });
 }
 
 /** Un frottement se montre : il a duré un tour. */

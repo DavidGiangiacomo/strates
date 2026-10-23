@@ -37,9 +37,8 @@ export const BAREME: Bareme = {
   3: {
     [SANS_AIDE]: 4,
     [SANS_ARTEFACT]: 3,
-    "gene-defaite": 3,
-    "premier-plan-plein": 3,
-    "sans-limer": 3,
+    "gene-defaite": 5,
+    "premier-plan-plein": 4,
   },
   4: { [SANS_AIDE]: 4, [SANS_ARTEFACT]: 3 },
   5: { [SANS_AIDE]: 4, [SANS_ARTEFACT]: 3 },

@@ -8,11 +8,13 @@ import {
   LIMITE_I5,
   lireArguments,
   OBJETS_JEU_CORRECT,
+  OBJETS_JEU_CORRECT_ATELIER,
   rediger,
   simuler,
   verdictI5,
   type Partie,
 } from "../sim/simulateur";
+import { preselection } from "../src/noyau/logique/artefacts";
 
 describe("les arguments du simulateur", () => {
   it("jouent le joueur correct, sans objet, 4 h au plus, si on ne dit rien de plus", () => {
@@ -52,6 +54,13 @@ describe("les arguments du simulateur", () => {
       comparer: true,
       objets: OBJETS_JEU_CORRECT,
     });
+    // L'atelier reçoit ceux de la surface et ceux des caves ; son joueur par défaut est le naturel.
+    expect(lireArguments(["3", "--comparer"])).toMatchObject({
+      strate: "atelier",
+      joueurs: ["naturel"],
+      objets: OBJETS_JEU_CORRECT_ATELIER,
+    });
+    expect(OBJETS_JEU_CORRECT_ATELIER).toEqual([...OBJETS_JEU_CORRECT, ...preselection(9, 2)]);
   });
 
   it("jouent la surface une seule fois : aucun objet n'y arrive", () => {
@@ -63,7 +72,7 @@ describe("les arguments du simulateur", () => {
 
   it("disent ce qui ne va pas", () => {
     expect(() => lireArguments([])).toThrow(/Quelle strate/);
-    expect(() => lireArguments(["atelier"])).toThrow(/Strate inconnue : atelier/);
+    expect(() => lireArguments(["reseau"])).toThrow(/Strate inconnue : reseau/);
     expect(() => lireArguments(["caves", "parfait"])).toThrow(
       /Joueur inconnu pour caves : parfait/,
     );
@@ -147,7 +156,7 @@ describe("les parties simulées", () => {
 
   it("s'arrête sur une erreur, avec le mode d'emploi", () => {
     expect(() =>
-      execFileSync("node", ["sim/simuler.mjs", "atelier"], { encoding: "utf8", stdio: "pipe" }),
-    ).toThrow(/Strate inconnue : atelier/);
+      execFileSync("node", ["sim/simuler.mjs", "reseau"], { encoding: "utf8", stdio: "pipe" }),
+    ).toThrow(/Strate inconnue : reseau/);
   });
 });

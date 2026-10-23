@@ -17,7 +17,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "sauvegardes": "vitest run tests/sauvegardes-nommees.test.ts --update",
-    "mesures": "vitest run tests/equilibrage-surface.test.ts tests/equilibrage-caves.test.ts --update",
+    "mesures": "vitest run tests/equilibrage-surface.test.ts tests/equilibrage-caves.test.ts tests/equilibrage-atelier.test.ts --update",
     "analyse": "node src/playtest/analyser.mjs",
     "simuler": "node sim/simuler.mjs"
   },

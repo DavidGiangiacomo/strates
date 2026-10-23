@@ -3,6 +3,7 @@
 // strate, et les formules s'y écrivent une à une au-delà. Une strate ajoutée au registre y passe aussi,
 // avec son joueur automatique.
 import { describe, expect, it } from "vitest";
+import { creerJoueur as joueurAtelier, NATUREL as NATUREL_ATELIER } from "../sim/joueurs/atelier";
 import { CORRECT as CORRECT_CAVES, creerJoueur as joueurCaves } from "../sim/joueurs/caves";
 import { CORRECT as CORRECT_SURFACE, creerJoueur as joueurSurface } from "../sim/joueurs/surface";
 import { formulesAccessibles } from "../src/noyau/logique/comprehension";
@@ -13,20 +14,36 @@ import type { StrateQuelconque } from "../src/noyau/logique/registre";
 import type { NumeroStrate } from "../src/noyau/logique/types";
 import { formulesAffichees } from "../src/noyau/ui/graphe";
 import { creerRegistre } from "../src/strates/registre";
+import type { EtatAtelier } from "../src/strates/s3-atelier/logique";
 
 /** Les strates qui n'ont rien à calculer : le chœur ne montre jamais de nombres, le fond n'a rien. */
 const SANS_FORMULES: readonly NumeroStrate[] = [5, 8];
 
 /**
- * Les strates dont le seuil n'est pas encore codé : l'atelier (#79). Leurs formules se lisent sur le
- * graphe de l'arrivée, jusqu'à ce qu'un joueur automatique puisse les mener au seuil.
+ * Les strates dont le seuil n'est pas encore codé : aucune pour l'instant. Leurs formules se lisent
+ * sur le graphe de l'arrivée, jusqu'à ce qu'un joueur automatique puisse les mener au seuil.
  */
-const SEUIL_A_VENIR: readonly NumeroStrate[] = [3];
+const SEUIL_A_VENIR: readonly NumeroStrate[] = [];
 
 /** Le joueur automatique de chaque strate du registre : une strate ajoutée y donne le sien. */
 const JOUEURS: Partial<Record<NumeroStrate, (noyau: Noyau) => { seconde(t: number): void }>> = {
   1: (noyau) => joueurSurface(noyau, CORRECT_SURFACE),
   2: (noyau) => joueurCaves(noyau, CORRECT_CAVES),
+  // L'atelier se joue par passages, dont les gestes prennent leur temps ; entre deux, une seconde.
+  3: (noyau) => {
+    const joueur = joueurAtelier(noyau, NATUREL_ATELIER);
+    const temps = () => (noyau.etatStrate as EtatAtelier).temps;
+    let prochainPassage = 0;
+    return {
+      seconde() {
+        if (temps() >= prochainPassage) {
+          prochainPassage = temps() + NATUREL_ATELIER.attention;
+          joueur.passage();
+        }
+        if (!noyau.seuil.atteint && temps() < prochainPassage) noyau.avancer(1);
+      },
+    };
+  },
 };
 
 /**
@@ -119,5 +136,6 @@ describe("les formules des strates du jeu", () => {
       }
       expect(ecrites(100), `strate ${numero}`).toHaveLength(formules.length);
     }
-  });
+    // Une partie de l'atelier prend quelques secondes : son joueur cherche chaque fois sa case.
+  }, 60_000);
 });

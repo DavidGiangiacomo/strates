@@ -41,14 +41,14 @@ La progression du §9 est le **maximum** : le joueur qui accomplit tous les acte
 |---|---|---|---|---|---|
 | 1 · La surface | 0 | 8 | 3 | — | creuser avant la fissure, sans y avoir été poussé : 5 |
 | 2 · Les caves | 8 | 14 | 3 | 3 | le premier hiver sans rupture, soudure comprise : 3 ; une année sans achat d'automne et sans rupture : 2 ; le seuil au plus tôt, sans grand hiver manqué : 3 |
-| 3 · L'atelier | 22 | 16 | 4 | 3 | la gêne défaite avant que l'atelier ne la montre : 3 ; le premier plan plein qui tourne : 3 ; le seuil sans limer : 3 |
+| 3 · L'atelier | 22 | 16 | 4 | 3 | la gêne défaite avant que l'atelier ne la montre : 5 ; le premier plan plein qui tourne : 4 |
 | 4 · Le réseau | 38 | 17 | 4 | 3 | à définir par sa fiche : 10, dont le goulot trouvé avant que le réseau ne le signale |
 | 5 · Le chœur | 55 | 15 | 4 | 3 | à définir par sa fiche : 8, dont un rapport juste réglé à l'œil |
 | 6 · La dette | 70 | 15 | 3 | 3 | la grande crue honorée, sans défaut : 4 ; toute la strate sans une échéance reportée : 3 ; la grande crue fixée au plus juste, puis honorée : 2 |
 | 7 · Le lit | 85 | 11 | 2 | 3 | à définir par sa fiche : 6, dont la patience (peu de gestes jusqu'à la descente) |
 | 8 · Le fond | 96 | 4 | — | — | y arriver |
 
-- Les actes des strates 1 à 3 viennent de leurs fiches (§ 7). Ceux des strates 1 et 2 sont revus ici : à la surface, « creuser sans y avoir été poussé » pèse plus que « sans aide », que tout joueur d'incrémentaux fait sans y penser ; dans les caves, « sans artefact » remplace « le premier grand hiver au premier essai », que contient déjà « le seuil au plus tôt ».
+- Les actes des strates 1 à 3 viennent de leurs fiches (§ 7). Ceux des strates 1 et 2 sont revus ici : à la surface, « creuser sans y avoir été poussé » pèse plus que « sans aide », que tout joueur d'incrémentaux fait sans y penser ; dans les caves, « sans artefact » remplace « le premier grand hiver au premier essai », que contient déjà « le seuil au plus tôt ». Dans l'atelier, « le seuil sans limer » a quitté le barème à l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)) : ses 3 points sont allés à la gêne défaite et au premier plan plein.
 - **Un jeu correct** en gagne environ les deux tiers, et arrive au fond vers κ = 65. C'est une estimation : elle sera mesurée au fil des strates, avec leurs joueurs automatiques.
 
 ## 3. Les paliers
@@ -193,7 +193,14 @@ Ce sont les formules des fiches (§ 3 et § 7) : le coût d'un exemplaire, la r�
 **Fait par [#95](https://github.com/DavidGiangiacomo/strates/issues/95)** : l'atelier branché sur κ et sur l'opacité ([fiche](strates/strate-3.md), § 7).
 - **Ses trois actes propres** entrent au barème : la gêne défaite avant que l'atelier ne la montre, le premier plan plein qui tourne, le seuil sans limer. Avec « sans aide » et « sans artefact », l'atelier a ses 16 points.
 - **Son opacité** : les noms des pièces (sauf la roue), leurs valeurs et le rôle de la lime. Ils se lèvent à l'usage, par les deux fenêtres et le cahier à lignes, ou au délai.
-- **Mesuré** : rien encore. Les joueurs automatiques de l'atelier viendront avec l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)).
+- **Mesuré** : avec l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)), ci-dessous.
+
+**Fait par [#96](https://github.com/DavidGiangiacomo/strates/issues/96)** : l'équilibrage de l'atelier ([fiche](strates/strate-3.md), § 14).
+- **Le seuil sans limer** quitte le barème. Un assemblage sans un coup de lime existe avec la vraie nomenclature, mais un recuit simulé a dû essayer plus de 3 millions d'échanges pour le trouver : c'est trop dur pour un acte. Ses 3 points vont aux deux autres actes propres. La gêne défaite passe à 5, comme « creuser avant la fissure », qui suit le même modèle (§ 2) ; le premier plan plein passe à 4. L'atelier garde ses 16 points.
+- **Mesuré par les joueurs automatiques** ([`strate-3-mesures.md`](strates/strate-3-mesures.md)) :
+  - un jeu correct gagne dans l'atelier 9 points sur 16 avec les objets, et 12 sans : « sans aide », la gêne défaite, et « sans artefact » s'il n'en a pas ;
+  - il ne remplit jamais le premier plan : il l'agrandit dès qu'il le peut ;
+  - arrivé avec κ = 19 ou 22, il descend au réseau avec κ = 28 s'il a gardé ses objets, 34 s'il n'en a jamais emporté. Comme dans les caves, ces chiffres sont un plafond : ces joueurs n'ouvrent jamais l'aide.
 
 **À venir** : les actes propres des strates 4 à 7, avec leurs fiches.
 

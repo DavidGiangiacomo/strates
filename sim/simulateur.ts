@@ -4,8 +4,10 @@
 // sans : toute strate doit se terminer en moins de 3 h 15 sans aucun artefact (I5, §9). Il
 // n'importe que la logique des strates (D-004). Il se lance par `npm run simuler` (simuler.mjs).
 import type { NumeroStrate } from "../src/noyau/logique/types";
+import * as joueursAtelier from "./joueurs/atelier";
 import * as joueursCaves from "./joueurs/caves";
 import * as joueursSurface from "./joueurs/surface";
+import { mesurerAtelier } from "./mesures/atelier";
 import { mesurerCaves } from "./mesures/caves";
 import { mesurerSurface } from "./mesures/surface";
 
@@ -19,6 +21,18 @@ export const OBJETS_JEU_CORRECT = [
   "s1-serveur",
   "s1-filiale",
   "s1-turbine",
+];
+
+/**
+ * Les objets d'un jeu correct jusqu'à l'atelier : ceux de la surface, puis la présélection de 9 points
+ * des caves, ce que leur joueur correct y gagne (docs/artefacts.md, § 8).
+ */
+export const OBJETS_JEU_CORRECT_ATELIER = [
+  ...OBJETS_JEU_CORRECT,
+  "s2-faucille",
+  "s2-calendrier",
+  "s2-registre",
+  "s2-meule",
 ];
 
 /** Une partie simulée, jusqu'au seuil ou jusqu'à la limite. */
@@ -43,7 +57,11 @@ interface StrateSimulee {
   unite: string;
   /** Peut-elle recevoir des objets d'en haut ? La surface, non : aucune strate n'est au-dessus. */
   recoitDesObjets: boolean;
+  /** Ce qu'emporte un jeu correct jusqu'à elle. */
+  jeuCorrect?: readonly string[];
   joueurs: Record<string, Joueur>;
+  /** Le joueur qui joue quand on n'en nomme aucun : « correct », sauf dans l'atelier. */
+  parDefaut?: string;
   jouer(joueur: string, options: { objets: string[]; limite: number }): Promise<Partie>;
 }
 
@@ -63,6 +81,16 @@ const JOUEURS_CAVES = {
   prudent: joueursCaves.PRUDENT,
   distrait: joueursCaves.DISTRAIT,
   "moins-cher": joueursCaves.MOINS_CHER,
+};
+
+const JOUEURS_ATELIER = {
+  parfait: joueursAtelier.PARFAIT,
+  naturel: joueursAtelier.NATUREL,
+  apprend: joueursAtelier.APPREND,
+  distrait: joueursAtelier.DISTRAIT,
+  prudent: joueursAtelier.PRUDENT,
+  desordonne: joueursAtelier.DESORDONNE,
+  reflexe: joueursAtelier.REFLEXE,
 };
 
 export const STRATES: Record<string, StrateSimulee> = {
@@ -94,6 +122,7 @@ export const STRATES: Record<string, StrateSimulee> = {
     nom: "Les caves",
     unite: "boisseaux",
     recoitDesObjets: true,
+    jeuCorrect: OBJETS_JEU_CORRECT,
     joueurs: JOUEURS_CAVES,
     async jouer(joueur, { objets, limite }) {
       const m = await mesurerCaves(JOUEURS_CAVES[joueur as keyof typeof JOUEURS_CAVES], {
@@ -112,10 +141,42 @@ export const STRATES: Record<string, StrateSimulee> = {
       return { seuil: m.seuil, valeur: m.cumul, points: m.points.auSeuil, details };
     },
   },
+  atelier: {
+    numero: 3,
+    nom: "L'atelier",
+    unite: "pièces",
+    recoitDesObjets: true,
+    jeuCorrect: OBJETS_JEU_CORRECT_ATELIER,
+    joueurs: JOUEURS_ATELIER,
+    parDefaut: "naturel",
+    async jouer(joueur, { objets, limite }) {
+      const m = await mesurerAtelier(JOUEURS_ATELIER[joueur as keyof typeof JOUEURS_ATELIER], {
+        limite,
+        artefacts: objets,
+      });
+      const quand = (t: number | null | undefined) => (t == null ? "jamais" : duree(t));
+      const details: [string, string][] = [
+        ["Plan de 12 × 12", quand(m.agrandissements[12])],
+        ["Toute la nomenclature achetée", quand(m.toutAchete)],
+        [
+          "Gestes de la dernière ajustée",
+          `${m.releve.gestesFin}, dont ${m.releve.limages} coups de lime`,
+        ],
+        [
+          "Plus longue attente entre deux achats",
+          duree(Math.max(0, ...m.attentes.map((a) => a.duree))),
+        ],
+        // Ce que les actes de la strate rapporteraient à la descente (docs/comprehension.md, § 2).
+        ["Compréhension gagnée", m.seuil === null ? "—" : `${m.kappa} sur 16`],
+      ];
+      if (objets.length > 0) details.push(["Plafond × 4 atteint", m.plafonne ? "oui" : "non"]);
+      return { seuil: m.seuil, valeur: m.cumul, points: m.points.auSeuil, details };
+    },
+  },
 };
 
 /** Les noms qu'on peut donner à une strate : son nom ou sa profondeur. */
-const ALIAS: Record<string, string> = { "1": "surface", "2": "caves" };
+const ALIAS: Record<string, string> = { "1": "surface", "2": "caves", "3": "atelier" };
 
 export interface Demande {
   strate: string;
@@ -131,9 +192,9 @@ export interface Demande {
 
 export const USAGE = `Usage : npm run simuler -- <strate> [joueur… | tous] [options]
 
-  strate        surface (ou 1), caves (ou 2)
-  joueur        correct par défaut ; « tous » les joue tous
-  --objets=…    les objets emportés de la surface : jeu-correct, ou une liste
+  strate        surface (ou 1), caves (ou 2), atelier (ou 3)
+  joueur        correct par défaut (naturel dans l'atelier) ; « tous » les joue tous
+  --objets=…    les objets emportés d'en haut : jeu-correct, ou une liste
                 d'identifiants séparés par des virgules (s1-equipe,s1-turbine)
   --comparer    chaque partie deux fois, sans objet puis avec (jeu-correct par
                 défaut), et le verdict d'I5 : le seuil en moins de 3 h 15 sans objet
@@ -141,7 +202,8 @@ export const USAGE = `Usage : npm run simuler -- <strate> [joueur… | tous] [op
   --json        les résultats en JSON
 
 Joueurs de la surface : ${Object.keys(JOUEURS_SURFACE).join(", ")}
-Joueurs des caves : ${Object.keys(JOUEURS_CAVES).join(", ")}`;
+Joueurs des caves : ${Object.keys(JOUEURS_CAVES).join(", ")}
+Joueurs de l'atelier : ${Object.keys(JOUEURS_ATELIER).join(", ")}`;
 
 /** Lit la ligne de commande ; lève une erreur qui dit quoi corriger. */
 export function lireArguments(args: readonly string[]): Demande {
@@ -167,7 +229,7 @@ export function lireArguments(args: readonly string[]): Demande {
   if (!def) throw new Error(`Strate inconnue : ${nomStrate}.`);
 
   const connus = Object.keys(def.joueurs);
-  const joueurs = nomsJoueurs.length === 0 ? ["correct"] : nomsJoueurs;
+  const joueurs = nomsJoueurs.length === 0 ? [def.parDefaut ?? "correct"] : nomsJoueurs;
   const liste = joueurs.includes("tous") ? connus : joueurs;
   for (const j of liste) {
     if (!connus.includes(j)) throw new Error(`Joueur inconnu pour ${strate} : ${j}.`);
@@ -178,7 +240,7 @@ export function lireArguments(args: readonly string[]): Demande {
   const texteObjets = options.get("objets") ?? (comparer ? "jeu-correct" : "");
   const objets =
     texteObjets === "jeu-correct"
-      ? [...OBJETS_JEU_CORRECT]
+      ? [...(def.jeuCorrect ?? OBJETS_JEU_CORRECT)]
       : texteObjets.split(",").filter((id) => id !== "");
   if (objets.length > 0 && !def.recoitDesObjets) {
     throw new Error(`${def.nom} ne reçoit aucun objet : aucune strate n'est au-dessus.`);

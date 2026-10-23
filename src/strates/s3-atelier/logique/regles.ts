@@ -526,8 +526,6 @@ export const ACTES = {
   geneDefaite: "gene-defaite",
   /** Le plan de l'arrivée rempli, tout entraîné et sans rien qui frotte, avant d'être agrandi. */
   premierPlanPlein: "premier-plan-plein",
-  /** Le seuil sans un seul coup de lime. */
-  sansLimer: "sans-limer",
 } as const;
 
 /** Le plan de 6 × 6 est-il plein, tout entraîné, sans rien qui frotte ? */

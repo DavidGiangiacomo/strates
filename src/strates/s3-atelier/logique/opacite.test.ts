@@ -7,7 +7,6 @@ import { Noyau } from "../../../noyau/logique/noyau";
 import { Registre, type StrateQuelconque } from "../../../noyau/logique/registre";
 import type { ContexteTick, EvenementStrate } from "../../../noyau/logique/types";
 import { logique, type ActionAtelier, type EtatAtelier, type PieceAtelier } from ".";
-import { atelierDernierePiece, CASE_DERNIERE } from "../../../dev/atelier";
 import { textes } from "../textes.fr";
 import { etatInitial } from "./etat";
 import { ACTES, assemblageAcheve, coinRessort, sansLimer, TOUR, type IdPiece } from "./regles";
@@ -207,27 +206,13 @@ describe("les actes de l'atelier", () => {
     return { ...c, etat, derniere };
   }
 
-  it("le seuil sans limer : l'assemblage achevé sans un seul coup de lime", () => {
+  it("ne compte pas le seuil : achevé sans un seul coup de lime, il ne signale aucun acte", () => {
     const { ctx, etat, derniere, actes } = planSansLime();
     expect(sansLimer(etat)).toBe(true);
     logique.agir(etat, { type: "poser", repere: derniere.repere, case: [3, 3] }, ctx);
     expect(assemblageAcheve(etat)).toBe(true);
     expect(etat.seuilAtteintA).not.toBeNull();
-    expect(actes()).toContain(ACTES.sansLimer);
-  });
-
-  it("ne compte pas le seuil atteint avec des dents limées", () => {
-    const { ctx, actes } = contexte();
-    const etat = atelierDernierePiece();
-    expect(sansLimer(etat)).toBe(false);
-    const derniere = etat.pieces.find((p) => !p.case)!;
-    logique.agir(
-      etat,
-      { type: "poser", repere: derniere.repere, case: CASE_DERNIERE, rot: derniere.rot },
-      ctx,
-    );
-    expect(etat.seuilAtteintA).not.toBeNull();
-    expect(actes()).not.toContain(ACTES.sansLimer);
+    expect(actes()).toEqual([]);
   });
 });
 

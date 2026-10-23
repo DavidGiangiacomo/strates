@@ -1,6 +1,6 @@
 # Strate 3 — L'atelier
 
-*Fiche de design, issue [#61](https://github.com/DavidGiangiacomo/strates/issues/61). Écrite après la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)) et le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)). Les chiffres viennent d'une simulation grossière de sept profils de joueur (§ 4), à refaire avec le simulateur headless quand la boucle sera codée ([#67](https://github.com/DavidGiangiacomo/strates/issues/67), [#96](https://github.com/DavidGiangiacomo/strates/issues/96)).*
+*Fiche de design, issue [#61](https://github.com/DavidGiangiacomo/strates/issues/61). Écrite après la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)) et le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)). Les chiffres viennent des joueurs automatiques de l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96), § 14), qui jouent la boucle codée à travers le noyau. Ils remplacent ceux d'une première simulation grossière, faite avant le code.*
 
 *Choix tranchés le 16 octobre 2026 :*
 - *les pièces tiennent une case et ont quatre côtés, dentés ou lisses, qu'on tourne pour les ajuster ; dans la dernière heure viennent quelques grandes pièces de deux cases sur deux ;*
@@ -183,33 +183,33 @@ Ce que la boucle a tranché en la codant ([#67](https://github.com/DavidGiangiac
 
 ### Progression
 
-Les temps sont ceux du joueur « naturel » de la simulation, sans aucun artefact. Avec les objets d'un jeu correct, la strate dure de 5 à 25 minutes de moins (§ 8).
+Les temps sont ceux du joueur « naturel » de la simulation, sans aucun artefact (§ 14). Avec les objets d'un jeu correct, la strate dure de 7 à 31 minutes de moins, selon le joueur (§ 8).
 
 | Temps | Étape | Contenu |
 |---|---|---|
-| 0 – 20 min | Le premier plan | 6 × 6. Roues dentées, cliquets, renvois, premiers pignons. On apprend qu'une pièce doit toucher le rouage pour tourner, que dent contre dent fait doubler, et que dent contre lisse fait frotter. |
-| 20 – 47 min | 8 × 8 | Pignons, secteurs, roues d'échappement. Le rouage se referme, et il faut lui laisser des dents. |
-| 47 – 89 min | 10 × 10 | Ancres, roues de champ, arbres : la seconde série, aux mêmes profils, des centaines de fois plus forte. Rien ne se remplace : chaque pièce doit trouver sa case. |
-| 89 – 155 min | 12 × 12, une grosse | Arbres, rochets, puis les grandes roues (2 h 10) et les balanciers (2 h 29). Il faut leur faire de la place. |
-| 155 – 162 min | La dernière ajustée | Tout est acheté. Tout poser, tout relier, limer ce qui frotte : 104 gestes, dont 61 coups de lime. Le seuil tombe à 2 h 42. |
+| 0 – 21 min | Le premier plan | 6 × 6. Roues dentées, cliquets, renvois, premiers pignons. On apprend qu'une pièce doit toucher le rouage pour tourner, que dent contre dent fait doubler, et que dent contre lisse fait frotter. |
+| 21 – 46 min | 8 × 8 | Pignons, secteurs, roues d'échappement. Le rouage se referme, et il faut lui laisser des dents. |
+| 46 – 94 min | 10 × 10 | Ancres, roues de champ, arbres : la seconde série, aux mêmes profils, des centaines de fois plus forte. Rien ne se remplace : chaque pièce doit trouver sa case. |
+| 94 – 144 min | 12 × 12, une grosse | Arbres, rochets, puis les grandes roues (2 h 14) et les balanciers (2 h 23). Il faut leur faire de la place. |
+| 144 – 146 min | La dernière ajustée | Tout est acheté. Tout poser, tout relier, limer ce qui frotte : 44 gestes, dont 34 coups de lime. Le seuil tombe à 2 h 26. |
 
 La boucle moyenne du §3, c'est **la couronne**. Trois fois dans la strate, le plan s'agrandit, une nouvelle série de pièces paraît, et il faut leur trouver une place dans un rouage qui tourne déjà. Entre deux couronnes, on achète une pièce, on lui cherche sa case, on tourne ses voisines.
 
-Le joueur naturel fait 126 achats. Après la première heure, il en fait encore 3 à 7 par tranche de 10 minutes, avec bien plus de gestes sur le plan, et n'attend jamais plus de 6 minutes entre deux achats.
+Le joueur naturel fait 123 achats. Après la première heure, il en fait encore 3 à 7 par tranche de 10 minutes, avec bien plus de gestes sur le plan, et n'attend jamais plus de 5 minutes entre deux achats.
 
 ### Un rouage fermé ne grandit plus
 
 - Une pièce ne tourne que si elle touche une dent du rouage. Si tout le bord du rouage est lisse, aucune pièce nouvelle ne peut tourner, où qu'on la pose.
 - Il faut donc **laisser des dents libres**, tournées vers les cases vides. La grammaire de l'atelier tient en deux règles : « dent contre dent », et « garder une dent pour la suite ».
 - Rouvrir un rouage fermé coûte un geste : tourner une pièce du bord.
-- La simulation l'a montré d'elle-même. Le premier joueur automatique, qui posait chaque pièce là où elle rapportait le plus, refermait son rouage dès le premier quart d'heure, et ne pouvait plus rien poser.
+- La simulation l'a montré d'elle-même. Le premier joueur automatique, qui posait chaque pièce là où elle rapportait le plus, refermait son rouage dès le premier quart d'heure, et ne pouvait plus rien poser. Ceux de l'équilibrage muraient le bord de leur rouage de cliquets, jusqu'à ce qu'ils gardent une dent tournée vers chaque région libre (§ 14).
 
 ### Le seuil
 
 - **Condition** : le plan à 12 × 12, **toutes les pièces de la nomenclature posées** (plus une case libre, plus rien sur l'établi), **rien ne frotte**, et **toutes les pièces entraînées**.
 - **Ce qu'il dit de la civilisation** : chaque pièce avait sa place, et la liste disait d'avance lesquelles. Quand tout a été ajusté, il n'y avait plus rien à placer.
-- **Pas d'accumulation seule (I4)** : l'accumulation achète toute la nomenclature, mais ne la monte pas. Le joueur réflexe, qui pose chaque pièce sur la première case libre sans la tourner, n'atteint jamais le seuil. Après cinq heures, il a acheté 47 pièces, presque aucune ne tourne, et il a produit 2,7 × 10⁶ pièces.
-- **Il existe des solutions, et beaucoup** : en partant d'un plan plein mélangé au hasard, un solveur simple en trouve une à chaque essai. Les outils de développement en construisent une d'un coup, avec la nomenclature réelle (`src/dev/atelier.ts`). Quatre colonnes descendent du haut du plan, et chacune tient, une ligne sur deux, ses deux voisines. Les grandes pièces tiennent par un seul côté, et toute dent sans vis-à-vis est limée. Les comptes y tombent juste : les tests le vérifient, et tout changement de la nomenclature à l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)) devra le garder.
+- **Pas d'accumulation seule (I4)** : l'accumulation achète toute la nomenclature, mais ne la monte pas. Le joueur réflexe, qui pose chaque pièce sur la première case libre sans la tourner, n'atteint jamais le seuil. Après cinq heures, il a acheté 46 pièces, moins de la moitié tournent, et il a produit 2,7 × 10⁶ pièces.
+- **Il existe des solutions, et beaucoup** : en partant d'un plan plein mélangé au hasard, un solveur simple en trouve une à chaque essai. Les outils de développement en construisent une d'un coup, avec la nomenclature réelle (`src/dev/atelier.ts`). Quatre colonnes descendent du haut du plan, et chacune tient, une ligne sur deux, ses deux voisines. Les grandes pièces tiennent par un seul côté, et toute dent sans vis-à-vis est limée. Les comptes y tombent juste : les tests le vérifient. L'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)) n'a pas changé la nomenclature.
 - **Issues** : une seule.
 - **L'objectif n'est jamais affiché comme tel.** Mais la légende compte les cases libres (« Il reste 53 cases. »), et l'atelier montre ce qui frotte et ce qui ne tourne pas. Au seuil, la légende écrit « Il ne reste aucune case. », et tout le plan tourne.
 - **Une fois atteint**, le seuil le reste.
@@ -222,37 +222,38 @@ Le joueur naturel fait 126 achats. Après la première heure, il en fait encore 
 Quand la dernière pièce est achetée, il reste à tout poser, à tout relier, et à ne plus rien laisser frotter.
 - **Les grandes pièces** demandent un carré libre de quatre cases dans un plan presque plein : on déplace des petites pièces pour le faire. Le joueur qui les voit venir dans la nomenclature peut leur garder la place.
 - **La lime** règle un frottement en un geste, si la dent n'est pas nécessaire au mouvement. Ce qu'elle ne règle pas, un échange le règle : il faut une pièce qui ait une dent du bon côté.
-- **Sans la lime**, une version précédente de la simulation demandait de 230 à 1 150 échanges pour finir, selon le profil et le hasard : jusqu'à deux heures de rangement. Avec elle, les joueurs réguliers finissent en 40 à 150 gestes, une centaine le plus souvent, dont plus de la moitié de coups de lime : de cinq à dix minutes, un quart d'heure au plus.
-- **Ranger en jouant paie.** Le joueur « désordonné », qui ne revoit jamais son plan, finit avec deux fois plus de défauts et une demi-heure de retard (§ 13, question 6).
+- **Sans la lime**, la première simulation demandait de 230 à 1 150 échanges pour finir, selon le profil et le hasard : jusqu'à deux heures de rangement. Avec elle, les joueurs réguliers de l'équilibrage finissent en 22 à 64 gestes, dont plus de la moitié de coups de lime : une à deux minutes après le dernier achat. Ils ont revu leur plan pendant la montée, et il ne leur reste presque rien à régler.
+- **Ranger en jouant paie.** Le joueur « désordonné », qui ne revoit jamais son plan, garde sur le plan de 12 × 12 trois fois plus de frottements que le joueur naturel. Il finit 42 minutes après le joueur naturel sans objets, 1 h 44 après avec (§ 13, question 6).
 
 ### Après le seuil
 
 - Le plan tourne, et les pièces viennent encore. Il n'y a plus rien à acheter ni à poser.
-- Un rouage achevé, où toutes les dents engrènent, produit neuf fois plus que pendant la montée : rester rapporte un point en un quart d'heure, puis un autre en une heure et demie (§ 9).
+- Un rouage achevé, où toutes les dents engrènent, produit plusieurs fois plus qu'à la fin de la montée, quand des dents frottaient encore : rester rapporte un point vers un quart d'heure, puis un autre vers 1 h 45 (§ 9).
 - **Filet** : comme partout, si le joueur n'a pas creusé 5 minutes après le seuil, une fissure part du ressort, traverse le plan et monte vers le bouton du bandeau (`src/noyau/logique/filet.ts`, `Fissure.svelte`).
 
 ### En simulation
 
-Sept joueurs automatiques, sans aucun artefact. Le script est un brouillon en Python, hors du dépôt ; il ne partage rien avec le code du jeu.
-- Tous, sauf le réflexe, posent chaque pièce là où la production monte le plus, en gardant des dents libres. Ils rouvrent leur rouage quand il est fermé.
+Sept joueurs automatiques (`sim/joueurs/atelier.ts`), sans aucun artefact. Ils jouent la strate codée à travers le noyau, geste par geste : la méthode est au § 14, le détail des mesures dans [`strate-3-mesures.md`](strate-3-mesures.md).
+- Tous, sauf le réflexe, achètent la pièce qui rapporte le plus pour son prix, et la posent là où la production monte le plus, en gardant des dents libres. Ils rouvrent leur rouage quand il est fermé.
 - Ils revoient leur plan de temps en temps : ils déplacent ou tournent ce qui frotte et ce qui ne tourne pas, s'ils n'y perdent rien.
 - À la fin, ils relient d'abord ce qui ne tourne pas, déplacent une grande pièce qui gêne, puis liment ce qui frotte encore.
-- Un geste prend 3 secondes (2 pour le joueur parfait). Un échange à la fin en compte deux : celui qu'on fait, et celui qu'on essaie.
+- Un geste prend 3 secondes (2 pour le joueur parfait), un quart de tour une seconde. Un échange en compte deux : celui qu'on fait, et celui qu'on essaie.
 
 | Profil | Jeu | Seuil | Points | Gestes de la fin |
 |---|---|---|---|---|
-| parfait | passe toutes les 2 s, revoit son plan chaque minute | 2 h 29 | 15 | 42 |
-| naturel | passe toutes les 5 s, revoit son plan toutes les 3 min | 2 h 42 | 16 (3,1 × 10¹¹) | 104 |
-| apprend | réflexe jusqu'à 10 min, puis naturel | 2 h 50 | 16 | 150 |
-| distrait | naturel ; passe chaque minute, revoit son plan toutes les 10 min | 2 h 52 | 16 | 93 |
-| prudent | naturel ; ne dépense jamais plus de la moitié de ce qu'il a | 2 h 55 | 16 | 80 |
-| désordonné | naturel, mais ne revoit jamais son plan | 3 h 16 | 16 | 119 |
-| réflexe | la pièce la moins chère, sur la première case libre, telle quelle | jamais | 9 après 5 h | — |
+| parfait | passe toutes les 2 s, revoit son plan chaque minute | 2 h 28 | 16 | 45 |
+| naturel | passe toutes les 5 s, revoit son plan toutes les 3 min | 2 h 26 | 16 (3,6 × 10¹¹) | 44 |
+| apprend | réflexe jusqu'à 10 min, puis naturel | 2 h 37 | 16 | 53 |
+| distrait | naturel ; passe chaque minute, revoit son plan toutes les 10 min | 2 h 40 | 16 | 32 |
+| prudent | naturel ; ne dépense jamais plus de la moitié de ce qu'il a | 3 h 11 | 16 | 33 |
+| désordonné | naturel, mais ne revoit jamais son plan | 3 h 08 | 16 | 61 |
+| réflexe | la pièce la moins chère, sur la première case libre, telle quelle | jamais | 8 après 5 h | — |
 
-- **La durée dépend peu du jeu** : de 2 h 26 à 2 h 55 pour les joueurs réguliers. Les prix fixent le rythme, et le rouage fixe ce qu'on en tire.
-- **Les points ne dépendent presque pas du jeu** : le seuil demande toute la nomenclature, et son prix fixe ce qu'il faut produire (§ 9).
-- **Sur six parties**, avec des hasards différents dans la revue du plan et la fin, le joueur naturel finit entre 2 h 26 et 2 h 42, toujours avec 16 points.
-- **Le joueur désordonné dépasse les 3 h 15**, sur quatre parties : 3 h 16, 3 h 22, 3 h 37, et une fois il ne finit pas en cinq heures. Son plan frotte tant que sa production ne paie jamais les balanciers. C'est le risque de la strate (§ 13, question 6).
+- **La durée dépend peu de l'habileté** : de 2 h 26 à 2 h 40 pour les joueurs réguliers. Le joueur parfait ne gagne rien, ou quelques minutes, à jouer vite : il attend ses pièces comme les autres. Les prix fixent le rythme, et le rouage fixe ce qu'on en tire.
+- **Elle dépend de la dépense** : le joueur prudent, qui garde la moitié de son stock, finit à 3 h 11, sous les 3 h 15 d'I5.
+- **Les points ne dépendent pas du jeu** : 16 pour tous ceux qui finissent. Le seuil demande toute la nomenclature, et son prix fixe ce qu'il faut produire (§ 9).
+- **Sur cinq parties par profil**, avec des hasards différents dans la revue du plan et la fin, les joueurs réguliers finissent entre 2 h 23 et 3 h 14, toujours avec 16 points. Le joueur naturel, entre 2 h 26 et 2 h 43.
+- **Le joueur désordonné finit sous les 3 h 15, de peu** : 3 h 08, à chaque partie. Avec les objets d'un jeu correct, il finit à 3 h 58 (§ 14). C'est le risque de la strate (§ 13, question 6).
 
 ## 5. Le choc d'arrivée
 
@@ -376,12 +377,12 @@ Le seuil dépend de trois choses visibles, qu'on ne cache jamais : les dents, le
   |---|---|---|
   | sans aide | le seuil sans avoir ouvert l'aide | 4 |
   | sans artefact | le seuil sans artefact actif | 3 |
-  | la gêne défaite avant que l'atelier ne la montre | défaire un frottement (tourner, déplacer, échanger, mettre de côté) avant qu'il ait duré un tour | 3 |
-  | le premier plan plein qui tourne | remplir le plan de 6 × 6, tout entraîné et sans rien qui frotte, avant le premier agrandissement | 3 |
-  | sans limer | le seuil sans un seul coup de lime | 3 |
+  | la gêne défaite avant que l'atelier ne la montre | défaire un frottement (tourner, déplacer, échanger, mettre de côté) avant qu'il ait duré un tour | 5 |
+  | le premier plan plein qui tourne | remplir le plan de 6 × 6, tout entraîné et sans rien qui frotte, avant le premier agrandissement | 4 |
 
 - **Le premier plan plein** est possible avec les trois premières pièces : par exemple les douze roues, les douze cliquets et huit renvois. Avec la roue, le pignon et le renvoi seuls, une recherche systématique n'en a trouvé aucun : il faut une pièce qui ferme un bout de rouage, et c'est pourquoi le cliquet vient en deuxième. L'acte demande de remplir le plan avant de l'agrandir, quand tout pousse à l'agrandir.
-- **Sans limer** est l'acte du maître. Les joueurs automatiques liment toujours, une cinquantaine de fois.
+- **Le seuil sans limer** n'est plus un acte ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)). Un assemblage sans un coup de lime existe avec la vraie nomenclature, mais un recuit simulé a dû essayer plus de 3 millions d'échanges pour le trouver : c'est trop dur pour un acte. Ses 3 points vont aux deux autres actes propres. La gêne défaite en prend deux : c'est l'acte du modèle de la famille, trouver le goulot avant que le jeu ne le signale, et il pèse autant que « creuser avant la fissure » à la surface.
+- **Les joueurs automatiques** défont leur première gêne entre 10 et 30 minutes, en revoyant leur plan ; le désordonné, qui ne le revoit jamais, à 72 minutes. Aucun ne remplit le premier plan : ils l'agrandissent dès qu'ils le peuvent. Ils gagnent 12 points sans objets, 9 avec (§ 14).
 - **Graphe de dépendances** :
   - le ressort entraîne le rouage, de dent en dent ;
   - les dents engrenées et les frottements de chaque pièce font sa production ; le cadre et la lime changent ses côtés ;
@@ -411,9 +412,9 @@ Le seuil dépend de trois choses visibles, qu'on ne cache jamais : les dents, le
 - **Les actes** (`ACTES`, dans `logique/regles.ts`) : la logique les signale, le noyau en tient le barème. L'atelier y a ses 16 points.
   - *La gêne défaite* : un frottement disparaît avant d'avoir duré un tour, par un geste de la main : tourner, déplacer, échanger, mettre de côté. La lime n'en est pas, ni l'agrandissement, qui éloigne le cadre.
   - *Le premier plan plein* : après un geste, le plan de 6 × 6 est plein, tout entraîné, sans rien qui frotte.
-  - *Sans limer* : au seuil, aucune pièce n'a de dent limée.
+  - *Sans limer* : au seuil, aucune pièce n'avait de dent limée. L'équilibrage l'a retiré ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)) : le seuil ne signale plus d'acte.
   - *Sans aide* et *sans artefact* sont constatés par le noyau.
-- **Un assemblage sans un coup de lime existe** sur le plan de 12 × 12 : des renvois aux coins, des secteurs sur les bords, leur côté lisse contre le cadre, des roues partout ailleurs. Il sert aux tests, mais ne suit pas la nomenclature (question 12).
+- **Un assemblage sans un coup de lime existe** sur le plan de 12 × 12 : des renvois aux coins, des secteurs sur les bords, leur côté lisse contre le cadre, des roues partout ailleurs. Il sert aux tests, mais ne suit pas la nomenclature : le seuil y tombe sans aucun acte. Un autre, avec la vraie nomenclature, a été trouvé à l'équilibrage (question 12).
 
 ## 8. Artefacts reçus
 
@@ -447,20 +448,20 @@ Les objets des caves sont **puissants** ici, ceux de la surface **utiles**. Les 
 | l'armoire qui compte les hivers | la nomenclature montre d'avance la pièce suivante, avec son profil et son prix |
 | la feuille qui annonce | au seuil, la légende écrit d'une autre main une demi-ligne du réseau, coupée au milieu. Proposition : « Vanne 3 : ouverte d'un » |
 
-**Pourquoi le ressort, et pas toute la production.** Les prix de la strate sont fixes : un multiplicateur sur toute la production la raccourcit presque d'autant. En simulation, × 2,7 sur tout l'atelier fait passer le joueur naturel de 2 h 42 à 1 h 01, et le plafond × 4 à 46 minutes. Les pièces qui engrènent avec le ressort sont huit au plus : les renforcer aide franchement, sans emporter la strate. C'est aussi un choix de plus, et il est spatial : placer ses meilleures pièces au pied du ressort.
+**Pourquoi le ressort, et pas toute la production.** Les prix de la strate sont fixes : un multiplicateur sur toute la production la raccourcit presque d'autant. Dans la première simulation, × 2,7 sur tout l'atelier faisait passer le joueur naturel de 2 h 42 à 1 h 01, et le plafond × 4 à 46 minutes. Les pièces qui engrènent avec le ressort sont huit au plus : les renforcer aide franchement, sans emporter la strate. C'est aussi un choix de plus, et il est spatial : placer ses meilleures pièces au pied du ressort.
 
-| Multiplicateur sur le ressort | aucun | × 1,375 | × 2,7 | × 4 (plafond) |
-|---|---|---|---|---|
-| joueur naturel | 2 h 42 | 2 h 36 | 2 h 17 | 2 h 00 |
-| joueur prudent | 2 h 55 | 2 h 40 | 2 h 27 | 2 h 11 |
-| joueur parfait | 2 h 29 | 2 h 27 | 2 h 10 | 1 h 39 |
+| Multiplicateur sur le ressort | aucun | × 1,375 | × 2,7 |
+|---|---|---|---|
+| joueur naturel | 2 h 26 | 2 h 26 | 2 h 14 |
+| joueur prudent | 3 h 11 | 2 h 47 | 2 h 41 |
+| joueur parfait | 2 h 28 | 2 h 19 | 2 h 03 |
 
-*× 1,375 : les seuls objets de la surface (les bras en plus et la roue chaude). × 2,7 : avec les deux multiplicateurs des caves, la lame courbe et la roue de pierre ; c'est ce qu'emporte un jeu correct. Dès qu'il y a des objets, le grenier d'ailleurs rend aussi le plan moins cher.*
+*× 1,375 : les seuls objets de la surface (les bras en plus et la roue chaude). × 2,7 (× 2,68) : avec les deux multiplicateurs des caves, la lame courbe et la roue de pierre ; c'est ce qu'emporte un jeu correct. Dès qu'il y a des objets, le grenier d'ailleurs rend aussi le plan moins cher. Une partie par case : les colonnes « aucun » et « × 2,7 » sont celles du [rapport](strate-3-mesures.md), et la colonne « × 1,375 » se rejoue par `npm run simuler -- atelier parfait naturel prudent --objets=s1-equipe,s1-double-ecran,s1-serveur,s1-filiale,s1-turbine`. Le plafond n'est pas mesuré : aucun choix d'objets n'y mène (I2, ci-dessous).*
 
-- **Durée** : avec les objets d'un jeu correct, de 2 h 17 à 2 h 36 pour le joueur naturel. La cible de 2 h 30 est tenue.
+- **Durée** : avec les objets d'un jeu correct, le joueur naturel finit de 2 h 13 à 2 h 20, sur cinq parties. En moyenne, sur cinq parties chacun, les joueurs réguliers finissent à 2 h 24 avec ces objets, à 2 h 42 sans. La cible de 2 h 30 est tenue (§ 14).
 - **Les objets ne rapportent pas de points** : 16 avec ou sans (§ 9). Ils rapportent du temps.
-- **I2** : le noyau plafonne le produit des multiplicateurs à × 4. Au plafond, tout sur le ressort, la strate dure encore 1 h 39 pour le joueur parfait, 2 h pour le naturel.
-- **I5** : toute la simulation du § 4 est faite sans aucun artefact. Les joueurs réguliers finissent entre 2 h 26 et 2 h 55, sous les 3 h 15. Le joueur qui ne range jamais son plan, lui, les dépasse (§ 13, question 6).
+- **I2** : le noyau plafonne le produit des multiplicateurs à × 4. Les deux catalogues entiers n'y arrivent pas : × 2,68 sur le ressort, × 1,25 sur le plan, × 3,35 en tout. Le plafond n'agit donc jamais. La première simulation l'estimait : au plafond, tout sur le ressort, la strate durerait encore 1 h 39 pour le joueur parfait, 2 h pour le naturel.
+- **I5** : sans aucun artefact, les joueurs réguliers finissent entre 2 h 23 et 3 h 14, sous les 3 h 15 ; le prudent en est le plus près. Le joueur qui ne range jamais son plan finit à 3 h 08 sans objets, mais à 3 h 58 avec : son plan grandit plus vite qu'il ne le range (§ 13, question 6).
 - **L'éveil** : un objet agit dès l'arrivée, et la légende le note, une ligne par objet, sous « Hors plan » : « Hors plan : la roue chaude. » Les objets des caves y prennent leur nom d'en bas, celui que leur donne l'atelier, par leur forme et leur place (« la lame courbe », « la roue de pierre »). Ceux de la surface gardent celui que les caves leur ont donné, comme un mot étranger ([bible](../bible.md), § 6). Codé avec les textes ([#68](https://github.com/DavidGiangiacomo/strates/issues/68)) : voir § 11.
 - **Pas d'éveil retardé** : dans les caves, il protégeait le choc du premier hiver. Ici, le choc est de placer, et aucun multiplicateur ne fait tourner une pièce mal posée.
 
@@ -478,15 +479,15 @@ Les objets des caves sont **puissants** ici, ceux de la surface **utiles**. Les 
   - Elle ne s'achète pas plus tôt : tant qu'elle n'a pas paru, son prix dépasse le double du cumul, donc le stock.
 - **Les raccourcis** sont venus avec l'opacité de l'atelier ([#95](https://github.com/DavidGiangiacomo/strates/issues/95), § 7). Chaque élément opaque y nomme les objets qui le lèvent, comme dans les caves : les noms, les deux fenêtres et le cahier à lignes ; les valeurs et le rôle de la lime, le cahier.
 - **Les objets étranges**, la feuille qui annonce et le fil qui descend, agissent au seuil avec une ligne et un tracé du réseau. Ils viendront avec [#118](https://github.com/DavidGiangiacomo/strates/issues/118), quand le réseau aura sa fiche. D'ici là, ils n'ont que leur ligne d'éveil et leur ligne « Hors plan ».
-- **En jeu**, avec les objets d'un jeu correct, le joueur naturel des tests agrandit son plan à 10 minutes au lieu de 20, et produit 2,6 fois plus au bout de dix minutes. La durée de la strate se mesurera avec l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)).
+- **En jeu**, avec les objets d'un jeu correct, le joueur naturel des tests agrandit son plan à 10 minutes au lieu de 20, et produit 2,6 fois plus au bout de dix minutes. La durée de la strate se mesure avec l'équilibrage (§ 14) : le joueur naturel de la simulation finit à 2 h 14 avec ces objets, à 2 h 26 sans.
 
 ## 9. Valeur convertible
 
 - C'est le **cumul des pièces produites** dans la strate. Les dépenser ne le diminue pas (D-003).
-- Au seuil, il vaut de 2,6 à 4,8 × 10¹¹ selon le profil et la partie, avec ou sans artefacts : **16 points** pour les joueurs réguliers. Il en faut 2,7 × 10¹¹ pour 16, et 1,4 × 10¹² pour 17. Le joueur parfait, qui finit le plus vite, a produit un peu moins : il est au bord du 16ᵉ point, et descend parfois avec 15.
+- Au seuil, il vaut de 2,8 à 5,3 × 10¹¹ selon le profil et la partie, avec ou sans artefacts : **16 points** pour tous ceux qui finissent, sur soixante parties. Il en faut 2,7 × 10¹¹ pour 16, et 1,4 × 10¹² pour 17. Le plus juste est le joueur parfait avec les objets, qui finit le plus vite : 2,8 × 10¹¹, au bord du 16ᵉ point, sans jamais tomber à 15.
 - **Le budget est presque le même pour tous** : le seuil demande toute la nomenclature, et la nomenclature coûte 2,5 × 10¹¹. Comme dans le chœur, la conversion constate que l'assemblage tourne, et l'habileté se paie en temps. L'écart de quatre points entre un jeu correct et un jeu parfait (§4) n'existe pas dans l'atelier.
-- **Rester rapporte un point, puis presque plus** : un rouage achevé produit 1,1 × 10⁹ pièces par seconde, neuf fois plus que pendant la montée. Il donne 17 points un quart d'heure après le seuil, et 18 après une heure trois quarts.
-- Pour le catalogue ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : 16 points, pour un catalogue indicatif de 5 objets à 21 points ([`artefacts.md`](../artefacts.md), § 7). Le joueur laisse un objet en haut, parfois deux ; celui qui reste un quart d'heure en emporte un de plus.
+- **Rester rapporte un point, puis presque plus** : un rouage achevé produit de 0,8 à 2 × 10⁹ pièces par seconde, selon le jeu et les objets. Un quart d'heure après le seuil, une partie sur deux a son 17ᵉ point ; 1 h 45 après, une sur deux a son 18ᵉ. Le 19ᵉ demanderait encore des heures.
+- Pour le catalogue ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : 16 points, pour 5 objets à 21 points ([`artefacts.md`](../artefacts.md), § 7). Le joueur emporte quatre objets et en laisse un en haut. Celui qui reste n'en emporte pas un de plus : avec 17 ou 18 points, il prend un objet plus cher à la place d'un moins cher. Les cinq demanderaient 21 points.
 - **L'écran de fouille** écrit la valeur en base douze (`formaterValeur`), et le prix d'un point de plus aussi. Les points restent ceux du noyau, en base dix.
 
 ## 10. Hors-ligne
@@ -545,25 +546,70 @@ Ce qui le fait tenir :
 - **Un arc lisible, et une fin qui est une vraie fin** : le plan se remplit, la nomenclature se vide, et le dernier geste ferme le rouage. « Il ne reste aucune case. »
 - **Rien de commun avec les autres strates (I1)** : ni saison, ni débit, ni rapport, ni échéance. Le réseau relie lui aussi, mais autrement : ici, une pièce tourne ou ne tourne pas ; là-bas, tout est débit et goulot.
 
-**La condition**, que le papier ne peut pas vérifier : **que la fin reste un plaisir.** La dernière ajustée dure de cinq à dix minutes en simulation. Si elle devient une centaine d'échanges à l'aveugle, la strate est ratée. La lime, les frottements montrés, les pièces qui ne tournent pas et la nomenclature lue d'avance doivent suffire à la rendre lisible.
+**La condition**, que le papier ne peut pas vérifier : **que la fin reste un plaisir.** La dernière ajustée dure une à deux minutes en simulation, parce que les joueurs automatiques revoient leur plan pendant la montée : la fin se prépare en jouant. Si elle devient une centaine d'échanges à l'aveugle, la strate est ratée. La lime, les frottements montrés, les pièces qui ne tournent pas et la nomenclature lue d'avance doivent suffire à la rendre lisible.
 
 **Ce qui la ferait tomber** : un joueur qui, à la dernière heure, ne voit plus pourquoi son plan ne tourne pas, et déplace des pièces au hasard.
 
-**Le point faible** : la dernière heure achète peu, de 3 à 7 pièces par tranche de 10 minutes, puis une seule. Elle se joue sur le plan, en gestes, et c'est voulu ; le playtest dira si c'est une montée ou une attente.
+**Le point faible** : la dernière heure achète peu, de 3 à 7 pièces par tranche de 10 minutes, jusqu'au bout. Elle se joue sur le plan, en gestes, et c'est voulu ; le playtest de la recette ([#110](https://github.com/DavidGiangiacomo/strates/issues/110)) dira si c'est une montée ou une attente.
 
 **Recommandation.** Avant de coder la strate, un **jouet d'un ou deux jours** : le plan, le ressort, les pièces, les règles et le dessin, sans économie, avec une nomenclature à poser en entier. Il dira si poser 125 pièces jusqu'à ce que tout tourne est un plaisir, et combien de temps prend la fin.
 
 ## 13. Questions ouvertes
 
-1. **La dernière ajustée** (§ 4, § 12) : la simulation l'estime avec un solveur, ni malin ni humain. Un joueur peut faire mieux, en voyant la structure, ou pire, en s'acharnant. À mesurer avec le jouet, puis au playtest.
+1. **La dernière ajustée** (§ 4, § 12) : la simulation l'estime avec un solveur, ni malin ni humain : une à deux minutes, parce que ses joueurs revoient leur plan en chemin. Un joueur peut faire mieux, en voyant la structure, ou pire, en s'acharnant. À mesurer avec le jouet, puis au playtest.
 2. **La lime est-elle trop généreuse ?** Elle règle tout frottement en un geste, et ôte une part du casse-tête. Pistes : un coup de lime qui coûte des pièces, ou un nombre de limes compté. Mais la lime est aussi ce qui rend la fin sûre : sans elle, jusqu'à deux heures de rangement.
 3. **Les grandes pièces** demandent un carré libre dans un plan presque plein. Faut-il montrer d'avance, dans la nomenclature, la place qu'elles prendront ?
 4. **La base douze** se lit-elle ? Elle est la notation de la strate (I1), et sa découverte est un petit choc de plus. Mais un joueur qui ne compare plus deux prix d'un coup d'œil s'ennuie. À voir au playtest. Les lecteurs d'écran l'entendent en grosses et en douzaines ([#80](https://github.com/DavidGiangiacomo/strates/issues/80)) : à vérifier avec eux.
 5. **Le tour de douze secondes** : assez long pour défaire une gêne avant qu'elle se montre, assez court pour qu'on la voie vite ?
-6. **Le joueur désordonné** dépasse les 3 h 15 d'I5 : de 3 h 16 à 3 h 37, et une fois sur quatre il ne finit pas en cinq heures (§ 4). C'est le premier réglage à surveiller. Pistes : une gêne qui se montre plus fort quand elle dure ; un gabarit, qui montre où une pièce tournerait sans frotter ; des frottements moins chers pendant la montée.
-7. **Rester un quart d'heure rapporte un point** (§ 9). C'est comme dans les caves, mais c'est la récompense du rouage achevé : faut-il la garder ?
+6. **Le joueur désordonné**, qui ne revoit jamais son plan, finit à 3 h 08 sans objets, de peu sous les 3 h 15 d'I5, et à 3 h 58 avec : son plan grandit plus vite qu'il ne le range (§ 4, § 14). C'est le premier réglage à surveiller. Pistes : une gêne qui se montre plus fort quand elle dure ; un gabarit, qui montre où une pièce tournerait sans frotter ; des frottements moins chers pendant la montée. *Tranché à l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)) : c'est un risque connu. I5 se juge sans artefact, et la question reste ouverte pour le playtest ([#110](https://github.com/DavidGiangiacomo/strates/issues/110)).*
+7. ~~**Rester un quart d'heure rapporte un point**~~ (§ 9) : gardé à l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)). C'est la récompense du rouage achevé : une partie sur deux a son 17ᵉ point un quart d'heure après le seuil, et le 19ᵉ demanderait des heures.
 8. **La pièce sans plan** paraît au dernier agrandissement. Faut-il qu'on puisse essayer de la poser, et qu'elle ne s'emboîte avec rien ?
 9. **Le toucher** : sur un écran tactile, on prend et on pose d'un toucher, et l'on tourne par le bouton « Tourner » de la pièce en main ([#80](https://github.com/DavidGiangiacomo/strates/issues/80)). Est-ce encore le même jeu ? À voir au playtest.
-10. **Les objets des caves** : leur réception est décrite par famille (§ 8). À préciser avec le catalogue ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)), et à mesurer avec [#81](https://github.com/DavidGiangiacomo/strates/issues/81).
+10. ~~**Les objets des caves**~~ : précisés par le catalogue ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)), codés par [#81](https://github.com/DavidGiangiacomo/strates/issues/81) et mesurés à l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)) : avec eux, la strate dure de 7 à 31 minutes de moins (§ 8).
 11. **La remontée finale** (§ 10) : à décider avec [#128](https://github.com/DavidGiangiacomo/strates/issues/128).
-12. **Sans limer avec la vraie nomenclature** (§ 7) : un assemblage sans un coup de lime existe sur le plan de 12 × 12, mais avec d'autres pièces. Les comptes de la nomenclature le permettent : 316 demi-côtés dentés et 204 lisses, juste ce qu'il faut pour que les dents engrènent toutes et que 48 côtés lisses bordent le cadre. Aucun assemblage n'a encore été construit avec elle. S'il n'en existe pas, l'acte du maître est impossible : à vérifier avec l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)).
+12. ~~**Sans limer avec la vraie nomenclature**~~ (§ 7) : un tel assemblage existe. Les comptes de la nomenclature le permettaient : 316 demi-côtés dentés et 204 lisses, juste ce qu'il faut pour que les dents engrènent toutes et que 48 côtés lisses bordent le cadre. Un recuit simulé l'a trouvé à l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)), en un peu plus de 3 millions d'essais. Mais l'acte demandait de le trouver à la main, au fil de la montée : il quitte le barème, et ses 3 points vont à la gêne défaite et au premier plan plein.
+13. **La dernière dent** : la lime prend aussi la seule dent d'une pièce. Un cliquet, une ancre ou un balancier limés de leur dent ne tourneront plus jamais, et le seuil, qui demande toutes les pièces entraînées, devient impossible : le joueur ne peut ni racheter la pièce, ni s'en défaire. Les joueurs automatiques ne liment jamais la dernière dent d'une pièce (§ 14). Un joueur humain peut le faire dès le premier plan, en limant contre le cadre la dent d'un cliquet. Piste : la lime refuse la dernière dent. À trancher avant le playtest ([#110](https://github.com/DavidGiangiacomo/strates/issues/110)).
+
+## 14. Équilibrage
+
+Issue [#96](https://github.com/DavidGiangiacomo/strates/issues/96). Les mesures détaillées sont dans [`strate-3-mesures.md`](strate-3-mesures.md), un fichier généré que la CI tient à jour.
+
+*Choix tranchés le 23 octobre 2026 :*
+- *les prix, leur croissance et les agrandissements restent ceux de la fiche : mesurés, ils tiennent les cibles ;*
+- *le joueur désordonné est un risque connu : I5 se juge sans artefact, et la question 6 reste ouverte (§ 13) ;*
+- *le seuil sans limer quitte le barème, et ses 3 points vont à la gêne défaite et au premier plan plein (§ 7) ;*
+- *le point d'après le seuil reste (question 7).*
+
+**Les cibles** ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)) : environ 2 h 30 ; un cumul de l'ordre de 10¹² ; le produit des multiplicateurs d'artefacts sous × 4 (I2) ; le seuil en moins de 3 h 15 sans aucun artefact (I5).
+
+**Méthode.** Sept joueurs automatiques (`sim/joueurs/atelier.ts`) jouent une partie complète à travers le noyau, sans artefact puis avec les objets qu'emporte un jeu correct : la présélection de 12 points à la surface, puis celle de 9 dans les caves. Chaque geste passe par les actions de la boucle et prend son temps de jeu (§ 4).
+- **Acheter** : la pièce qui rapporte le plus pour son prix, à la meilleure case qu'ils lui trouvent. Une case vaut par la production qu'elle donne, et un peu par les dents qu'elle laisse libres.
+- **Garder le rouage ouvert** : une pose ne doit pas fermer une région libre en ne lui tournant que des côtés lisses. Ils n'achètent une pièce que s'ils peuvent la poser ainsi, sauf à la toute fin. Quand le rouage est fermé, ils tournent une pièce du bord vers les cases vides.
+- **Faire de la place** aux grandes pièces : ils déplacent les petites qui occupent le carré de quatre cases.
+- **Revoir le plan** à leur rythme, à un quart près : ils tournent ou déplacent une pièce si la production y gagne sans refermer le rouage. Le désordonné ne le revoit jamais.
+- **Finir**, tout acheté : relier d'un échange ce qui ne tourne pas, limer ce qui frotte quand la dent n'est pas nécessaire au mouvement, et régler le reste en tournant ou en échangeant deux ou trois pièces.
+- **Le hasard** de la revue et de la fin change avec la graine. Le test joue une partie par profil ; soixante parties, cinq par profil et par variante, ont donné les plages ci-dessous.
+
+`tests/equilibrage-atelier.test.ts` vérifie les cibles ; après un changement de règles, `npm run mesures` régénère le rapport. Le simulateur rejoue une partie : `npm run simuler -- atelier --comparer`.
+
+**Aucun chiffre de la strate n'a changé.** Les prix, leur croissance de 25 % par exemplaire et les agrandissements tiennent les cibles : la simulation grossière les avait bien réglés. Il a fallu écrire le joueur, et trois de ses règles disent quelque chose du jeu :
+- **garder une dent vers chaque région libre** : sans cette règle, le joueur murait le bord de son rouage de cliquets, et ne posait plus rien (§ 4) ;
+- **ne jamais limer la dernière dent d'une pièce**, ni celle d'une pièce qui ne tourne pas encore : limée, elle ne tournerait plus jamais, et le seuil deviendrait impossible (§ 13, question 13) ;
+- **tourner, puis échanger** : un balancier dans un coin, avec un cliquet à côté, ne se règle par aucun geste seul. Un joueur humain y passera peut-être plus de temps (§ 13, question 1).
+
+**Résultats**, dans les cibles avec et sans artefacts :
+- **Durée** : sur cinq parties chacun, les joueurs réguliers atteignent le seuil de 2 h 23 à 3 h 14 sans objets, de 2 h 03 à 2 h 47 avec. En moyenne, 2 h 42 sans objets et 2 h 24 avec : 2 h 33 en tout, pour une cible de 2 h 30. Le joueur naturel finit de 2 h 26 à 2 h 43 sans, de 2 h 13 à 2 h 20 avec.
+- **I5** : sans artefact, tous les joueurs réguliers finissent sous les 3 h 15. Le prudent, qui ne dépense que la moitié de son stock, en est le plus près : de 3 h 03 à 3 h 14.
+- **Ordre de grandeur** : le cumul au seuil vaut de 2,8 à 5,3 × 10¹¹ pièces, soit 16 points pour toutes les parties (§ 9). Rester rapporte le 17ᵉ point vers un quart d'heure, le 18ᵉ vers 1 h 45.
+- **I2** : avec les objets d'un jeu correct, le ressort vaut × 2,68 et le plan × 1,25. Le plafond × 4 n'agit jamais.
+- **Rythme** : 123 achats. Après la première heure, ils achètent de 3 à 7 pièces par tranche de 10 minutes le plus souvent, au moins une, et au moins 4 en moyenne. Dans le rapport, la plus longue attente entre deux achats va de 5 à 9 minutes, le plus souvent en économisant pour le plan de 12 × 12. Sur les cinquante parties des joueurs réguliers, trois ont attendu plus de 10 minutes, jusqu'à 15.
+- **La dernière ajustée** : de 22 à 64 gestes, dont plus de la moitié de coups de lime, en une à deux minutes après le dernier achat.
+- **Pas d'accumulation seule (I4)** : le joueur réflexe n'atteint jamais le seuil. En cinq heures, il achète 46 pièces, dont moins de la moitié tournent.
+- **Compréhension** : un jeu correct gagne 12 points sur 16 sans objets, 9 avec : « sans aide », la gêne défaite, et « sans artefact » quand il n'en a pas. Il ne remplit jamais le premier plan (§ 7).
+
+**Le joueur désordonné**, qui ne revoit jamais son plan, est le risque connu de la strate (§ 13, question 6) :
+- sans objets, il finit à 3 h 08, de peu sous les 3 h 15 d'I5 ;
+- avec les objets, à 3 h 58 : son plan grandit plus vite qu'il ne le range. À 2 h 30, une dizaine de ses pièces ne tournent pas, et il produit trois fois moins qu'à la même heure sans objets : ses grandes pièces se font attendre ;
+- I5 se juge sans artefact : la question reste ouverte pour le playtest.
+
+**À vérifier au playtest** ([#110](https://github.com/DavidGiangiacomo/strates/issues/110)) : que la fin reste courte pour un joueur humain (§ 12), que la dernière heure se vit comme une montée plutôt qu'une attente, et que le joueur qui range peu son plan ne s'enlise pas.
