@@ -22,11 +22,25 @@ import {
   type DefPiece,
 } from "./regles";
 
-async function demarrer(): Promise<Noyau> {
+/** Les objets qu'emporte un jeu correct, de la surface puis des caves (docs/artefacts.md, § 8). */
+const JEU_CORRECT = [
+  "s1-equipe",
+  "s1-double-ecran",
+  "s1-serveur",
+  "s1-filiale",
+  "s1-turbine",
+  "s2-faucille",
+  "s2-calendrier",
+  "s2-registre",
+  "s2-meule",
+];
+
+async function demarrer(artefacts: readonly string[] = []): Promise<Noyau> {
   const registre = new Registre();
   registre.enregistrer(3, async () => ({ logique, vue: null, textes: {} }) as StrateQuelconque);
   const etat = creerEtatNoyau(1, 0);
   etat.profondeur = 3;
+  etat.artefacts = [...artefacts];
   const noyau = new Noyau(registre, etat);
   await noyau.demarrer(0);
   return noyau;
@@ -174,9 +188,16 @@ interface Releve {
   tournent: number;
 }
 
-/** Joue `minutes` à travers le noyau, un geste toutes les 5 secondes au plus, relevé chaque minute. */
-async function jouer(politique: Politique, minutes: number): Promise<Releve[]> {
-  const noyau = await demarrer();
+/**
+ * Joue `minutes` à travers le noyau, un geste toutes les 5 secondes au plus, relevé chaque minute,
+ * avec ces objets d'en haut.
+ */
+async function jouer(
+  politique: Politique,
+  minutes: number,
+  artefacts: readonly string[] = [],
+): Promise<Releve[]> {
+  const noyau = await demarrer(artefacts);
   const etat = () => noyau.etatStrate as EtatAtelier;
   const releves: Releve[] = [];
   for (let t = 0; t <= minutes * 60; t += 5) {
@@ -212,5 +233,19 @@ describe("les débuts de l'atelier", () => {
     expect(n[30]!.production).toBeGreaterThan(4 * r[30]!.production);
     expect(n[30]!.tournent).toBe(n[30]!.posees);
     expect(r[30]!.tournent).toBeLessThan(r[30]!.posees);
+  });
+});
+
+describe("les objets d'un jeu correct (fiche, § 8 ; #81)", () => {
+  it("tendent le ressort et rendent le plan moins cher : le joueur naturel va plus vite", async () => {
+    const sans = await jouer(naturel, 20);
+    const avec = await jouer(naturel, 20, JEU_CORRECT);
+    // Le ressort × 2,68 renforce les pièces qui le touchent : au bout de dix minutes, plus du double.
+    expect(avec[10]!.production).toBeGreaterThan(2 * sans[10]!.production);
+    // Le plan coûte 1,25 fois moins : le premier agrandissement vient plus tôt.
+    const agrandi = (r: Releve[]) => r.findIndex((x) => x.taille === 8);
+    expect(agrandi(avec)).toBeGreaterThan(0);
+    expect(agrandi(avec)).toBeLessThan(agrandi(sans));
+    expect(avec[20]!.tournent).toBe(avec[20]!.posees);
   });
 });

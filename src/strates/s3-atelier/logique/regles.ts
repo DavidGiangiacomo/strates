@@ -128,8 +128,31 @@ export function restantes(etat: EtatAtelier, d: DefPiece): number {
 }
 
 /** Une pièce paraît dans la nomenclature quand le cumul atteint la moitié de son premier prix. */
-export function pieceVisible(etat: EtatAtelier, d: DefPiece): boolean {
+function parue(etat: EtatAtelier, d: DefPiece): boolean {
   return restantes(etat, d) < d.exemplaires || etat.cumul >= d.prix / 2;
+}
+
+/**
+ * Ce que des objets d'en haut montrent d'avance dans la nomenclature (fiche, § 8) : l'armoire qui
+ * compte les hivers, la pièce suivante ; la roue peinte, les deux suivantes. Leurs effets s'ajoutent.
+ */
+export const AVANCE: Readonly<Record<string, number>> = { "s1-serveur": 1, "s2-calendrier": 2 };
+
+/**
+ * Une pièce que la nomenclature montre d'avance : parmi celles qui suivent les pièces parues, autant
+ * que les objets d'en haut en montrent. La vue les dessine d'un trait plus clair.
+ */
+export function pieceDAvance(etat: EtatAtelier, d: DefPiece): boolean {
+  if (parue(etat, d)) return false;
+  let avance = 0;
+  for (const id of etat.horsPlan) avance += AVANCE[id] ?? 0;
+  const premiere = PIECES.findIndex((x) => !parue(etat, x));
+  return avance > 0 && PIECES.indexOf(d) < premiere + avance;
+}
+
+/** Une pièce paraît dans la nomenclature, ou s'y montre d'avance. */
+export function pieceVisible(etat: EtatAtelier, d: DefPiece): boolean {
+  return parue(etat, d) || pieceDAvance(etat, d);
 }
 
 // ——— Le plan et ses agrandissements

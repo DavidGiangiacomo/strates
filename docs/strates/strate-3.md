@@ -419,6 +419,22 @@ Les objets des caves sont **puissants** ici, ceux de la surface **utiles**. Les 
 - **L'éveil** : un objet agit dès l'arrivée, et la légende le note, une ligne par objet, sous « Hors plan » : « Hors plan : la roue chaude. » Les objets des caves y prennent leur nom d'en bas, celui que leur donne l'atelier, par leur forme et leur place (« la lame courbe », « la roue de pierre »). Ceux de la surface gardent celui que les caves leur ont donné, comme un mot étranger ([bible](../bible.md), § 6). Codé avec les textes ([#68](https://github.com/DavidGiangiacomo/strates/issues/68)) : voir § 11.
 - **Pas d'éveil retardé** : dans les caves, il protégeait le choc du premier hiver. Ici, le choc est de placer, et aucun multiplicateur ne fait tourner une pièce mal posée.
 
+### Dans le code ([#81](https://github.com/DavidGiangiacomo/strates/issues/81))
+
+*Choix tranchés le 23 octobre 2026 : les raccourcis viennent avec l'opacité de l'atelier, les objets étranges avec [#118](https://github.com/DavidGiangiacomo/strates/issues/118) ; l'armoire et la roue peinte s'ajoutent ; une pièce montrée d'avance a un trait plus clair.*
+
+- **Les multiplicateurs** sont lus à chaque tick depuis la boucle ([#67](https://github.com/DavidGiangiacomo/strates/issues/67)) :
+  - le levier `ressort` renforce les pièces qui engrènent avec le ressort, et elles seules ;
+  - le levier `plan` divise le prix des agrandissements.
+
+  Les tests les vérifient sur les effets que le noyau calcule pour chaque objet : × 1,1, × 1,25, × 1,3 et × 1,5 sur le ressort, ÷ 1,25 sur le plan. Avec les deux catalogues entiers, le ressort vaut × 2,68 et le plan × 1,25 : × 3,35 en tout, sous le plafond (I2).
+- **Les affichages** montrent la nomenclature d'avance : l'armoire, la pièce qui suit celles que le cumul a fait paraître ; la roue peinte, les deux suivantes ; les deux ensemble, trois (`pieceDAvance`).
+  - Une pièce montrée d'avance a sa ligne d'un trait plus clair, et sa désignation en italique, qui ne tient pas à la seule couleur. Elle reprend son trait quand le cumul l'aurait fait paraître.
+  - Elle ne s'achète pas plus tôt : tant qu'elle n'a pas paru, son prix dépasse le double du cumul, donc le stock.
+- **Les raccourcis** viendront avec l'opacité de l'atelier ([#95](https://github.com/DavidGiangiacomo/strates/issues/95)). Elle déclarera chaque élément opaque avec les objets qui le lèvent, comme dans les caves : les noms, par les deux fenêtres et par le cahier à lignes ; les valeurs et le rôle de la lime, par le cahier.
+- **Les objets étranges**, la feuille qui annonce et le fil qui descend, agissent au seuil avec une ligne et un tracé du réseau. Ils viendront avec [#118](https://github.com/DavidGiangiacomo/strates/issues/118), quand le réseau aura sa fiche. D'ici là, ils n'ont que leur ligne d'éveil et leur ligne « Hors plan ».
+- **En jeu**, avec les objets d'un jeu correct, le joueur naturel des tests agrandit son plan à 10 minutes au lieu de 20, et produit 2,6 fois plus au bout de dix minutes. La durée de la strate se mesurera avec l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)).
+
 ## 9. Valeur convertible
 
 - C'est le **cumul des pièces produites** dans la strate. Les dépenser ne le diminue pas (D-003).

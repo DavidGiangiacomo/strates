@@ -9,6 +9,7 @@ import {
   CROISSANCE_PRIX,
   defPiece,
   PIECES,
+  pieceDAvance,
   pieceVisible,
   placeLibre,
   prixPiece,
@@ -99,6 +100,27 @@ describe("les prix", () => {
     expect(pieceVisible(etat, def("cliquet"))).toBe(false);
     etat.cumul = 875;
     expect(pieceVisible(etat, def("cliquet"))).toBe(true);
+  });
+
+  it("montrent d'avance les pièces qui suivent : une par l'armoire, deux par la roue peinte", () => {
+    const etat = etatInitial();
+    const visibles = () => PIECES.filter((d) => pieceVisible(etat, d)).map((d) => d.id);
+    const davance = () => PIECES.filter((d) => pieceDAvance(etat, d)).map((d) => d.id);
+    expect(visibles()).toEqual(["roue"]);
+    etat.horsPlan = ["s1-serveur"];
+    expect(visibles()).toEqual(["roue", "cliquet"]);
+    etat.horsPlan = ["s2-calendrier"];
+    expect(davance()).toEqual(["cliquet", "renvoi"]);
+    // Les deux ensemble : leurs effets s'ajoutent. Les autres objets n'en montrent pas.
+    etat.horsPlan = ["s1-serveur", "s1-turbine", "s2-calendrier"];
+    expect(davance()).toEqual(["cliquet", "renvoi", "pignon"]);
+    // Quand le cumul fait paraître le cliquet, la fenêtre avance d'une pièce.
+    etat.cumul = 875;
+    expect(davance()).toEqual(["renvoi", "pignon", "secteur"]);
+    expect(pieceDAvance(etat, def("cliquet"))).toBe(false);
+    // Au bout de la nomenclature, il n'y a plus rien à montrer d'avance.
+    etat.cumul = 1e12;
+    expect(davance()).toEqual([]);
   });
 
   it("divisent les agrandissements par le levier du plan", () => {
