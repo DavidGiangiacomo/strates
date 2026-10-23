@@ -2,11 +2,17 @@
 import { flushSync, mount, tick, unmount } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { strate } from "..";
-import type { CommandesNoyau, ContexteTick } from "../../../noyau/logique/types";
-import { SILENCE } from "../../../noyau/plateforme/audio";
+import type {
+  CommandesNoyau,
+  ContexteTick,
+  ReglageAmbiance,
+  ReglageEffet,
+  SonStrate,
+} from "../../../noyau/logique/types";
 import { logique, type ActionAtelier, type EtatAtelier } from "../logique";
 import { etatInitial } from "../logique/etat";
 import { TOUR } from "../logique/regles";
+import { volumeCrissement, volumesTic } from "./sons";
 import Vue from "./Vue.svelte";
 
 const commandes: CommandesNoyau = { demanderFouille() {}, ouvrirAide() {}, terminer() {} };
@@ -36,6 +42,30 @@ function couche(opaques: readonly string[] = []) {
   };
 }
 
+/** Ce que la vue fait entendre, appel après appel. */
+function ecoute() {
+  const appels: { type: string; nom?: string; reglage?: unknown }[] = [];
+  const son: SonStrate = {
+    jouer: (nom, reglage) => void appels.push({ type: "jouer", nom, reglage }),
+    ambiance: (nom, reglage) => void appels.push({ type: "ambiance", nom, reglage }),
+    voix: (nom, reglage) => void appels.push({ type: "voix", nom, reglage }),
+    note: (reglage) => void appels.push({ type: "note", reglage }),
+  };
+  /** Les effets joués : leurs noms, ou les réglages de ceux qui s'appellent `nom`. */
+  const joues = () => appels.filter((a) => a.type === "jouer").map((a) => a.nom!);
+  const reglages = (nom: string) =>
+    appels.filter((a) => a.type === "jouer" && a.nom === nom).map((a) => a.reglage as ReglageEffet);
+  /** Le dernier volume de chaque ambiance. */
+  const volumes = () => {
+    const derniers: Record<string, number> = {};
+    for (const a of appels) {
+      if (a.type === "ambiance") derniers[a.nom!] = (a.reglage as ReglageAmbiance).volume;
+    }
+    return derniers;
+  };
+  return { son, joues, reglages, volumes };
+}
+
 function monter(
   modifs: (etat: EtatAtelier) => void = () => {},
   mode: "jeu" | "remontee" = "jeu",
@@ -44,6 +74,7 @@ function monter(
   const etat = $state(etatInitial());
   modifs(etat);
   const actions: ActionAtelier[] = [];
+  const sons = ecoute();
   composant = mount(Vue, {
     target: document.body,
     props: {
@@ -52,7 +83,7 @@ function monter(
       noyau: commandes,
       ...couche(opaques),
       mode,
-      son: SILENCE,
+      son: sons.son,
     },
   });
   flushSync();
@@ -61,7 +92,7 @@ function monter(
     for (const action of actions.splice(0)) logique.agir(etat, action, CTX);
     flushSync();
   };
-  return { etat, actions, appliquer };
+  return { etat, actions, appliquer, sons };
 }
 
 /** Le texte d'un élément, sans ce que `cacher` désigne. */
@@ -420,5 +451,106 @@ describe("la vue de l'atelier", () => {
     cliquer("[data-test=nomenclature-roue] .acheter");
     cliquer('.plan [data-piece="1"]');
     expect(actions).toEqual([]);
+  });
+});
+
+describe("les sons de l'atelier", () => {
+  it("bat le tic du ressort dès l'arrivée, et l'enrichit à chaque pièce entraînée", () => {
+    const { actions, appliquer, sons } = monter((e) =>
+      e.pieces.push({ id: "pignon", repere: 3, case: null, rot: 1, limees: [] }),
+    );
+    // Les deux roues de l'arrivée tournent : le ressort bat, et les rouages s'y mêlent à peine. Rien
+    // d'autre ne sonne.
+    expect(sons.volumes()).toEqual({ ...volumesTic(2, false), crissement: 0 });
+    expect(Object.keys(sons.volumes()).filter((nom) => sons.volumes()[nom]! > 0)).toEqual([
+      "ressort",
+      "rouages",
+    ]);
+    expect(sons.joues()).toEqual([]);
+    // Un pignon contre la première roue : il tourne sans frotter, et les rouages montent.
+    actions.push({ type: "poser", repere: 3, case: [1, 1] });
+    appliquer();
+    expect(sons.volumes()).toEqual({ ...volumesTic(3, false), crissement: 0 });
+    expect(sons.volumes()["rouages"]).toBeGreaterThan(volumesTic(2, false).rouages);
+  });
+
+  it("crisse dès qu'une pièce entraînée frotte, plus fort quand elles sont plusieurs", () => {
+    // Deux roues au-dessus de celles de l'arrivée : elles tournent, et frottent contre le cadre.
+    const { sons } = monter((e) => {
+      e.pieces.push({ id: "roue", repere: 3, case: [0, 2], rot: 0, limees: [] });
+      e.pieces.push({ id: "roue", repere: 4, case: [0, 3], rot: 0, limees: [] });
+    });
+    expect(sons.volumes()["crissement"]).toBe(volumeCrissement(2));
+    expect(volumeCrissement(2)).toBeGreaterThan(volumeCrissement(1));
+  });
+
+  it("au seuil, fait tomber tous les tics ensemble : un seul grand coup, puis l'unisson", () => {
+    const { etat, sons } = monter();
+    etat.seuilAtteintA = etat.temps;
+    flushSync();
+    expect(sons.joues()).toEqual(["ensemble"]);
+    expect(sons.volumes()).toEqual({ ...volumesTic(2, true), crissement: 0 });
+    // Le grand coup ne sonne qu'une fois.
+    etat.pieces.push({ id: "roue", repere: 3, case: null, rot: 0, limees: [] });
+    flushSync();
+    expect(sons.joues()).toEqual(["ensemble"]);
+  });
+
+  it("retrouve l'unisson sans le grand coup, quand le seuil était franchi avant", () => {
+    const { sons } = monter((e) => (e.seuilAtteintA = 0));
+    expect(sons.joues()).toEqual([]);
+    expect(sons.volumes()).toEqual({ ...volumesTic(2, true), crissement: 0 });
+  });
+
+  it("donne à chaque geste son bruit, une fois appliqué : poser, déplacer, tourner, limer, agrandir", () => {
+    const { appliquer, sons } = monter((e) => {
+      e.stock = 1e6;
+      e.cumul = 1e6;
+      e.pieces.push({ id: "cliquet", repere: 3, case: null, rot: 0, limees: [] });
+    });
+    // Poser : un clic de métal, à gauche du plan, d'où vient la pièce.
+    cliquer('.etabli [data-piece="3"]');
+    cliquer('[data-case="4,0"]');
+    expect(sons.joues()).toEqual([]);
+    appliquer();
+    expect(sons.joues()).toEqual(["pose"]);
+    expect(sons.reglages("pose")[0]!.panoramique).toBeLessThan(-0.3);
+    // Déplacer : la pièce reprend une case.
+    cliquer('.plan [data-piece="3"]');
+    cliquer('[data-case="5,5"]');
+    appliquer();
+    expect(sons.joues()).toEqual(["pose", "pose"]);
+    expect(sons.reglages("pose")[1]!.panoramique).toBeGreaterThan(0.3);
+    // Tourner : un cran.
+    document
+      .querySelector('.plan [data-piece="3"]')!
+      .dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+    appliquer();
+    expect(sons.joues().at(-1)).toBe("cran");
+    // Limer : la dent du cliquet, tournée à droite.
+    cliquer('.plan [data-piece="3"]');
+    cliquer("[data-test=limer-1]");
+    appliquer();
+    expect(sons.joues().at(-1)).toBe("lime");
+    // Agrandir : le plan se déplie, et ses pièces, qui se décalent d'une couronne, ne claquent pas.
+    cliquer("[data-test=agrandir]");
+    appliquer();
+    expect(sons.joues()).toEqual(["pose", "pose", "cran", "lime", "deplier"]);
+  });
+
+  it("ne fait rien entendre d'un geste refusé, et claque plus grave pour une grande pièce", () => {
+    const { appliquer, sons } = monter((e) =>
+      e.pieces.push({ id: "grandeRoue", repere: 3, case: null, rot: 0, limees: [] }),
+    );
+    // Au-dessus des roues de l'arrivée, la grande roue ne tient pas : rien ne se pose.
+    cliquer('.etabli [data-piece="3"]');
+    cliquer('[data-case="0,2"]');
+    appliquer();
+    expect(sons.joues()).toEqual([]);
+    cliquer('.etabli [data-piece="3"]');
+    cliquer('[data-case="4,0"]');
+    appliquer();
+    expect(sons.joues()).toEqual(["pose"]);
+    expect(sons.reglages("pose")[0]!.vitesse).toBeLessThan(0.8);
   });
 });

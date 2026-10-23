@@ -85,12 +85,15 @@ class LimiteurSimule extends NoeudSimule {
 
 class SourceSimulee extends NoeudSimule {
   debut: number | null = null;
+  /** Où commence la lecture dans le tampon, en secondes. */
+  decalage = 0;
   fin: number | null = null;
   termine = false;
   onended: (() => void) | null = null;
-  start(quand = 0) {
+  start(quand = 0, decalage = 0) {
     if (this.debut !== null) throw new Error("déjà démarrée");
     this.debut = quand;
+    this.decalage = decalage;
   }
   stop(quand = 0) {
     if (this.debut === null) throw new Error("pas démarrée");
@@ -657,6 +660,26 @@ describe("les ambiances", () => {
     contexte.avancer(2);
     expect(ancienne!.debranche).toBe(true);
     expect(nouvelle!.debranche).toBe(false);
+  });
+
+  it("battent sur une même horloge : une boucle qui part plus tard la prend là où elle en serait", () => {
+    const { moteur, contexte } = moteurOuvert();
+    // Une banque ouverte à 1 s : son horloge part avec elle.
+    contexte.currentTime = 1;
+    const banque = moteur.banque({ vent: { ...RAMPE, duree: 0.4 }, pluie: RAMPE });
+    banque.ambiance("vent", { volume: 0.5 });
+    contexte.currentTime = 1.37;
+    banque.ambiance("pluie", { volume: 0.5 });
+    const [vent, pluie] = contexte.lectures();
+    expect([vent!.debut, vent!.decalage]).toEqual([1, 0]);
+    // Une boucle d'un dixième de seconde, partie 0,37 s après l'horloge : elle en est à 0,07 s.
+    expect(pluie!.debut).toBe(1.37);
+    expect(pluie!.decalage).toBeCloseTo(0.07, 9);
+    // Arrêtée puis rappelée, elle reprend là où elle en serait.
+    banque.ambiance("vent", { volume: 0 });
+    contexte.avancer(2);
+    banque.ambiance("vent", { volume: 0.5 });
+    expect(contexte.lectures().at(-1)!.decalage).toBeCloseTo((3.37 - 1) % 0.4, 9);
   });
 
   it("réglées avant le premier geste, elles partent au geste ; arrêtées avant, jamais", () => {

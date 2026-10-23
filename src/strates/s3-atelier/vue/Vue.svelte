@@ -6,7 +6,7 @@
   // libres. On prend une pièce d'un clic, on la pose d'un autre, on la tourne d'un clic droit ou de la
   // touche R. Au clavier, un curseur va de case en case : Entrée prend et pose, R tourne, L puis une
   // flèche lime ce côté. Les nombres s'écrivent en base douze, et se lisent en mots aux lecteurs
-  // d'écran.
+  // d'écran. Le tic du ressort s'enrichit à chaque pièce entraînée, et chaque geste a son bruit.
   import { tick, untrack } from "svelte";
   import { artefact } from "../../../noyau/logique/artefacts";
   import { avanceeFissure } from "../../../noyau/logique/filet";
@@ -36,9 +36,11 @@
   } from "../logique/regles";
   import { installerChiffres } from "./chiffres";
   import Piece from "./Piece.svelte";
+  import { COUCHES, volumeCrissement, volumesTic } from "./sons";
   import { VARIABLES } from "./theme";
 
-  let { etat, agir, noyau, o, lisible, mode }: ProprietesVue<EtatAtelier, ActionAtelier> = $props();
+  let { etat, agir, noyau, o, lisible, mode, son }: ProprietesVue<EtatAtelier, ActionAtelier> =
+    $props();
 
   installerChiffres();
 
@@ -71,6 +73,80 @@
   const legende = $derived(etat.legende.slice(-8).reverse());
   const agrandissement = $derived(prochainAgrandissement(etat));
   const reperes = $derived(Array.from({ length: n }, (_, k) => formaterEntier(k + 1)));
+
+  // ——— Les sons (fiche, § 6). Le tic d'un tour du ressort s'enrichit à chaque pièce entraînée : les
+  // couches montent l'une après l'autre. Une pièce entraînée qui frotte crisse dès ses premières
+  // saccades, et plus fort quand plusieurs frottent. Au seuil, tous les tics tombent ensemble : un
+  // seul grand coup, puis un seul tic, de tous les timbres, jusqu'à la descente.
+  const FONDU_TIC = 1.5;
+  const FONDU_CRISSEMENT = 0.5;
+  const seuil = $derived(etat.seuilAtteintA !== null);
+  const tournent = $derived([...analyse.pieces.values()].filter((x) => x.entrainee));
+  const entrainees = $derived(tournent.length);
+  const frottent = $derived(tournent.filter((x) => x.frottements > 0).length);
+  /** Le seuil déjà franchi quand la vue est montée ne sonne pas : l'unisson bat, sans le grand coup. */
+  let seuilEntendu = untrack(() => seuil);
+  $effect(() => {
+    const volumes = volumesTic(entrainees, seuil);
+    const tombe = seuil && !seuilEntendu;
+    seuilEntendu = seuil;
+    if (tombe) son.jouer("ensemble", { volume: 0.8 });
+    // Les couches se taisent d'un coup, sous le grand coup ; l'unisson vient après lui.
+    for (const nom of COUCHES) {
+      son.ambiance(nom, { volume: volumes[nom], fondu: tombe ? 0.15 : FONDU_TIC });
+    }
+    son.ambiance("unisson", { volume: volumes.unisson, fondu: tombe ? 1 : FONDU_TIC });
+    son.ambiance("crissement", { volume: volumeCrissement(frottent), fondu: FONDU_CRISSEMENT });
+  });
+
+  // Les gestes, lus dans ce qui change sur le plan : une pièce qui prend une case (posée, déplacée ou
+  // échangée) claque, une grande plus grave ; un quart de tour fait un cran ; une dent limée râpe ;
+  // le plan agrandi se déplie. Un geste refusé, comme une pièce posée où elle ne tient pas, ne fait
+  // rien entendre. Chaque bruit vient de la colonne de sa pièce.
+  /** Ce que les gestes changent : la taille du plan, et chaque pièce, sa place comptée depuis le ressort. */
+  function relever(e: EtatAtelier) {
+    const coin = coinRessort(e.taille);
+    return {
+      taille: e.taille,
+      pieces: new Map(
+        e.pieces.map((p) => [
+          p.repere,
+          {
+            place: p.case ? `${p.case[0] - coin},${p.case[1] - coin}` : null,
+            rot: p.rot,
+            limees: p.limees.length,
+          },
+        ]),
+      ),
+    };
+  }
+  /** D'où vient le bruit d'une pièce : sa colonne sur le plan, de −0,5 à 0,5 ; le milieu, sur l'établi. */
+  const colonne = (p: PieceAtelier) =>
+    p.case ? (p.case[1] + largeur(p) / 2) / etat.taille - 0.5 : 0;
+  let releve = untrack(() => relever(etat));
+  $effect(() => {
+    const avant = releve;
+    releve = relever(etat);
+    if (releve.taille > avant.taille) son.jouer("deplier", { volume: 0.6 });
+    let pose: PieceAtelier | undefined;
+    let cran: PieceAtelier | undefined;
+    let limee: PieceAtelier | undefined;
+    for (const p of etat.pieces) {
+      const a = avant.pieces.get(p.repere);
+      const b = releve.pieces.get(p.repere)!;
+      if (b.place !== null && b.place !== (a?.place ?? null)) pose ??= p;
+      if (a && b.rot !== a.rot) cran ??= p;
+      if (a && b.limees > a.limees) limee ??= p;
+    }
+    untrack(() => {
+      if (pose) {
+        const vitesse = (largeur(pose) === 2 ? 0.75 : 1) * (0.97 + 0.06 * Math.random());
+        son.jouer("pose", { volume: 0.55, vitesse, panoramique: colonne(pose) });
+      }
+      if (cran) son.jouer("cran", { volume: 0.6, panoramique: colonne(cran) });
+      if (limee) son.jouer("lime", { volume: 0.6, panoramique: colonne(limee) });
+    });
+  });
 
   /** Le ressort se dessine comme une grande pièce dentée partout, qui tourne au rang 0. */
   const RESSORT: PieceAtelier = { id: "grandeRoue", repere: 0, case: null, rot: 0, limees: [] };

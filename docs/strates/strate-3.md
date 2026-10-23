@@ -329,6 +329,32 @@ Plan, souris, encombrement (§5). L'écran est un dessin technique, et la souris
 - **L'établi** : la lime est dessinée, un manche et une lame taillée, et sa lame se souligne de vermillon quand elle est levée au clavier. La pièce sans plan est un carré en tirets, creux.
 - **Poser garde le sens de la main** : l'action `poser` n'a plus besoin de rotation. Sans elle, la pièce se pose dans le sens que « tourner » lui a donné, même si ce quart de tour n'est pas encore appliqué quand on la pose.
 
+### Dans le code ([#94](https://github.com/DavidGiangiacomo/strates/issues/94))
+
+*Choix tranchés le 23 octobre 2026 : des rouages qui s'ajoutent au tic du ressort, le crissement dès les saccades, un seul grand coup au seuil ; tourner fait un cran, et agrandir déplie le plan.*
+
+- **Le tic** (`vue/sons.ts`) : quatre boucles d'un tour du ressort, 12 secondes, du métal frappé.
+  - *Le ressort* : un tic et un tac graves, une fois par seconde, dès l'arrivée.
+  - *Les rouages* : deux coups par seconde, plus clairs, entre ceux du ressort.
+  - *Les engrenages* : quatre coups par seconde, fins et un peu boiteux.
+  - *Le mécanisme* : trois rythmes qui se croisent, à trois, cinq et six coups par seconde.
+
+  Leur volume suit les pièces entraînées (`volumesTic`). Les rouages montent dès la première pièce et sont pleins à seize ; les engrenages montent de seize à cinquante-six ; le mécanisme de cinquante-cinq au plan plein. Le moteur cale les boucles sur l'horloge de la banque : leurs coups tombent toujours sur la même grille, quel que soit le moment où chacune part.
+- **Au seuil**, les couches se taisent en 0,15 s, sous un seul grand coup de tous les timbres, qui sonne trois secondes. Puis l'atelier ne bat plus qu'un coup par seconde, tous les timbres ensemble, jusqu'à la descente. Une partie reprise après le seuil retrouve ce coup unique, sans le grand coup.
+- **Le crissement** : une dent qui accroche puis glisse, par à-coups. Il part dès qu'une pièce entraînée frotte, avec ses saccades, et monte avec le nombre de pièces qui frottent, jusqu'à trois.
+- **Les gestes** se lisent dans ce qui change sur le plan, et ne sonnent qu'une fois appliqués. Un geste refusé, comme une grande pièce posée où elle ne tient pas, ne fait rien entendre.
+  - *Poser*, *déplacer* ou *échanger* : un clic de métal, plus grave pour une grande pièce.
+  - *Tourner* : un cran, en deux temps.
+  - *Limer* : trois coups de lime.
+  - *Agrandir* : le papier du plan qui se déplie, puis retombe à plat. Les pièces, décalées d'une couronne, ne claquent pas.
+
+  Chaque bruit vient de la colonne de sa pièce, plus ou moins à gauche ou à droite.
+- **Le calcul** : les boucles et le grand coup se calculent à 32 kHz, par étapes, sans figer l'image. À 24 kHz, le rééchantillonnage du navigateur faisait siffler les engrenages vers 15 kHz.
+- **Ce que vérifient les tests** :
+  - *la banque* : chaque couche bat à son rythme et sur sa grille, du plus grave au plus fin ; l'unisson bat la seconde ; le crissement va par à-coups et se referme sur un silence ; le cran tombe en deux temps, la lime en trois coups. Aucun nom n'est partagé avec la surface, les caves ou le sol ;
+  - *la vue* : le tic s'enrichit à chaque pièce entraînée, le crissement suit les frottements, et le grand coup ne sonne qu'une fois. Chaque geste appliqué a son bruit, un geste refusé aucun.
+- **Vérifié dans Chromium** : les couches partent l'une après l'autre, à quelques dixièmes de seconde, mais sur la même grille, et aucune longue tâche ne fige l'image, ni à l'ouverture du son ni au seuil.
+
 ## 7. Opacité et Compréhension
 
 Le seuil dépend de trois choses visibles, qu'on ne cache jamais : les dents, le mouvement et les cases libres. Le joueur doit échouer par maladresse, pas par ignorance.
