@@ -325,13 +325,14 @@ type SourceSon =
   - Une voix glisse vers sa nouvelle hauteur, et peut respirer : une houle lente de son volume.
   - Deux voix presque justes battent d'elles-mêmes, car rien n'est simulé : c'est ce dont le chœur a besoin ([fiche](strates/strate-5.md), § 6).
   - Les timbres sont cinq voyelles chantées (`a`, `e`, `i`, `o`, `ou`), le sinus et le triangle.
+- **Les boucles d'une banque battent sur une même horloge** ([#94](https://github.com/DavidGiangiacomo/strates/issues/94)), partie à l'ouverture du son. Une ambiance qui part plus tard prend sa boucle là où elle en serait : deux boucles de même durée restent calées l'une sur l'autre, quel que soit le moment où chacune part ou finit de se calculer. Le tic de l'atelier en dépend : ses couches se calculent par étapes et partent l'une après l'autre, mais leurs coups tombent sur la même grille.
 - **Les effets et les notes se jouent une fois.** Une banque n'en fait pas sonner plus de 32 à la fois.
 - **Le son s'ouvre au premier geste du joueur**, car aucun navigateur n'en joue avant. Un effet ou une note demandés plus tôt sont perdus ; une ambiance ou une voix partent au geste. Le son se tait quand l'onglet est caché.
 - **Pendant le passage**, la strate figée est aussi muette : sa banque s'étouffe au coup de pioche, et revient quand le temps repart. La strate qui arrive commence muette.
 - **Le volume global et le son coupé** se gardent dans le navigateur (`strates.son`) ; le menu système les règle ([#48](https://github.com/DavidGiangiacomo/strates/issues/48)). Un limiteur protège la sortie.
 - **Un appel ne lève jamais d'erreur** : ni son coupé, ni sans Web Audio, ni après le démontage, ni quand le navigateur en lève une. Celle-ci est signalée une fois dans la console, comme un nom absent de la banque.
 - **Le sol a ses sons**, ceux du noyau, calculés (`noyau/ui/sons.ts`) : le coup sourd du sol qui résiste ; le coup de pioche, avec la fissure qui craque et un éboulement ; le grondement de la descente ([storyboard](strates/descente-1-2.md), P2 et P5).
-- **Les strates ont les leurs** : la surface et les caves ([#59](https://github.com/DavidGiangiacomo/strates/issues/59) ; fiches 1 et 2, § 6). Les outils de développement les font entendre un à un : un effet se joue, une ambiance se met ou s'arrête.
+- **Les strates ont les leurs** : la surface et les caves ([#59](https://github.com/DavidGiangiacomo/strates/issues/59) ; fiches 1 et 2, § 6), l'atelier ([#94](https://github.com/DavidGiangiacomo/strates/issues/94) ; fiche 3, § 6). Les outils de développement les font entendre un à un : un effet se joue, une ambiance se met ou s'arrête.
 - **Tests** : une vue montée dans un test reçoit `SILENCE`. Le moteur se teste sur un contexte simulé (`noyau/plateforme/audio.test.ts`). Son rendu réel a été vérifié dans Chromium, hors ligne : deux voix à une quinte juste ne battent pas ; décalées de 10 cents, elles battent à 2 Hz, comme le veut l'acoustique.
 
 ## 6. La boucle du noyau

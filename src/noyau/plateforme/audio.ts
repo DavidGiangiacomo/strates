@@ -446,6 +446,8 @@ export class BanqueSons implements SonStrate {
   #ponctuelles = 0;
   readonly #inconnus = new Set<string>();
   #erreurSignalee = false;
+  /** L'horloge des boucles : l'instant où le son s'est ouvert pour la banque. */
+  #origine = 0;
 
   constructor(sources: Readonly<Record<string, SourceSon>>, etouffee: boolean, liens: LiensBanque) {
     this.#sources = sources;
@@ -543,6 +545,7 @@ export class BanqueSons implements SonStrate {
     sortie.connect(destination);
     this.#contexte = contexte;
     this.#sortie = sortie;
+    this.#origine = contexte.currentTime;
     for (const [nom, source] of Object.entries(this.#sources)) {
       if ("fichier" in source) this.#decoder(nom, contexte);
       else this.#enAttente.add(nom);
@@ -789,14 +792,19 @@ export class BanqueSons implements SonStrate {
     this.#preparer(nom, false);
     const tampon = this.#tampon(nom);
     if (!tampon) return;
+    // Les boucles d'une banque battent sur une même horloge, partie à l'ouverture du son : une
+    // ambiance qui part plus tard prend sa boucle là où elle en serait. Deux boucles de même durée
+    // restent ainsi calées l'une sur l'autre, quel que soit le moment où chacune part ou finit de se
+    // calculer.
+    const debut = contexte.currentTime;
     const source = contexte.createBufferSource();
     source.buffer = tampon;
     source.loop = true;
     const gain = contexte.createGain();
     gain.gain.value = 0;
-    gain.gain.setTargetAtTime(volume, maintenant, constante(Math.max(fondu, SANS_CLIC)));
+    gain.gain.setTargetAtTime(volume, debut, constante(Math.max(fondu, SANS_CLIC)));
     source.connect(gain).connect(pret.sortie);
-    source.start(maintenant);
+    source.start(debut, Math.max(0, debut - this.#origine) % tampon.duration);
     const nouvelle: Boucle = {
       sources: [source],
       noeuds: [source, gain],
