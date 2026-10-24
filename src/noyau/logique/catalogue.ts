@@ -389,7 +389,8 @@ export const CATALOGUE: readonly ArtefactDef[] = [
     famille: "raccourci",
     effet: {
       puissant: {
-        description: "Dès l'arrivée, les mots du lit sont levés : crue, limon, couche et rive.",
+        description:
+          "Dès l'arrivée, les mots du lit sont levés : crue, limon, couche et rive, et les mesures de son échelle.",
       },
       utile: { description: "Au fond, aucun effet : tout s'y lit déjà." },
     },

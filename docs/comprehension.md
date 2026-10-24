@@ -45,10 +45,10 @@ La progression du §9 est le **maximum** : le joueur qui accomplit tous les acte
 | 4 · Le réseau | 38 | 17 | 4 | 3 | à définir par sa fiche : 10, dont le goulot trouvé avant que le réseau ne le signale |
 | 5 · Le chœur | 55 | 15 | 4 | 3 | à définir par sa fiche : 8, dont un rapport juste réglé à l'œil |
 | 6 · La dette | 70 | 15 | 3 | 3 | la grande crue honorée, sans défaut : 4 ; toute la strate sans une échéance reportée : 3 ; la grande crue fixée au plus juste, puis honorée : 2 |
-| 7 · Le lit | 85 | 11 | 2 | 3 | à définir par sa fiche : 6, dont la patience (peu de gestes jusqu'à la descente) |
+| 7 · Le lit | 85 | 11 | 2 | 3 | une levée bâtie avant l'eau, sur un autre creux que le premier : 3 ; la patience, sans jamais déplacer une levée jusqu'à la descente : 3 |
 | 8 · Le fond | 96 | 4 | — | — | y arriver |
 
-- Les actes des strates 1 à 3 viennent de leurs fiches (§ 7). Ceux des strates 1 et 2 sont revus ici : à la surface, « creuser sans y avoir été poussé » pèse plus que « sans aide », que tout joueur d'incrémentaux fait sans y penser ; dans les caves, « sans artefact » remplace « le premier grand hiver au premier essai », que contient déjà « le seuil au plus tôt ». Dans l'atelier, « le seuil sans limer » a quitté le barème à l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)) : ses 3 points sont allés à la gêne défaite et au premier plan plein.
+- Les actes des strates 1 à 3, 6 et 7 viennent de leurs fiches (§ 7). Ceux des strates 1 et 2 sont revus ici : à la surface, « creuser sans y avoir été poussé » pèse plus que « sans aide », que tout joueur d'incrémentaux fait sans y penser ; dans les caves, « sans artefact » remplace « le premier grand hiver au premier essai », que contient déjà « le seuil au plus tôt ». Dans l'atelier, « le seuil sans limer » a quitté le barème à l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)) : ses 3 points sont allés à la gêne défaite et au premier plan plein.
 - **Un jeu correct** en gagne environ les deux tiers, et arrive au fond vers κ = 65. C'est une estimation : elle sera mesurée au fil des strates, avec leurs joueurs automatiques.
 
 ## 3. Les paliers
