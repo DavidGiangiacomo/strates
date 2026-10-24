@@ -209,7 +209,8 @@ Pour chaque couche : ce qu'elle était, ce qu'elle optimisait, sa fin, sa voix, 
 - **Ce qu'il optimisait** : ce qui se dépose. L'épaisseur et la régularité des couches.
 - **Sa fin** : le bassin s'est rempli jusqu'au bord, et la dernière couche a atteint la rive : il n'y avait plus de place pour attendre. Le fleuve est passé ailleurs, et la descente vient seule (§6).
 - **Sa voix** : aucune. Dans son silence, le jeu parle au joueur, une fois (§ 8).
-- **Ses mots** : ceux de l'interface, très peu : crue, limon, couche, rive.
+- **Ses mots** : ceux de l'interface, très peu : crue, limon, couche, rive ; et ceux de son échelle, coudée et doigt.
+- **Sa notation** (I1), fixée par sa [fiche](strates/strate-7.md) : l'échelle de crue, une pierre graduée où se lit la hauteur du limon, en coudées et en doigts. C'est son seul nombre, et il s'écrit en lettres : « neuf coudées et quatorze doigts ».
 - **Ses restes** : des encoches sur la roche, que le fleuve a mises à nu en creusant son lit. Il les a laissées recouvrir.
 - **Ses traces** : ses couches, dessinées, et dans son limon les fosses de la dette (§ 7). Pas un mot.
 - **Les objets d'en haut** : des mots simples, et ce que la chose fait à qui la tient. Le premier exemple du design était « le papier qui oblige » (§7). Mais le papier n'existe pas ici, et les comptes de la dette sont des tablettes : c'est « la pierre qui oblige ».
@@ -307,8 +308,8 @@ Proposition, à reprendre avec les textes du lit ([#92](https://github.com/David
 | Quand | Texte |
 |---|---|
 | À l'arrivée, après la dette | « Rien ne presse. » |
-| Au retour d'une longue absence | « Ce que vous avez laissé en haut est toujours là. » |
-| Quand les derniers placements sont faits | « Vous n'avez rien à décider ici. » |
+| Au retour d'une longue absence, d'une heure au moins | « Ce que vous avez laissé en haut est toujours là. » |
+| Quand les derniers placements sont faits : le dernier creux plein | « Vous n'avez rien à décider ici. » |
 | Pendant la descente, que le joueur n'a pas choisie | « C'était la seule fois. » |
 
 La dernière a deux sens, voulus : la seule descente que le joueur n'a pas choisie, et la dernière phrase que le jeu lui adresse.
@@ -359,13 +360,13 @@ Jamais de résumé de la civilisation, d'indice, ni de « vous ». Les lignes «
 - **Les textes de l'atelier** ([#68](https://github.com/DavidGiangiacomo/strates/issues/68)) : faits ([fiche](strates/strate-3.md), § 11). La légende dit « ajustée » et « à reprendre ». Les objets d'en haut s'y éveillent « Hors plan », sous leur nom d'en bas, et la notice du plan ne dit rien de la fin. La feuille qui annonce écrit, dans les caves, « Il reste 53 cases. ».
 - **Le catalogue** ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : fait ([`artefacts.md`](artefacts.md), § 8). Les noms d'en bas suivent le § 6, dont « la pierre qui oblige » ; au fond, des encoches.
 - **Le rappel de reprise** ([#58](https://github.com/DavidGiangiacomo/strates/issues/58)) : fait, pour la surface, les caves et l'atelier (§ 10). Le résumé d'absence ne dit plus « votre », et les rappels ont écrit 9 de leurs 300 mots : le reste de chaque rappel est une ligne de la couche.
-- **Les fiches** des strates 4, 7 et 8, et la révision de celle du chœur ([#62](https://github.com/DavidGiangiacomo/strates/issues/62), [#63](https://github.com/DavidGiangiacomo/strates/issues/63), [#65](https://github.com/DavidGiangiacomo/strates/issues/65), [#75](https://github.com/DavidGiangiacomo/strates/issues/75)) : leur § 2 part du § 4, leur § 11 du § 5 et du § 9. Celles de l'atelier et de la dette sont faites ([`strate-3.md`](strates/strate-3.md), [`strate-6.md`](strates/strate-6.md)).
+- **Les fiches** des strates 4, 7 et 8, et la révision de celle du chœur ([#62](https://github.com/DavidGiangiacomo/strates/issues/62), [#63](https://github.com/DavidGiangiacomo/strates/issues/63), [#65](https://github.com/DavidGiangiacomo/strates/issues/65), [#75](https://github.com/DavidGiangiacomo/strates/issues/75)) : leur § 2 part du § 4, leur § 11 du § 5 et du § 9. Celles de l'atelier, de la dette et du lit sont faites ([`strate-3.md`](strates/strate-3.md), [`strate-6.md`](strates/strate-6.md), [`strate-7.md`](strates/strate-7.md)).
 - **Les textes du lit** ([#92](https://github.com/DavidGiangiacomo/strates/issues/92)) : le § 8.
 - **Les traces du fond** ([#109](https://github.com/DavidGiangiacomo/strates/issues/109)) : les § 5 et 7.
 
 ## 12. Questions ouvertes
 
-1. **Les notations proposées** : tranchées par les fiches (I1). La douzaine de l'atelier est devenue la base douze ([fiche](strates/strate-3.md), § 1) ; la dette date ses échéances en crues, et écrit ses montants en sceaux ([fiche](strates/strate-6.md), § 1).
+1. **Les notations proposées** : tranchées par les fiches (I1). La douzaine de l'atelier est devenue la base douze ([fiche](strates/strate-3.md), § 1) ; la dette date ses échéances en crues, et écrit ses montants en sceaux ([fiche](strates/strate-6.md), § 1) ; le lit mesure son limon en coudées et en doigts, écrits en lettres ([fiche](strates/strate-7.md), § 1).
 2. **Les noms des objets au fond** : tranchés par le catalogue, un nombre d'encoches ([`artefacts.md`](artefacts.md), § 8). La fiche du fond ([#65](https://github.com/DavidGiangiacomo/strates/issues/65)) peut encore y revenir.
 3. **La dernière phrase du lit** : si ses deux sens se gênent au playtest, garder celui de la descente.
 4. **Les restes dessinés** : le pavement du chœur et les encoches sous le limon ne s'écrivent pas. Il faudra qu'on les voie, sans qu'ils attirent plus l'œil qu'un détail.

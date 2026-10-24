@@ -281,18 +281,18 @@ Cinq objets, 17 points. Les noms d'en bas sont ceux de la dette : des gages, nom
 | 4 | `s5-silence` | Le silence | le gage patient | multiplicateur, secondaire |
 | 4 | `s5-voix` | La voix seule | le gage qui chante | unique |
 
-| Objet | Puissant, dans la dette | Utile, dans le lit (proposé) |
+| Objet | Puissant, dans la dette | Utile, dans le lit |
 |---|---|---|
 | le gage qui souffle | les noms des promesses et la valeur de la confiance, levés à l'arrivée | les mots du lit, levés à l'arrivée : crue et limon |
 | le gage qui revient | la caisse prévue à chacune des prochaines échéances | la prochaine couche, dessinée d'avance |
-| la caution de bois | levier `confiance` × 1,25 | levier dépôt × 1,125 |
-| le gage patient | levier `report` : la majoration d'un report divisée par √1,5 | le levier secondaire du lit × 1,25, que sa fiche définira ; à défaut, dépôt |
+| la caution de bois | levier `confiance` × 1,25 | levier `depot` × 1,125 : l'eau retenue derrière une levée |
+| le gage patient | levier `report` : la majoration d'un report divisée par √1,5 | levier `patience` × 1,25 : le limon déposé pendant l'absence |
 | le gage qui chante | pendant les douze crues de la grande crue, une voix tient une note. Elle se tait à la grande crue, ou une crue plus tôt si la caisse ne doit pas y suffire | dans le lit, la même voix revient une fois, plus bas, au premier dépôt |
 
 - **14 points, jeu correct** : 2 + 3 + 4 + 4. Le gage qui chante reste en haut ; avec 18 points, tout le catalogue est emporté.
 - **La dette** : la confiance vaut × 1,5 pour un jeu correct (1,2 × 1,25), le haut de ce que supposait sa fiche (§ 8). Les gages s'éveillent quand la première tablette est brisée : « Les témoins ont reconnu le gage qui chante. »
 - **Le gage qui chante** ne change rien à la grande crue : pendant ses douze crues, il n'y a plus rien à faire ([fiche](strates/strate-6.md), § 4). Il en dit seulement l'issue un peu plus tôt.
-- **Sa voix dans le lit** est à confirmer par la fiche du lit, qui garde le silence pour la seule fois où le jeu parle ([bible](bible.md), § 8).
+- **Sa voix dans le lit** vient au premier dépôt, sans un mot, trente secondes après la première phrase du jeu, pour ne pas la couvrir ([fiche du lit](strates/strate-7.md), § 8).
 
 ### Strate 6 — La dette
 
@@ -306,18 +306,18 @@ Cinq objets, 32 points. Les noms d'en bas sont ceux du lit : des mots simples, e
 | 7 | `s6-bulle` | La bulle d'argile | l'œuf qui garde | affichage |
 | 7 | `s6-tablette` | La tablette de prêt | la pierre qui oblige | unique |
 
-| Objet | Puissant, dans le lit (proposé) | Utile, au fond |
+| Objet | Puissant, dans le lit | Utile, au fond |
 |---|---|---|
-| le bâton qui creuse | les mots du lit, levés à l'arrivée : crue, limon, couche et rive | aucun : tout s'y lit déjà |
+| le bâton qui creuse | les mots du lit, crue, limon, couche et rive, et les mesures de son échelle, levés à l'arrivée | aucun : tout s'y lit déjà |
 | le rouleau qui marque | les trois prochaines couches, dessinées d'avance | aucun |
-| la pierre qui pèse | levier dépôt × 1,25 | aucun : le fond n'a pas de levier |
+| la pierre qui pèse | levier `depot` × 1,25 : l'eau retenue derrière une levée | aucun : le fond n'a pas de levier |
 | l'œuf qui garde | la rive marquée d'avance : jusqu'où le bassin se remplira | aucun |
 | la pierre qui oblige | quand le lit descend, l'eau se retire un instant et laisse voir la paroi du fond : des encoches, par groupes | dans la salle de lecture, la trace de la dette se lit sans clé |
 
 - **28 points, strate soldée** : 5 + 6 + 7 + 7, et 3 points restent. La pierre qui oblige reste en haut.
 - **24 points, défaut à la grande crue** : 5 + 6 + 7, trois objets ; deux restent en haut, comme le prévoit la [fiche de la dette](strates/strate-6.md), § 9.
 - **Personne ne prend tout** : le catalogue coûte 32 points, et la dette n'en donne pas plus de 28.
-- **Le levier dépôt** reste à définir par la fiche du lit ([#75](https://github.com/DavidGiangiacomo/strates/issues/75)). Le lit dure deux heures, en temps réel : un multiplicateur qui raccourcirait la strate devrait être borné, comme le ressort de l'atelier ou le bourdon du chœur. Pour un jeu correct, il vaut × 1,41, et × 1,76 si le lit n'a pas de levier secondaire.
+- **Les leviers du lit** sont fixés par sa fiche ([`strate-7.md`](strates/strate-7.md), § 8). `depot` multiplie le limon de l'eau retenue derrière une levée, et `patience` celui qui se dépose pendant l'absence. Le premier est borné comme le ressort de l'atelier ou le bourdon du chœur : il ne joue que dans les creux, derrière une levée. Pour un jeu correct, × 1,41 et × 1,25 : le joueur attentif finit en 1 h 50 au lieu de 2 h 04.
 - **Au fond**, où rien n'est produit ni caché, ces objets sont utiles sans rien faire, sauf la pierre qui oblige ([#65](https://github.com/DavidGiangiacomo/strates/issues/65)).
 
 ### Strate 7 — Le lit
@@ -368,7 +368,7 @@ Un par catalogue, de la surface à la dette. Chacun fait passer quelque chose d'
   | 4 — Le réseau | débit × 2,16 ; le secondaire × 1,5, sur débit à défaut | × 3,23 |
   | 5 — Le chœur | `bourdon` × 1,75 ; `tenue` × 1,88 | × 3,28 |
   | 6 — La dette | `confiance` × 1,5 ; `report` × 1,88 | × 2,81 |
-  | 7 — Le lit | dépôt × 1,41 ; le secondaire × 1,25, sur dépôt à défaut | × 1,76 |
+  | 7 — Le lit | `depot` × 1,41 ; `patience` × 1,25 | × 1,76 |
   | 8 — Le fond | aucun levier | — |
 
   Les objets qu'un jeu correct laisse en haut sont des objets étranges, sans multiplicateur : avec les deux catalogues du dessus entiers, les totaux sont les mêmes. Le plafond n'est jamais atteint.
@@ -378,6 +378,6 @@ Un par catalogue, de la surface à la dette. Chacun fait passer quelque chose d'
 
 ### Ce qui reste
 
-- **Les effets, strate par strate**, avec les noms d'en bas que chaque strate dit au noyau par `nommes()` ([#45](https://github.com/DavidGiangiacomo/strates/issues/45)) : c'est ainsi que paraîtront dans l'inventaire les noms d'en bas du chœur et les encoches du fond. Les caves et l'atelier nomment déjà leurs objets. Les strates : l'atelier ([#81](https://github.com/DavidGiangiacomo/strates/issues/81) et [#95](https://github.com/DavidGiangiacomo/strates/issues/95), fait), le réseau ([#84](https://github.com/DavidGiangiacomo/strates/issues/84)), le chœur ([#87](https://github.com/DavidGiangiacomo/strates/issues/87)), la dette ([#90](https://github.com/DavidGiangiacomo/strates/issues/90)) et le lit ([#108](https://github.com/DavidGiangiacomo/strates/issues/108)). Ceux du réseau et du lit sont à confirmer par leurs fiches ([#62](https://github.com/DavidGiangiacomo/strates/issues/62), [#75](https://github.com/DavidGiangiacomo/strates/issues/75)), qui fixeront aussi leurs leviers secondaires.
+- **Les effets, strate par strate**, avec les noms d'en bas que chaque strate dit au noyau par `nommes()` ([#45](https://github.com/DavidGiangiacomo/strates/issues/45)) : c'est ainsi que paraîtront dans l'inventaire les noms d'en bas du chœur et les encoches du fond. Les caves et l'atelier nomment déjà leurs objets. Les strates : l'atelier ([#81](https://github.com/DavidGiangiacomo/strates/issues/81) et [#95](https://github.com/DavidGiangiacomo/strates/issues/95), fait), le réseau ([#84](https://github.com/DavidGiangiacomo/strates/issues/84)), le chœur ([#87](https://github.com/DavidGiangiacomo/strates/issues/87)), la dette ([#90](https://github.com/DavidGiangiacomo/strates/issues/90)) et le lit ([#108](https://github.com/DavidGiangiacomo/strates/issues/108)). Ceux du réseau sont à confirmer par sa fiche ([#62](https://github.com/DavidGiangiacomo/strates/issues/62)), qui fixera aussi son levier secondaire ; ceux du lit le sont par la sienne ([`strate-7.md`](strates/strate-7.md), § 8).
 - **Les six effets uniques** ([#118](https://github.com/DavidGiangiacomo/strates/issues/118)), et les clés du fond, avec sa fiche ([#65](https://github.com/DavidGiangiacomo/strates/issues/65)).
 - **Les noms d'en haut et d'en bas** sont à relire avec les textes de chaque strate ([#68](https://github.com/DavidGiangiacomo/strates/issues/68), [#70](https://github.com/DavidGiangiacomo/strates/issues/70), [#72](https://github.com/DavidGiangiacomo/strates/issues/72), [#74](https://github.com/DavidGiangiacomo/strates/issues/74), [#92](https://github.com/DavidGiangiacomo/strates/issues/92)) et la passe finale ([#119](https://github.com/DavidGiangiacomo/strates/issues/119)).

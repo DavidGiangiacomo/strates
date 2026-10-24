@@ -345,8 +345,8 @@ describe("les parcours types", () => {
   /** Les points d'un jeu correct, strate par strate (D-003 ; docs/artefacts.md, § 7). */
   const CORRECT: Record<number, number> = { 1: 12, 2: 8, 3: 16, 4: 21, 5: 14, 6: 28, 7: 4 };
   /**
-   * Les leviers des strates d'arrivée, d'après leur code ou leur fiche. Ceux du réseau et du lit
-   * viennent de l'architecture (§ 8) : leurs fiches les fixeront.
+   * Les leviers des strates d'arrivée, d'après leur code ou leur fiche. Celui du réseau vient de
+   * l'architecture (§ 8) : sa fiche le fixera.
    */
   const LEVIERS: Record<2 | 3 | 4 | 5 | 6 | 7, Leviers> = {
     2: { principal: "recolte", secondaires: ["conservation"] },
@@ -354,7 +354,7 @@ describe("les parcours types", () => {
     4: { principal: "debit" },
     5: { principal: "bourdon", secondaires: ["tenue"] },
     6: { principal: "confiance", secondaires: ["report"] },
-    7: { principal: "depot" },
+    7: { principal: "depot", secondaires: ["patience"] },
   };
   const correct = (origine: number) => preselection(CORRECT[origine]!, origine);
   /** Ce qu'emporte un jeu correct depuis la surface jusqu'à la strate `s`. */
