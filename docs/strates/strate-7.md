@@ -1,6 +1,6 @@
 # Strate 7 — Le lit
 
-*Fiche de design, issue [#75](https://github.com/DavidGiangiacomo/strates/issues/75). Écrite après la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)), le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)) et la fiche de la dette ([#64](https://github.com/DavidGiangiacomo/strates/issues/64)), dont le lit garde les fosses. Les chiffres viennent d'une simulation grossière de quatre profils de joueur (§ 4), à refaire avec le simulateur headless quand la boucle sera codée ([#91](https://github.com/DavidGiangiacomo/strates/issues/91), [#116](https://github.com/DavidGiangiacomo/strates/issues/116)).*
+*Fiche de design, issue [#75](https://github.com/DavidGiangiacomo/strates/issues/75). Écrite après la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)), le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)) et la fiche de la dette ([#64](https://github.com/DavidGiangiacomo/strates/issues/64)), dont le lit garde les fosses. Les chiffres viennent d'une simulation grossière de quatre profils de joueur (§ 4). La boucle est codée ([#91](https://github.com/DavidGiangiacomo/strates/issues/91), `src/strates/s7-lit/`) : ses joueurs automatiques retrouvent ces chiffres à la minute près. L'équilibrage les reprendra avec le simulateur headless ([#116](https://github.com/DavidGiangiacomo/strates/issues/116)).*
 
 *Choix tranchés le 24 octobre 2026 :*
 - *les rares placements disent où l'eau se repose : une levée ferme un creux, et l'eau y laisse tout son limon. Ils dessinent les couches, qu'on retrouve au fond, et font gagner un quart d'heure environ. Sans un geste, le bassin se remplit quand même ;*
@@ -65,7 +65,7 @@ Rien ne produit et rien ne s'achète. La boucle tient en un geste rare et une at
 
 - **Quatre creux** bordent le bassin, le long de la rive, à 0, 9, 18 et 27 coudées sur l'échelle. Le premier est au fond du bassin : l'eau l'atteint dès la première crue.
 - **Quand le limon atteint un creux, l'eau s'y engouffre.** Tant qu'il n'est pas plein, tout le limon de la crue y va, et le bassin ne monte plus : **l'échelle s'arrête**.
-- **Un creux tient 25 crues d'eau qui se repose**, ou 33 et un tiers d'eau qui passe. Les quatre creux font toute la différence entre un joueur qui les ferme et un joueur qui ne fait rien : 18 minutes.
+- **Un creux tient 25 crues d'eau qui se repose**, ou 33 et un tiers d'eau qui passe. La crue qui le remplit y laisse tout son limon, même ce qui dépasse : une crue, une couche, en un seul lieu. Sans levée, il en faut donc 34. Les quatre creux font toute la différence entre un joueur qui les ferme et un joueur qui ne fait rien : 18 minutes.
 - Plein, le creux se fond dans le bassin, et l'échelle repart.
 
 ### La levée
@@ -96,6 +96,11 @@ interface Couche {
   retenue: boolean;                 // l'eau s'est reposée derrière une levée
 }
 
+interface Phrase {
+  cle: string;                      // la clé de son texte
+  a: number;                        // le moment où elle paraît, comme `temps`
+}
+
 interface EtatLit {
   temps: number;                    // secondes depuis l'arrivée, absences comprises
   crues: number;                    // les crues passées
@@ -107,7 +112,7 @@ interface EtatLit {
   pleinA: number | null;            // le temps où le bassin a atteint la rive
   descenteA: number | null;         // une crue après le bassin plein, en présence du joueur
   deplacements: number;             // les levées déplacées d'un creux qui n'était pas plein : la patience
-  dites: string[];                  // les phrases du jeu déjà dites
+  dites: Phrase[];                  // les phrases du jeu, chacune une fois, et quand elles paraissent
   dette: "soldee" | "defaut" | null; // l'issue de la dette, lue au journal à l'arrivée : ses fosses
   multiplicateurs: { depot: number; patience: number };  // artefacts, relus à chaque tick
 }
@@ -115,10 +120,10 @@ interface EtatLit {
 type ActionLit = { type: "fermer"; creux: number };   // bâtit la levée, ou la déplace
 ```
 
-- **`tick(dt)`** fait passer les crues : à chacune, le limon va au premier creux atteint qui n'est pas plein, ou au bassin.
-- **`pasMax`** vaut une crue, trente secondes : le pas est coupé à chaque crue.
-- **`absence(duree)`** fait passer d'un coup les crues de l'absence, sans tick (§ 10).
-- **`seuil()`** rend `{ atteint, automatique: true }`. Il est atteint une crue après le bassin plein, en présence du joueur.
+- **`tick(dt)`** fait passer les crues qui viennent dans le pas, une à une : à chacune, le limon va au premier creux atteint qui n'est pas plein, ou au bassin. La n-ième crue vient à n × 30 secondes de l'arrivée. Au bassin plein, les crues s'arrêtent.
+- **`pasMax`** vaut une crue, trente secondes ; un pas plus long donne le même lit.
+- **`absence(duree)`** fait passer d'un coup les crues de l'absence, sans tick (§ 10). Une descente qui n'est pas encore partie attend le retour. Les phrases qu'une crue déclenche pendant l'absence paraissent au retour, après celle du retour.
+- **`seuil()`** rend `{ atteint, automatique: true }`. Il est atteint une crue après le bassin plein, en présence du joueur. La descente elle-même, son déclenchement par l'interface et le bouton « creuser », sont l'objet de [#106](https://github.com/DavidGiangiacomo/strates/issues/106).
 - **`valeurConvertible()`** rend `depose`.
 - La strate n'utilise pas d'aléatoire : la grande crue est toujours la 150ᵉ. Un geste impossible, comme fermer un creux plein, est ignoré sans erreur.
 
@@ -191,7 +196,7 @@ Le joueur vient de la dette : trois heures d'échéances, une décision par minu
 
 ## 6. Interface et direction artistique
 
-« Presque vide, grain, lenteur » (§5). La réalisation est l'objet de [#107](https://github.com/DavidGiangiacomo/strates/issues/107) ; le son, de [#114](https://github.com/DavidGiangiacomo/strates/issues/114).
+« Presque vide, grain, lenteur » (§5). La réalisation est l'objet de [#107](https://github.com/DavidGiangiacomo/strates/issues/107) ; le son, de [#114](https://github.com/DavidGiangiacomo/strates/issues/114). D'ici là, la boucle se joue sur une coupe sobre, en SVG ([#91](https://github.com/DavidGiangiacomo/strates/issues/91)) : le fleuve, le bassin et ses couches, les quatre creux, la levée, l'échelle et sa lecture, l'eau de chaque crue et les phrases du jeu. Elle ne dessine encore ni le grain, ni la roche aux encoches, ni les fosses de la dette.
 
 - **Disposition : la coupe du bassin**, vue de côté, sur presque tout l'écran.
   - **Le fleuve**, à gauche : une bande d'eau grise, qui monte à chaque crue.
@@ -249,10 +254,12 @@ Le joueur arrive avec κ = 85 au mieux, et plutôt de 55 à 65 pour un jeu corre
 **Les formules**, de la plus simple à la plus profonde, écrites en lettres comme l'échelle :
 1. une crue toutes les trente secondes ;
 2. l'eau qui passe : sept doigts par crue ;
-3. l'eau retenue : neuf doigts et un tiers par crue, × dépôt ;
+3. l'eau retenue : neuf doigts et un tiers par crue ;
 4. un creux : vingt-cinq crues d'eau retenue, ou trente-trois et un tiers d'eau qui passe ;
-5. la rive : trente-six coudées ;
-6. la valeur convertible : tout le limon déposé.
+5. la rive : trente-six coudées, de vingt-huit doigts ;
+6. tout le limon déposé : celui du bassin, et celui des creux.
+
+Comme celles des autres strates, elles n'écrivent pas les multiplicateurs des objets.
 
 ## 8. Artefacts reçus
 
