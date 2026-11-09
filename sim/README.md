@@ -8,6 +8,8 @@ Fait tourner la logique d'une strate sans rendu, sous Node ([#23](https://github
 - `mesures/caves.ts` : les mesures d'une partie des caves, avec ou sans artefacts (seuil, points, premières ruptures, hivers manqués, attentes entre deux achats, décisions par tranche de 10 minutes, et les actes de compréhension avec le κ qu'ils rapportent, [#78](https://github.com/DavidGiangiacomo/strates/issues/78)). Elles alimentent `tests/equilibrage-caves.test.ts` et le rapport [`docs/strates/strate-2-mesures.md`](../docs/strates/strate-2-mesures.md).
 - `joueurs/atelier.ts` : des joueurs automatiques pour l'atelier ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)), du joueur réflexe, qui pose la pièce la moins chère sur la première case libre, aux joueurs qui cherchent la meilleure case et revoient leur plan.
 - `mesures/atelier.ts` : les mesures d'une partie de l'atelier, avec ou sans artefacts (seuil, points, agrandissements du plan, dernier achat, attentes entre deux achats, achats par tranche de 10 minutes, gestes de la dernière ajustée, et les actes de compréhension avec le κ qu'ils rapportent). Elles alimentent `tests/equilibrage-atelier.test.ts` et le rapport [`docs/strates/strate-3-mesures.md`](../docs/strates/strate-3-mesures.md).
+- `joueurs/lit.ts` : des joueurs automatiques pour le lit ([#91](https://github.com/DavidGiangiacomo/strates/issues/91)) : le prévoyant, l'attentif, le distrait, et celui qui ne fait rien. À chaque passage, ils ferment le premier creux qui n'est pas plein, quand ils le voient sous l'eau, ou d'avance s'ils prévoient.
+- `mesures/lit.ts` : les mesures d'une partie du lit, jouée à l'horloge, avec ou sans artefacts, en continu ou avec des absences ([#116](https://github.com/DavidGiangiacomo/strates/issues/116)) : bassin plein, descente, temps de présence, levées, couches d'eau retenue, limon et points. Elles alimentent `tests/equilibrage-lit.test.ts` et le rapport [`docs/strates/strate-7-mesures.md`](../docs/strates/strate-7-mesures.md).
 
 ## La commande
 
@@ -20,11 +22,12 @@ npm run simuler -- caves correct --comparer     # sans objet, puis avec ceux d'u
 npm run simuler -- 2 reflexe --objets=s1-turbine,s1-equipe --limite=6
 npm run simuler -- caves tous --json            # les résultats en JSON
 npm run simuler -- atelier --comparer           # le joueur naturel, sans objet puis avec, et I5
+npm run simuler -- lit tous --comparer          # les quatre joueurs du lit, sans objet puis avec
 ```
 
-- **La strate** se nomme par son nom ou par sa profondeur : `surface` ou `1`, `caves` ou `2`, `atelier` ou `3`.
-- **Le joueur** est le correct quand on n'en nomme aucun ; dans l'atelier, c'est le naturel.
-- **`--objets`** emporte des objets d'en haut : `jeu-correct`, ou une liste d'identifiants. Le jeu correct, c'est la présélection de 12 points à la surface : l'équipe, le double écran, le serveur, la filiale, la turbine. L'atelier y ajoute celle de 9 points dans les caves : la faucille, le calendrier, le registre, la meule. La surface n'en reçoit aucun.
+- **La strate** se nomme par son nom ou par sa profondeur : `surface` ou `1`, `caves` ou `2`, `atelier` ou `3`, `lit` ou `7`.
+- **Le joueur** est le correct quand on n'en nomme aucun ; dans l'atelier, c'est le naturel, et dans le lit, l'attentif. Le lit n'a pas de seuil à franchir : le simulateur donne le moment de sa descente, une crue après le bassin plein.
+- **`--objets`** emporte des objets d'en haut : `jeu-correct`, ou une liste d'identifiants. Le jeu correct, c'est la présélection de 12 points à la surface : l'équipe, le double écran, le serveur, la filiale, la turbine. L'atelier y ajoute celle de 9 points dans les caves : la faucille, le calendrier, le registre, la meule. Dans le lit, ce sont les objets qui y agissent : la présélection de 14 points dans le chœur et celle de 28 dans la dette. La surface n'en reçoit aucun.
 - **`--comparer`** joue chaque partie deux fois, sans objet puis avec, et dit si I5 est tenu : le seuil en moins de 3 h 15 sans aucun artefact.
 - **`--limite`** borne la partie, en heures de jeu (4 par défaut) ; **`--json`** rend les résultats en JSON.
 - `sim/simulateur.ts` fait le travail, et `sim/simuler.mjs` le lance sous Node : Vite (`runnerImport`) charge le TypeScript et la logique des strates, sans rendu ni navigateur.

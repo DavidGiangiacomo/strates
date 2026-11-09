@@ -6,9 +6,11 @@
 import type { NumeroStrate } from "../src/noyau/logique/types";
 import * as joueursAtelier from "./joueurs/atelier";
 import * as joueursCaves from "./joueurs/caves";
+import * as joueursLit from "./joueurs/lit";
 import * as joueursSurface from "./joueurs/surface";
 import { mesurerAtelier } from "./mesures/atelier";
 import { mesurerCaves } from "./mesures/caves";
+import { mesurerLit } from "./mesures/lit";
 import { mesurerSurface } from "./mesures/surface";
 
 /** I5 : une strate se termine en moins de 3 h 15 sans aucun artefact. */
@@ -33,6 +35,22 @@ export const OBJETS_JEU_CORRECT_ATELIER = [
   "s2-calendrier",
   "s2-registre",
   "s2-meule",
+];
+
+/**
+ * Les objets d'un jeu correct qui agissent dans le lit : la présélection de 14 points dans le chœur, puis
+ * celle de 28 dans la dette (docs/artefacts.md, § 8). Ceux d'avant n'y sont plus que des ornements ou
+ * des cailloux.
+ */
+export const OBJETS_JEU_CORRECT_LIT = [
+  "s5-souffle",
+  "s5-echo",
+  "s5-stalle",
+  "s5-silence",
+  "s6-stylet",
+  "s6-sceau",
+  "s6-poids",
+  "s6-bulle",
 ];
 
 /** Une partie simulée, jusqu'au seuil ou jusqu'à la limite. */
@@ -60,7 +78,7 @@ interface StrateSimulee {
   /** Ce qu'emporte un jeu correct jusqu'à elle. */
   jeuCorrect?: readonly string[];
   joueurs: Record<string, Joueur>;
-  /** Le joueur qui joue quand on n'en nomme aucun : « correct », sauf dans l'atelier. */
+  /** Le joueur qui joue quand on n'en nomme aucun : « correct », sauf dans l'atelier et le lit. */
   parDefaut?: string;
   jouer(joueur: string, options: { objets: string[]; limite: number }): Promise<Partie>;
 }
@@ -91,6 +109,13 @@ const JOUEURS_ATELIER = {
   prudent: joueursAtelier.PRUDENT,
   desordonne: joueursAtelier.DESORDONNE,
   reflexe: joueursAtelier.REFLEXE,
+};
+
+const JOUEURS_LIT = {
+  prevoyant: joueursLit.PREVOYANT,
+  attentif: joueursLit.ATTENTIF,
+  distrait: joueursLit.DISTRAIT,
+  "sans-un-geste": joueursLit.SANS_UN_GESTE,
 };
 
 export const STRATES: Record<string, StrateSimulee> = {
@@ -173,10 +198,33 @@ export const STRATES: Record<string, StrateSimulee> = {
       return { seuil: m.seuil, valeur: m.cumul, points: m.points.auSeuil, details };
     },
   },
+  // Le lit n'a pas de seuil à franchir : la descente vient seule, une crue après le bassin plein.
+  lit: {
+    numero: 7,
+    nom: "Le lit",
+    unite: "doigts",
+    recoitDesObjets: true,
+    jeuCorrect: OBJETS_JEU_CORRECT_LIT,
+    joueurs: JOUEURS_LIT,
+    parDefaut: "attentif",
+    async jouer(joueur, { objets, limite }) {
+      const m = await mesurerLit(JOUEURS_LIT[joueur as keyof typeof JOUEURS_LIT], {
+        limite,
+        artefacts: objets,
+      });
+      const details: [string, string][] = [
+        ["Bassin plein", m.plein === null ? "jamais" : duree(m.plein)],
+        ["Levées bâties", String(m.gestes)],
+        ["Couches d'eau retenue", String(m.retenues)],
+      ];
+      if (objets.length > 0) details.push(["Plafond × 4 atteint", m.plafonne ? "oui" : "non"]);
+      return { seuil: m.descente, valeur: m.depose, points: m.points, details };
+    },
+  },
 };
 
 /** Les noms qu'on peut donner à une strate : son nom ou sa profondeur. */
-const ALIAS: Record<string, string> = { "1": "surface", "2": "caves", "3": "atelier" };
+const ALIAS: Record<string, string> = { "1": "surface", "2": "caves", "3": "atelier", "7": "lit" };
 
 export interface Demande {
   strate: string;
@@ -192,8 +240,9 @@ export interface Demande {
 
 export const USAGE = `Usage : npm run simuler -- <strate> [joueur… | tous] [options]
 
-  strate        surface (ou 1), caves (ou 2), atelier (ou 3)
-  joueur        correct par défaut (naturel dans l'atelier) ; « tous » les joue tous
+  strate        surface (ou 1), caves (ou 2), atelier (ou 3), lit (ou 7)
+  joueur        correct par défaut (naturel dans l'atelier, attentif dans le lit) ;
+                « tous » les joue tous
   --objets=…    les objets emportés d'en haut : jeu-correct, ou une liste
                 d'identifiants séparés par des virgules (s1-equipe,s1-turbine)
   --comparer    chaque partie deux fois, sans objet puis avec (jeu-correct par
@@ -203,7 +252,8 @@ export const USAGE = `Usage : npm run simuler -- <strate> [joueur… | tous] [op
 
 Joueurs de la surface : ${Object.keys(JOUEURS_SURFACE).join(", ")}
 Joueurs des caves : ${Object.keys(JOUEURS_CAVES).join(", ")}
-Joueurs de l'atelier : ${Object.keys(JOUEURS_ATELIER).join(", ")}`;
+Joueurs de l'atelier : ${Object.keys(JOUEURS_ATELIER).join(", ")}
+Joueurs du lit : ${Object.keys(JOUEURS_LIT).join(", ")}`;
 
 /** Lit la ligne de commande ; lève une erreur qui dit quoi corriger. */
 export function lireArguments(args: readonly string[]): Demande {

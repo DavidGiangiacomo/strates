@@ -29,6 +29,7 @@ Réglage unique du dépôt, déjà nécessaire au premier déploiement : *Settin
 | [`docs/strates/strate-5.md`](docs/strates/strate-5.md) | Fiche de design de la strate 5, le chœur |
 | [`docs/strates/strate-6.md`](docs/strates/strate-6.md) | Fiche de design de la strate 6, la dette |
 | [`docs/strates/strate-7.md`](docs/strates/strate-7.md) | Fiche de design de la strate 7, le lit |
+| [`docs/strates/strate-7-mesures.md`](docs/strates/strate-7-mesures.md) | Mesures d'équilibrage du lit, générées par la CI |
 | [`docs/strates/descente-1-2.md`](docs/strates/descente-1-2.md) | Storyboard du passage de la surface aux caves : fouille, choix des objets, descente, arrivée |
 | [`docs/playtest-mvp.md`](docs/playtest-mvp.md) | Protocole et critères du test du MVP (§14), écrits avant le test ; puis son compte rendu |
 | [`docs/architecture.md`](docs/architecture.md) | Contrat entre le noyau et les strates (types, boucle, descente, journal) |
@@ -49,7 +50,7 @@ npm run lint         # ESLint, dont les règles d'architecture
 npm run check        # types : application, puis logique sans DOM
 npm run format       # Prettier
 npm run sauvegardes  # régénère les sauvegardes nommées (sauvegardes-nommees/)
-npm run mesures      # régénère les mesures d'équilibrage (docs/strates/strate-1-mesures.md à strate-3-mesures.md)
+npm run mesures      # régénère les mesures d'équilibrage (docs/strates/strate-*-mesures.md)
 npm run analyse -- journal.json …  # analyse des journaux de session exportés (docs/playtest-mvp.md, § 9)
 npm run simuler -- caves correct --comparer  # le simulateur d'équilibrage (sim/README.md)
 ```
