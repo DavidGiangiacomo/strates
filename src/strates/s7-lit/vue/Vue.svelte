@@ -41,7 +41,7 @@
     y,
   } from "./coupe";
 
-  let { etat, agir, o, mode }: ProprietesVue<EtatLit, ActionLit> = $props();
+  let { etat, agir, noyau, o, mode }: ProprietesVue<EtatLit, ActionLit> = $props();
 
   const reduit =
     typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -73,6 +73,28 @@
     fermer(k);
   }
 
+  // L'aide (fiche, § 11) : une page courte, la coupe d'une crue en quatre légendes. L'ouvrir est
+  // noté, pour l'acte « sans aide » (§ 7).
+  const LEGENDES_AIDE = ["crue", "levee", "couche", "rive"];
+  let aideOuverte = $state(false);
+  let lienAide: HTMLButtonElement | undefined = $state();
+  let pageAide: HTMLElement | undefined = $state();
+  function ouvrirAide(): void {
+    aideOuverte = true;
+    noyau.ouvrirAide();
+  }
+  function refermerAide(): void {
+    aideOuverte = false;
+    lienAide?.focus();
+  }
+  // À l'ouverture, le focus va à la page : la lecture commence par son titre.
+  $effect(() => {
+    if (aideOuverte) pageAide?.focus();
+  });
+  function touche(e: KeyboardEvent): void {
+    if (e.key === "Escape" && aideOuverte) refermerAide();
+  }
+
   /** Un creux se dit avec sa hauteur et son état : « Creux à neuf coudées, sous l'eau ». */
   function etiquette(k: number): string {
     const lieu =
@@ -80,6 +102,8 @@
     return `${lieu}, ${o(`creux.${etatCreux(etat, k)}`)}`;
   }
 </script>
+
+<svelte:window onkeydown={touche} />
 
 <section class="lit" aria-label={o("coupe")}>
   <div class="coupe">
@@ -238,6 +262,33 @@
       ? `, ${o("echelle.rive").replace("{hauteur}", lireEchelle(RIVE))}`
       : ""}
   </p>
+  <button
+    class="lien-aide"
+    bind:this={lienAide}
+    aria-expanded={aideOuverte}
+    aria-controls="aide-lit"
+    onclick={() => (aideOuverte ? refermerAide() : ouvrirAide())}
+    data-test="lien-aide">{o("aide")}</button
+  >
+  {#if aideOuverte}
+    <div
+      class="aide"
+      id="aide-lit"
+      bind:this={pageAide}
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="aide-titre"
+      data-test="aide"
+    >
+      <h3 id="aide-titre">{o("aide.titre")}</h3>
+      <ol>
+        {#each LEGENDES_AIDE as legende (legende)}
+          <li>{o(`aide.${legende}`)}</li>
+        {/each}
+      </ol>
+      <button class="refermer" onclick={refermerAide}>{o("aide.fermer")}</button>
+    </div>
+  {/if}
 </section>
 
 <style>
@@ -361,6 +412,53 @@
       "Times New Roman",
       serif;
     letter-spacing: 0.02em;
+  }
+  /* L'aide s'ouvre d'un lien discret (fiche, § 6) ; sa page se pose en bas de l'écran. */
+  .lien-aide {
+    align-self: flex-end;
+    padding: 2px 6px;
+    font:
+      13px/1.4 Georgia,
+      "Times New Roman",
+      serif;
+    color: var(--encre);
+    text-decoration: underline;
+    background: none;
+    border: 0;
+    opacity: 0.75;
+    cursor: pointer;
+  }
+  .aide {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    z-index: 3;
+    box-sizing: border-box;
+    width: min(26rem, calc(100% - 32px));
+    padding: 16px 20px;
+    font:
+      16px/1.5 Georgia,
+      "Times New Roman",
+      serif;
+    color: var(--encre);
+    background: var(--ciel);
+    border: 1px solid var(--encre);
+    outline: none;
+    transform: translateX(-50%);
+  }
+  .aide h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-style: italic;
+    font-weight: 400;
+  }
+  .aide ol {
+    margin: 0 0 12px;
+    padding-left: 1.4em;
+  }
+  .refermer {
+    font: inherit;
+    font-size: 14px;
   }
   /* Pour les lecteurs d'écran seulement : l'échelle à chaque coudée. */
   .lecteur {

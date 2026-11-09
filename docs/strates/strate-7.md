@@ -339,9 +339,13 @@ Ce sont des choses simples, nommées par ce qu'elles font à qui les tient ([bib
 
 ## 11. Textes
 
-**Budget : 100 mots** ([bible](../bible.md), § 9), le plus petit de toutes les strates. Le peuple du lit n'écrivait pas : c'est le jeu qui parle, une fois, en quatre phrases.
+**Budget : 100 mots** ([bible](../bible.md), § 9), le plus petit de toutes les strates. Le peuple du lit n'écrivait pas : c'est le jeu qui parle, une fois, en quatre phrases. Les textes sont écrits ([#92](https://github.com/DavidGiangiacomo/strates/issues/92), `src/strates/s7-lit/textes.fr.ts`) : 86 mots, dont 23 pour les phrases, 26 pour l'aide, 25 pour la coupe, l'échelle et les creux, et 12 pour le graphe.
 
-- **Les quatre phrases du jeu** (bible, § 8), en proposition pour [#92](https://github.com/DavidGiangiacomo/strates/issues/92) :
+*Choix tranchés le 9 novembre 2026 :*
+- *les phrases ne changent pas avec l'issue de la dette. Quand le jeu parle, il ne juge pas : seules les fosses de la rive la montrent, tablettes brisées ou entières (bible, § 7) ;*
+- *l'aide a ses mots, quatre légendes sous le dessin que fera la direction artistique ([#107](https://github.com/DavidGiangiacomo/strates/issues/107)).*
+
+- **Les quatre phrases du jeu** (bible, § 8) :
 
   | Quand | Phrase |
   |---|---|
@@ -354,6 +358,8 @@ Ce sont des choses simples, nommées par ce qu'elles font à qui les tient ([bib
 - **Les mots de l'interface** : crue, limon, couche et rive (bible, § 4), sur la coupe ; coudée et doigt, sur l'échelle.
 - **La lecture de l'échelle**, en toutes lettres : « aucune coudée » à l'arrivée, « sept doigts », « neuf coudées et quatorze doigts », puis « trente-six coudées » à la rive. Les nombres en lettres ne comptent pas dans le budget.
 - **L'aide** : une page dessinée, la coupe d'une crue. L'eau monte, se repose derrière une levée, se retire, et la couche reste. Les quatre mots, et rien sur la fin. Elle ne dit pas « vous ».
+  - Un lien discret, « Aide », l'ouvre sous la lecture de l'échelle. La page s'appelle « Une crue », et a quatre légendes : « La crue monte. », « Derrière la levée, l'eau se repose. », « Elle se retire, et laisse son limon : une couche. », « À droite, la rive. ».
+  - L'ouvrir est noté par le noyau, pour l'acte « sans aide » (§ 7).
 - **Le rappel de reprise** : rien (bible, § 10). Le noyau donne le lieu.
 - **Les traces pour le fond** (bible, § 5) : ses couches, dessinées, sans un mot. C'est la coupe du bassin plein, telle que le joueur l'a remplie : les couches sombres de l'eau retenue dans les creux, la couche épaisse de la grande crue, et dans la rive les fosses de la dette, tablettes brisées ou entières. Elle change avec le parcours : les levées du joueur, et l'issue de la dette.
 - **Les noms d'en bas** des objets de la dette sont ceux du catalogue (§ 8). Ils ne s'écrivent que dans l'inventaire du noyau.

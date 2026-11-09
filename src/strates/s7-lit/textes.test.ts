@@ -1,5 +1,6 @@
-// Les textes du lit (fiche, § 11 ; bible, §§ 8 et 9).
+// Les textes du lit (#92 ; fiche, § 11 ; bible, §§ 7 à 9).
 import { describe, expect, it } from "vitest";
+import { CATALOGUE } from "../../noyau/logique/catalogue";
 import { textes } from "./textes.fr";
 
 const mots = (texte: string) => texte.split(/\s+/).filter((m) => /\p{L}/u.test(m)).length;
@@ -16,6 +17,34 @@ describe("les textes du lit", () => {
     for (const [cle, texte] of Object.entries(textes)) {
       if (cle.startsWith("phrase.")) continue;
       expect(texte, cle).not.toMatch(/\bvous\b|\bvotre\b|\bvos\b/i);
+    }
+  });
+
+  it("ne changent pas avec l'issue de la dette : quand le jeu parle, il ne juge pas (bible, § 7)", () => {
+    for (const [cle, texte] of Object.entries(textes)) {
+      expect(cle).not.toMatch(/soldee|defaut|dette/);
+      expect(texte).not.toMatch(/sold|défaut|dette|dû/i);
+    }
+  });
+
+  it("donnent une aide qui dit une crue en quatre légendes, avec les quatre mots du lit, et rien de la fin", () => {
+    const aide = ["crue", "levee", "couche", "rive"].map((cle) => textes[`aide.${cle}`]!);
+    expect(textes["aide.titre"]).toBe("Une crue");
+    expect(aide).toEqual([
+      "La crue monte.",
+      "Derrière la levée, l'eau se repose.",
+      "Elle se retire, et laisse son limon : une couche.",
+      "À droite, la rive.",
+    ]);
+    const tout = aide.join(" ");
+    for (const mot of ["crue", "limon", "couche", "rive"])
+      expect(tout).toMatch(new RegExp(mot, "i"));
+    expect(tout).not.toMatch(/plein|descen|fin|fond|échelle|coudée|\bvous\b/i);
+  });
+
+  it("nomment les objets de la dette par ce qu'ils font à qui les tient (bible, § 6)", () => {
+    for (const a of CATALOGUE.filter((x) => x.origine === 6)) {
+      expect(a.nomDEnBas).toMatch(/^(le |la |l')\p{Ll}+ qui \p{Ll}+$/u);
     }
   });
 

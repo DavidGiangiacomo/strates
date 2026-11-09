@@ -2,7 +2,7 @@
 // La vue du lit (fiche, § 6), en coupe sobre : les creux qu'on ferme d'un clic ou au clavier, la
 // lecture de l'échelle, les phrases du jeu.
 import { flushSync, mount, unmount } from "svelte";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { strate } from "..";
 import type { CommandesNoyau, ContexteTick, SonStrate } from "../../../noyau/logique/types";
 import { logique, type ActionLit, type EtatLit } from "../logique";
@@ -179,5 +179,35 @@ describe("les objets d'en haut", () => {
     });
     expect(document.querySelector("[data-test=rive-marquee]")).not.toBeNull();
     expect(texte(".lecteur")).toBe("Échelle de crue : aucune coudée, la rive à trente-six coudées");
+  });
+});
+
+describe("l'aide", () => {
+  it("s'ouvre d'un lien discret, dit une crue en quatre légendes, et se referme", () => {
+    const ouvrir = vi.spyOn(commandes, "ouvrirAide");
+    monter();
+    expect(document.querySelector("[data-test=aide]")).toBeNull();
+    document.querySelector<HTMLButtonElement>("[data-test=lien-aide]")!.click();
+    flushSync();
+    // L'ouvrir est noté par le noyau : l'acte « sans aide » est perdu.
+    expect(ouvrir).toHaveBeenCalledTimes(1);
+    const aide = document.querySelector("[data-test=aide]")!;
+    expect(aide.getAttribute("role")).toBe("dialog");
+    expect(texte("[data-test=aide] h3")).toBe("Une crue");
+    expect([...aide.querySelectorAll("li")].map((li) => li.textContent)).toEqual([
+      "La crue monte.",
+      "Derrière la levée, l'eau se repose.",
+      "Elle se retire, et laisse son limon : une couche.",
+      "À droite, la rive.",
+    ]);
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    flushSync();
+    expect(document.querySelector("[data-test=aide]")).toBeNull();
+    document.querySelector<HTMLButtonElement>("[data-test=lien-aide]")!.click();
+    flushSync();
+    document.querySelector<HTMLButtonElement>("[data-test=aide] .refermer")!.click();
+    flushSync();
+    expect(document.querySelector("[data-test=aide]")).toBeNull();
+    ouvrir.mockRestore();
   });
 });

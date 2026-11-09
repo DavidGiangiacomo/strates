@@ -303,7 +303,7 @@ La dette finit soldée ou en défaut (§6). L'issue se voit dans la dette, dans 
 - **Comment** : trois ou quatre phrases de quelques mots, séparées par des heures de jeu. Chacune paraît seule sur le vide du lit, puis s'efface.
 - **Ni prophétie ni mystère.** Une phrase du lit doit être vraie au pied de la lettre, au moment où elle paraît.
 
-Proposition, à reprendre avec les textes du lit ([#92](https://github.com/DavidGiangiacomo/strates/issues/92)) :
+Tranché par les textes du lit ([#92](https://github.com/DavidGiangiacomo/strates/issues/92)) : ces quatre phrases, les mêmes quelle que soit l'issue de la dette (§ 7).
 
 | Quand | Texte |
 |---|---|
@@ -361,7 +361,7 @@ Jamais de résumé de la civilisation, d'indice, ni de « vous ». Les lignes «
 - **Le catalogue** ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : fait ([`artefacts.md`](artefacts.md), § 8). Les noms d'en bas suivent le § 6, dont « la pierre qui oblige » ; au fond, des encoches.
 - **Le rappel de reprise** ([#58](https://github.com/DavidGiangiacomo/strates/issues/58)) : fait, pour la surface, les caves et l'atelier (§ 10). Le résumé d'absence ne dit plus « votre », et les rappels ont écrit 9 de leurs 300 mots : le reste de chaque rappel est une ligne de la couche.
 - **Les fiches** des strates 4, 7 et 8, et la révision de celle du chœur ([#62](https://github.com/DavidGiangiacomo/strates/issues/62), [#63](https://github.com/DavidGiangiacomo/strates/issues/63), [#65](https://github.com/DavidGiangiacomo/strates/issues/65), [#75](https://github.com/DavidGiangiacomo/strates/issues/75)) : leur § 2 part du § 4, leur § 11 du § 5 et du § 9. Celles de l'atelier, de la dette et du lit sont faites ([`strate-3.md`](strates/strate-3.md), [`strate-6.md`](strates/strate-6.md), [`strate-7.md`](strates/strate-7.md)).
-- **Les textes du lit** ([#92](https://github.com/DavidGiangiacomo/strates/issues/92)) : le § 8.
+- **Les textes du lit** ([#92](https://github.com/DavidGiangiacomo/strates/issues/92)) : faits ([fiche](strates/strate-7.md), § 11). Les quatre phrases du § 8, sans variante selon la dette, et une aide en quatre légendes, dans un budget de 100 mots, dont 86 écrits.
 - **Les traces du fond** ([#109](https://github.com/DavidGiangiacomo/strates/issues/109)) : les § 5 et 7.
 
 ## 12. Questions ouvertes
