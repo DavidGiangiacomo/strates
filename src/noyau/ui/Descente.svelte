@@ -4,7 +4,9 @@
   // descendent avec le joueur : tous ceux qui n'étaient pas encore des cailloux, rangés par couche
   // d'origine. À mi-course, quand la Profondeur change, les anciens perdent un cran, et les plus vieux
   // deviennent des cailloux (#45). À l'arrivée, ils glissent vers le compteur du bandeau, leur poche.
-  // Les durées suivent celles du passage (passage.svelte.ts, DUREES).
+  // Les durées suivent celles du passage (passage.svelte.ts, DUREES). La descente du lit, la seule que
+  // le joueur ne choisit pas, est deux fois plus lente, et sa phrase y paraît au centre, puis
+  // s'efface (docs/strates/strate-7.md, § 11).
   import type { ObjetInventaire } from "../logique/artefacts";
   import { zoomEcran } from "./ecran";
   import { etiquette, NIVEAUX, parCouche } from "./inventaire";
@@ -13,10 +15,16 @@
   let {
     phase,
     transportes,
+    phrase = null,
+    travelling = 4000,
     poche,
   }: {
     phase: "descente" | "arrivee";
     transportes: readonly ObjetInventaire[];
+    /** La phrase de la strate quittée, s'il y en a une : celle du lit. */
+    phrase?: string | null;
+    /** La durée du travelling, en millisecondes. */
+    travelling?: number;
     /** Où est le compteur des artefacts : les objets le visent à l'arrivée. */
     poche?: () => DOMRect | null;
   } = $props();
@@ -43,7 +51,18 @@
   });
 </script>
 
-<div class="sol" class:arrivee={phase === "arrivee"} aria-hidden="true" data-test="sol"></div>
+<div
+  class="sol"
+  class:arrivee={phase === "arrivee"}
+  style:--defilement="{travelling - 1200}ms"
+  aria-hidden="true"
+  data-test="sol"
+></div>
+{#if phrase && phase === "descente"}
+  <p class="phrase" style:--travelling="{travelling}ms" role="status" data-test="phrase">
+    {phrase}
+  </p>
+{/if}
 <div
   class="transportes"
   class:arrivee={phase === "arrivee"}
@@ -81,7 +100,7 @@
       #3d3833 170px 230px,
       #2f2b27 230px 320px
     );
-    animation: defiler 2800ms cubic-bezier(0.45, 0, 0.55, 1) 400ms both;
+    animation: defiler var(--defilement, 2800ms) cubic-bezier(0.45, 0, 0.55, 1) 400ms both;
   }
   @keyframes defiler {
     from {
@@ -94,6 +113,39 @@
   .sol.arrivee {
     transition: opacity 400ms;
     opacity: 0;
+  }
+
+  /* La phrase de la descente, au-dessus des objets : elle vient, reste, puis s'efface. */
+  .phrase {
+    position: fixed;
+    top: 28%;
+    right: 0;
+    left: 0;
+    z-index: 6;
+    margin: 0;
+    padding: 0 16px;
+    font:
+      italic 26px/1.3 Georgia,
+      "Times New Roman",
+      serif;
+    color: #ecebe6;
+    text-align: center;
+    pointer-events: none;
+    animation: dire var(--travelling) linear both;
+  }
+  @keyframes dire {
+    0%,
+    8% {
+      opacity: 0;
+    }
+    20%,
+    78% {
+      opacity: 1;
+    }
+    92%,
+    100% {
+      opacity: 0;
+    }
   }
 
   /* Une rangée par couche d'origine, la surface en haut : une coupe en petit. */
@@ -186,7 +238,8 @@
 
   @media (prefers-reduced-motion: reduce) {
     .sol,
-    .transportes {
+    .transportes,
+    .phrase {
       animation: none;
     }
     li,

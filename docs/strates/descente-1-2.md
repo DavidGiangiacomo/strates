@@ -24,7 +24,7 @@ Six contraintes viennent du design doc et des fiches :
 - **Le joueur arrive au jour 70 de l'an 1, pas plus tard** (fiche 2, § 5). Ni la fouille ni la transition ne prennent de temps aux caves.
 - **Le choc d'arrivée survit aux objets.** L'écran de fouille ne montre pas leurs effets, et leurs multiplicateurs ne s'éveillent qu'au bilan du premier hiver (fiche 2, § 8).
 - **Le mouvement va toujours vers le bas** (§1). Tout ce qui bouge pendant la séquence descend. La seule exception est « reboucher », qui referme au lieu de remonter.
-- **L'écran de fouille est générique.** C'est le même à chaque descente, sauf la descente automatique 7 → 8 ([`artefacts.md`](../artefacts.md), § 6). Seules deux choses dans cette page sont propres au passage 1 → 2 : les raccords (§ 5), et la valeur convertible écrite dans la notation de la surface.
+- **L'écran de fouille est générique.** C'est le même à chaque descente, sauf la descente automatique 7 → 8 ([`artefacts.md`](../artefacts.md), § 6) : elle n'a pas d'écran de fouille, et son travelling dure 8 secondes, le temps d'une phrase, « C'était la seule fois. » ([fiche du lit](strate-7.md), § 11). Seules deux choses dans cette page sont propres au passage 1 → 2 : les raccords (§ 5), et la valeur convertible écrite dans la notation de la surface.
 - **Aucun texte ne dit « creuser »**, à part le bouton lui-même (fiches 1 et 2, § 11).
 
 ## 2. La séquence en un coup d'œil

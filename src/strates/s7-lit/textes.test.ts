@@ -12,6 +12,7 @@ describe("les textes du lit", () => {
     expect(textes["phrase.arrivee"]).toBe("Rien ne presse.");
     expect(textes["phrase.retour"]).toBe("Ce que vous avez laissé en haut est toujours là.");
     expect(textes["phrase.decider"]).toBe("Vous n'avez rien à décider ici.");
+    expect(textes["phrase.descente"]).toBe("C'était la seule fois.");
     for (const [cle, texte] of Object.entries(textes)) {
       if (cle.startsWith("phrase.")) continue;
       expect(texte, cle).not.toMatch(/\bvous\b|\bvotre\b|\bvos\b/i);

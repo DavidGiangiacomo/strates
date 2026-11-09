@@ -3,10 +3,12 @@
 // de la coupe. La lecture de l'échelle s'écrit en lettres (logique/notation.ts) : les nombres en
 // lettres ne comptent pas dans le budget de 100 mots.
 export const textes: Record<string, string> = {
-  // ——— Les phrases du jeu (bible, § 8), chacune une fois. Celle de la descente viendra avec #106.
+  // ——— Les phrases du jeu (bible, § 8), chacune une fois. La dernière, le noyau la dit pendant la
+  // descente, sur un travelling plus lent (noyau/ui/passage.svelte.ts, PHRASE_DESCENTE).
   "phrase.arrivee": "Rien ne presse.",
   "phrase.retour": "Ce que vous avez laissé en haut est toujours là.",
   "phrase.decider": "Vous n'avez rien à décider ici.",
+  "phrase.descente": "C'était la seule fois.",
 
   // ——— La coupe (fiche, § 6). Un creux se dit avec sa hauteur et son état.
   coupe: "Le bassin, en coupe",
