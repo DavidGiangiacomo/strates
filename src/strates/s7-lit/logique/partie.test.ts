@@ -16,7 +16,7 @@ import { Noyau } from "../../../noyau/logique/noyau";
 import { Registre, type StrateQuelconque } from "../../../noyau/logique/registre";
 import { creerLogiqueFactice } from "../../factice/logique";
 import { logique, type ActionLit, type EtatLit } from ".";
-import { CRUE } from "./regles";
+import { couchesDAvance, CRUE, riveMarquee } from "./regles";
 
 const HEURE = 3600;
 const JOUR = 24 * HEURE;
@@ -90,6 +90,25 @@ describe("une partie du lit", () => {
       const valeur = logique.valeurConvertible(noyau.etatStrate as EtatLit);
       expect(Math.floor(Math.log10(valeur) * 1.4)).toBe(4);
     }
+  });
+});
+
+describe("les objets d'un jeu correct, à l'arrivée", () => {
+  it("dessinent quatre couches d'avance, marquent la rive, et prennent leur nom d'en bas", async () => {
+    // Les objets de la surface à l'atelier sont des cailloux, ceux du réseau des ornements : ils ne
+    // font rien ici.
+    const noyau = await demarrer([...JEU_CORRECT, "s4-jauge", "s3-loupe"]);
+    const etat = noyau.etatStrate as EtatLit;
+    expect(etat.objets).toEqual(
+      JEU_CORRECT.filter((id) => id.startsWith("s5") || id.startsWith("s6")),
+    );
+    expect(etat.objets).not.toContain("s4-jauge");
+    expect(couchesDAvance(etat)).toBe(4);
+    expect(riveMarquee(etat)).toBe(true);
+    // Le lit nomme les objets de la dette : l'inventaire les montre sous leur nom d'en bas.
+    expect([...noyau.nommes].sort()).toEqual(
+      JEU_CORRECT.filter((id) => id.startsWith("s6")).sort(),
+    );
   });
 });
 

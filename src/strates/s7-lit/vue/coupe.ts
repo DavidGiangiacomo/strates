@@ -67,6 +67,25 @@ export function couchesDuCreux(couches: readonly Couche[], k: number): Bande[] {
   return bandes;
 }
 
+/** Les couches à venir du bassin, à leur place : au-dessus de celles qui sont déjà déposées. */
+export function couchesAVenirDuBassin(
+  couches: readonly Couche[],
+  avenir: readonly Couche[],
+): Bande[] {
+  const n = avenir.filter((c) => c.ou === "bassin").length;
+  return n === 0 ? [] : couchesDuBassin([...couches, ...avenir]).slice(-n);
+}
+
+/** Les couches à venir du creux `k`, dans sa poche, au-dessus de son limon. */
+export function couchesAVenirDuCreux(
+  couches: readonly Couche[],
+  avenir: readonly Couche[],
+  k: number,
+): Bande[] {
+  const n = avenir.filter((c) => c.ou === k).length;
+  return n === 0 ? [] : couchesDuCreux([...couches, ...avenir], k).slice(-n);
+}
+
 /** Les vieilles couches de la rive : fines et régulières, avec une couche épaisse parmi elles. */
 export const VIEILLES: readonly (Bande & { epaisse: boolean })[] = (() => {
   const bandes: (Bande & { epaisse: boolean })[] = [];

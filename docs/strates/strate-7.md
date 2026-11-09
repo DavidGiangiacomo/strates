@@ -312,6 +312,12 @@ Ce sont des choses simples, nommées par ce qu'elles font à qui les tient ([bib
 - **I5** : toute la simulation du § 4 est faite sans aucun artefact. Le lit finit entre 2 h 00 et 2 h 18, sous les 3 h 15, avec la plus large marge du jeu.
 - **Les noms d'en bas** sont ceux du catalogue, que donne le lit (bible, § 6). Le lit ne les écrit pas : ils ne se lisent que dans l'inventaire du noyau.
 - **Le gage qui chante**, dans la strate où seul le jeu parle : sa voix ne dit pas un mot. Elle vient au premier dépôt, trente secondes après « Rien ne presse. », pour ne pas couvrir la phrase.
+- **Ce qui est codé** ([#108](https://github.com/DavidGiangiacomo/strates/issues/108)) :
+  - les multiplicateurs, que la boucle lit depuis [#91](https://github.com/DavidGiangiacomo/strates/issues/91) ;
+  - les couches à venir, en pointillés, à leur place : trois avec le rouleau qui marque, une avec le gage qui revient, quatre avec les deux. Ce sont celles que les crues déposeront si rien ne change, la grande crue comprise. Elles suivent la levée : la bâtir ou la déplacer les redessine ;
+  - la rive marquée d'un trait sur l'échelle par l'œuf qui garde. Les lecteurs d'écran l'entendent avec la lecture de l'échelle : « la rive à trente-six coudées » ;
+  - les noms d'en bas des objets de la dette, que le lit donne au noyau (`nommes`).
+- **Ce qui viendra ailleurs** : les raccourcis (le bâton qui creuse, le gage qui souffle) avec l'opacité du lit ([#115](https://github.com/DavidGiangiacomo/strates/issues/115)), les objets étranges (la pierre qui oblige, le gage qui chante) avec [#118](https://github.com/DavidGiangiacomo/strates/issues/118), et les objets posés sur la berge avec la direction artistique ([#107](https://github.com/DavidGiangiacomo/strates/issues/107)).
 
 ## 9. Valeur convertible
 

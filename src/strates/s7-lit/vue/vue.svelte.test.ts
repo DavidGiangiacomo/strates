@@ -135,3 +135,49 @@ describe("les phrases du jeu", () => {
     expect(texte(".phrase")).toBe("");
   });
 });
+
+describe("les objets d'en haut", () => {
+  const avenir = () => document.querySelectorAll("[data-test=avenir]");
+  /** Le rouleau qui marque, puissant, et le gage qui revient, utile, agissent ici. */
+  const niveaux: Record<string, "puissant" | "utile"> = {
+    "s6-sceau": "puissant",
+    "s5-echo": "utile",
+  };
+  const AVEC_OBJETS: ContexteTick = {
+    effets: { multiplicateur: () => 1, niveau: (id) => niveaux[id] ?? null },
+    emettre: () => {},
+  };
+
+  it("dessinent d'avance, en pointillés, les couches à venir, à leur place", () => {
+    monter();
+    expect(avenir()).toHaveLength(0);
+    unmount(composant!);
+
+    const { etat } = monter((e) => {
+      e.objets = ["s5-echo", "s6-sceau"];
+    });
+    // Les quatre prochaines crues iront au creux du fond.
+    expect(avenir()).toHaveLength(4);
+    expect(creux(0).querySelectorAll("[data-test=avenir]")).toHaveLength(4);
+    // La levée bâtie, elles se redessinent : l'eau retenue y laissera tout son limon.
+    const avant = creux(0).querySelector("[data-test=avenir]")!.getAttribute("height");
+    logique.agir(etat, { type: "fermer", creux: 0 }, AVEC_OBJETS);
+    flushSync();
+    expect(avenir()).toHaveLength(4);
+    const apres = creux(0).querySelector("[data-test=avenir]")!.getAttribute("height");
+    expect(Number(apres)).toBeGreaterThan(Number(avant));
+  });
+
+  it("marquent la rive sur l'échelle avec l'œuf qui garde, et les lecteurs d'écran l'entendent", () => {
+    monter();
+    expect(document.querySelector("[data-test=rive-marquee]")).toBeNull();
+    expect(texte(".lecteur")).toBe("Échelle de crue : aucune coudée");
+    unmount(composant!);
+
+    monter((e) => {
+      e.objets = ["s6-bulle"];
+    });
+    expect(document.querySelector("[data-test=rive-marquee]")).not.toBeNull();
+    expect(texte(".lecteur")).toBe("Échelle de crue : aucune coudée, la rive à trente-six coudées");
+  });
+});

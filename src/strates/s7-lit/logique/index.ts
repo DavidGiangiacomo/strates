@@ -4,6 +4,7 @@
 // descente vient seule, une crue plus tard, sous les yeux du joueur (§ 4 et § 10). L'absence se calcule
 // crue par crue, sans plafond, et le bassin plein attend le retour. Le jeu y parle, en quelques
 // phrases (§ 11).
+import { CATALOGUE } from "../../../noyau/logique/catalogue";
 import { EFFETS_NEUTRES } from "../../../noyau/logique/effets";
 import type {
   ContexteTick,
@@ -14,7 +15,7 @@ import type {
   LogiqueStrate,
 } from "../../../noyau/logique/types";
 import { textes } from "../textes.fr";
-import { etatInitial, type EtatLit, type IssueDette } from "./etat";
+import { etatInitial, type Couche, type EtatLit, type IssueDette } from "./etat";
 import {
   creuxActif,
   creuxPlein,
@@ -38,10 +39,22 @@ export type { Couche, EtatLit, IssueDette, Phrase } from "./etat";
 /** Le seul geste : bâtir la levée sur un creux, ou l'y déplacer. */
 export type ActionLit = { type: "fermer"; creux: number };
 
-/** Les objets d'en haut agissent dès l'arrivée, sur l'eau retenue et sur l'absence (fiche, § 8). */
+/** Les objets d'en haut : seuls ceux de la dette et du chœur agissent ici, puissants ou utiles. */
+const D_EN_HAUT = CATALOGUE.filter((a) => a.origine < 7).map((a) => a.id);
+
+/** Les objets de la dette, que le lit nomme : des choses simples, et ce qu'elles font (fiche, § 8). */
+const NOMMES = CATALOGUE.filter((a) => a.origine === 6).map((a) => a.id);
+
+/**
+ * Les objets d'en haut agissent dès l'arrivée (fiche, § 8) : leurs multiplicateurs, sur l'eau
+ * retenue et sur l'absence, et la liste de ceux qui agissent, dont les affichages se servent.
+ */
 function lireEffets(etat: EtatLit, effets: EffetsActifs): void {
   etat.multiplicateurs.depot = effets.multiplicateur("depot");
   etat.multiplicateurs.patience = effets.multiplicateur("patience");
+  const objets = D_EN_HAUT.filter((id) => effets.niveau(id) !== null);
+  // Une liste neuve à chaque tick redessinerait la coupe pour rien.
+  if (objets.join() !== etat.objets.join()) etat.objets = objets;
 }
 
 /** L'issue de la dette, que le journal a notée à son seuil : ses fosses sont dans la rive. */
@@ -104,6 +117,41 @@ function passerCrue(etat: EtatLit, t: number, ctx: ContexteTick, differees: stri
   ctx.emettre({ type: "trace", cle: "bassin.plein" });
 }
 
+/** Pour prévoir les crues sans rien signaler au noyau. */
+const MUET: ContexteTick = { effets: EFFETS_NEUTRES, emettre: () => {} };
+
+/**
+ * Les `n` prochaines couches, telles que les crues les déposeront si rien ne change : au bassin ou
+ * dans un creux, à leur épaisseur, la grande crue comprise. Le rouleau qui marque et le gage qui
+ * revient les dessinent d'avance (fiche, § 8) ; elles suivent la levée, que le joueur peut déplacer
+ * avant elles. L'état n'est pas touché, et la prévision s'arrête au bassin plein.
+ */
+export function couchesAVenir(etat: EtatLit, n: number): Couche[] {
+  if (n <= 0 || etat.pleinA !== null) return [];
+  // Une copie de ce que les crues lisent et changent, sans le temps : dans la vue, la prévision ne se
+  // refait qu'aux crues et aux gestes.
+  const copie: EtatLit = {
+    temps: 0,
+    crues: etat.crues,
+    niveau: etat.niveau,
+    creux: [...etat.creux],
+    levee: etat.levee,
+    depose: etat.depose,
+    couches: [],
+    pleinA: null,
+    descenteA: null,
+    deplacements: 0,
+    dites: [],
+    dette: null,
+    multiplicateurs: { ...etat.multiplicateurs },
+    objets: [],
+  };
+  for (let i = 0; i < n && copie.pleinA === null; i++) {
+    passerCrue(copie, (copie.crues + 1) * CRUE, MUET, null);
+  }
+  return copie.couches;
+}
+
 /** Fait passer `duree` secondes : les crues qui viennent, une à une, tant que le bassin n'est pas plein. */
 function avancer(
   etat: EtatLit,
@@ -164,8 +212,11 @@ function formules(): Formule[] {
 
 export const logique: LogiqueStrate<EtatLit, ActionLit> = {
   numero: 7,
-  versionEtat: 1,
-  migrations: {},
+  versionEtat: 2,
+  migrations: {
+    // Version 2 (#108) : les objets d'en haut qui agissent ici. Le premier tick les relit.
+    1: (etat) => ({ ...(etat as object), objets: [] }),
+  },
   // Une crue. Le pas peut être plus long : les crues y passent une à une.
   pasMax: CRUE,
   leviers: { principal: "depot", secondaires: ["patience"] },
@@ -220,6 +271,9 @@ export const logique: LogiqueStrate<EtatLit, ActionLit> = {
 
   graphe,
   formules,
+  // Les objets nommés (descente-1-2.md, § 6) : l'inventaire les montre sous leur nom d'en bas. Le noyau
+  // ne garde que ceux du joueur.
+  nommes: () => NOMMES,
 
   /** Pour le journal de session : le niveau, les crues, la levée et les creux pleins. */
   releve(etat) {
