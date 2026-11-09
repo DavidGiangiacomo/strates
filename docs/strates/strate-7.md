@@ -163,7 +163,7 @@ La boucle moyenne du §3, c'est **le creux** : quatre fois, l'eau trouve un creu
 
 ### En simulation
 
-Quatre joueurs automatiques, sans aucun artefact, puis avec les objets d'un jeu correct. Le script est un brouillon en Python, hors du dépôt ; il ne partage rien avec le code du jeu.
+Quatre joueurs automatiques, sans aucun artefact, puis avec les objets d'un jeu correct. Le script est un brouillon en Python, hors du dépôt ; il ne partage rien avec le code du jeu. Le code du lit retrouve ces chiffres à la minute près : les mesures du jeu sont dans l'équilibrage (§ 14).
 
 | Profil | Jeu | Bassin plein | Gestes | Avec les objets |
 |---|---|---|---|---|
@@ -389,4 +389,48 @@ Ce qui le fait tenir :
 10. **La trace du lit au fond** : la coupe du bassin plein, à dessiner avec la fiche du fond ([#65](https://github.com/DavidGiangiacomo/strates/issues/65)) et ses traces ([#109](https://github.com/DavidGiangiacomo/strates/issues/109)).
 11. **La remontée finale** (§11) : le bassin plein, immobile, l'échelle enterrée. À décider avec [#128](https://github.com/DavidGiangiacomo/strates/issues/128).
 12. **Le compte des crues** ([fiche de la dette](strate-6.md), question 11) : le lit y répond par la rive, ses couches fines et sa couche épaisse, et par la grande crue (§ 3). À vérifier quand les deux strates seront dessinées.
-13. **La réception des objets** (§ 8) : à coder par [#108](https://github.com/DavidGiangiacomo/strates/issues/108). Le catalogue donnait au gage patient « le levier secondaire du lit » : c'est la patience.
+13. **La réception des objets** (§ 8) : codée par [#108](https://github.com/DavidGiangiacomo/strates/issues/108), sauf les raccourcis, les objets étranges et la berge. Le catalogue donnait au gage patient « le levier secondaire du lit » : c'est la patience.
+
+## 14. Équilibrage
+
+Issue [#116](https://github.com/DavidGiangiacomo/strates/issues/116). Les mesures détaillées sont dans [`strate-7-mesures.md`](strate-7-mesures.md), un fichier généré que la CI tient à jour.
+
+*Choix tranché le 9 novembre 2026 : les chiffres de la fiche restent. La cible est un bassin plein entre 1 h 30 et 2 h 30 pour toute partie, et vers 2 h, à un quart d'heure près, en moyenne pour les joueurs en continu sans objets.*
+
+**Les cibles** ([#116](https://github.com/DavidGiangiacomo/strates/issues/116)) :
+- la descente vers 2 h de temps réel, absences comprises ;
+- un limon de l'ordre de 10³ ;
+- le produit des multiplicateurs d'artefacts sous × 4 (I2) ;
+- moins de 3 h 15 sans aucun artefact (I5).
+
+La descente attend le joueur (§ 10) : la cible de 2 h porte donc sur le bassin plein, et la descente vient une crue après.
+
+**Méthode.**
+- **Les joueurs** : les quatre joueurs automatiques de la fiche (`sim/joueurs/lit.ts`) jouent à l'horloge, à travers le noyau (`sim/mesures/lit.ts`), sans artefact puis avec les objets d'un jeu correct.
+- **Les absences** : six rythmes s'y ajoutent.
+  - Le voyageur ferme le premier creux, puis part deux heures ou deux semaines.
+  - Deux rythmes de sessions : cinq minutes par heure, et dix minutes par demi-heure.
+  - La nuit : une demi-heure de jeu, puis huit heures d'absence.
+  - Le joueur qui part deux semaines dès l'arrivée.
+- **Le rattrapage** : pendant l'absence, le noyau rattrape le temps d'un coup, par la politique propre du lit.
+- **Les outils** : `tests/equilibrage-lit.test.ts` vérifie les cibles. Après un changement de règles, `npm run mesures` régénère le rapport. Le simulateur rejoue les joueurs en continu : `npm run simuler -- lit tous --comparer`.
+
+**Aucun chiffre de la strate n'a changé.** Le code du lit retrouve à la minute près la simulation grossière de la fiche (§ 4 et § 8).
+
+**Résultats**, dans les cibles avec et sans artefacts :
+- **Le bassin plein** : de 2 h 00 à 2 h 18 sans objets, de 1 h 43 à 2 h 18 avec, en continu comme avec les absences. Les joueurs en continu sans objets le remplissent en 2 h 08 en moyenne.
+- **La descente** vient toujours en présence du joueur :
+  - une crue après le bassin plein, s'il était là ;
+  - une crue après son retour, si le bassin s'est rempli pendant son absence. Avec des sessions d'une heure, elle vient à la session suivante : à 3 h 01 sans objets, à 2 h 01 avec. Après la nuit, elle vient au réveil.
+- **I5** : sans artefact, même le joueur qui ne fait rien remplit le bassin en 2 h 18, sous les 3 h 15.
+- **Ordre de grandeur** : toujours 1 941 doigts, soit 4 points, quoi que fasse le joueur (§ 9).
+- **I2** : avec les objets d'un jeu correct, × 1,41 sur l'eau retenue et × 1,25 sur l'absence. Le plafond × 4 n'agit jamais.
+- **Ce que font les objets** :
+  - un quart d'heure de gagné pour qui ferme les creux ;
+  - une demi-heure pour qui part, grâce au gage patient ;
+  - rien pour qui reste sans un geste.
+
+**À vérifier au playtest** ([#120](https://github.com/DavidGiangiacomo/strates/issues/120)) :
+- que l'attente se vive comme un repos ;
+- que le joueur parte et revienne ;
+- que la descente qui l'attend se remarque (§ 12).

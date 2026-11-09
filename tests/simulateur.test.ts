@@ -41,6 +41,14 @@ describe("les arguments du simulateur", () => {
       strate: "caves",
       joueurs: ["reflexe", "prudent"],
     });
+    // Le lit joue l'attentif quand on n'en nomme aucun.
+    expect(lireArguments(["7"])).toMatchObject({ strate: "lit", joueurs: ["attentif"] });
+    expect(lireArguments(["lit", "tous"]).joueurs).toEqual([
+      "prevoyant",
+      "attentif",
+      "distrait",
+      "sans-un-geste",
+    ]);
   });
 
   it("emportent les objets d'un jeu correct, ou ceux qu'on nomme", () => {

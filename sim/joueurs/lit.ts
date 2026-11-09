@@ -47,23 +47,26 @@ export function geste(etat: EtatLit, profil: ProfilLit): ActionLit | null {
 }
 
 /**
- * Un joueur branché sur un noyau démarré dans le lit. `seconde(t)` joue la seconde t : un passage si
- * c'est le moment, puis une seconde de temps. `gestes` compte les levées bâties.
+ * Un joueur branché sur un noyau démarré dans le lit. `passer(t)` joue un passage à l'instant t, si
+ * c'est le moment : au retour d'une absence, il passe aussitôt. `seconde(t)` joue la seconde t : le
+ * passage, puis une seconde de temps. `gestes` compte les levées bâties.
  */
 export function creerJoueur(noyau: Noyau, profil: ProfilLit) {
   let prochainPassage = 0;
   const joueur = {
     gestes: 0,
-    seconde(t: number): void {
-      if (profil.attention !== null && t >= prochainPassage) {
-        const action = geste(noyau.etatStrate as EtatLit, profil);
-        if (action) {
-          noyau.agir(action);
-          noyau.tick(0);
-          joueur.gestes++;
-        }
-        prochainPassage = t + profil.attention;
+    passer(t: number): void {
+      if (profil.attention === null || t < prochainPassage) return;
+      const action = geste(noyau.etatStrate as EtatLit, profil);
+      if (action) {
+        noyau.agir(action);
+        noyau.tick(0);
+        joueur.gestes++;
       }
+      prochainPassage = t + profil.attention;
+    },
+    seconde(t: number): void {
+      joueur.passer(t);
       noyau.avancer(1);
     },
   };
