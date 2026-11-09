@@ -311,6 +311,20 @@ describe("les objets d'en haut", () => {
 });
 
 describe("les phrases du jeu", () => {
+  it("ne changent pas avec l'issue de la dette : seules les fosses de la rive la montrent", () => {
+    const partie = (issue: string) => {
+      const etat = nouveau({ strates: [entree(6, issue)] });
+      jouerEnPrevoyant(etat);
+      jouer(etat, CRUE);
+      return etat;
+    };
+    const soldee = partie("soldee");
+    const defaut = partie("defaut");
+    expect(soldee.dette).toBe("soldee");
+    expect(defaut.dette).toBe("defaut");
+    expect(defaut.dites).toEqual(soldee.dites);
+  });
+
   it("disent « Vous n'avez rien à décider ici. » quand le dernier creux est plein, une seule fois", () => {
     const evenements: EvenementStrate[] = [];
     const ctx = contexte(evenements);
