@@ -30,6 +30,11 @@ export interface Durees {
   arrivee: number;
   /** L'écart entre deux objets qui rejoignent le compteur du bandeau. */
   parObjet: number;
+  /**
+   * La descente d'une strate qui a une phrase pour elle, celle du lit : la seule que le joueur ne
+   * choisit pas. Le travelling prend son temps, et la phrase y paraît (docs/strates/strate-7.md, § 11).
+   */
+  lente: { descente: number; miCourse: number };
 }
 
 /** Les cibles du storyboard (§ 8) : 8 secondes imposées en tout. */
@@ -40,6 +45,7 @@ export const DUREES: Durees = {
   miCourse: 1800,
   arrivee: 1000,
   parObjet: 100,
+  lente: { descente: 8000, miCourse: 3600 },
 };
 
 /** Sans mouvement : des fondus, 2 secondes environ en tout. */
@@ -50,11 +56,19 @@ export const DUREES_REDUITES: Durees = {
   miCourse: 250,
   arrivee: 500,
   parObjet: 0,
+  // La phrase reste trois secondes sur le sol immobile.
+  lente: { descente: 3000, miCourse: 1500 },
 };
 
 /** Quand la strate courante n'a pas encore de suite dans cette version du jeu. */
 export const PAS_DE_SUITE =
   "La descente n'existe pas encore dans cette version : la suite arrive bientôt.";
+
+/**
+ * La clé de la phrase qu'une strate dit pendant sa descente, si elle en a une : seul le lit en a une,
+ * « C'était la seule fois. » (bible, § 8).
+ */
+export const PHRASE_DESCENTE = "phrase.descente";
 
 /** Ce que montre l'écran de fouille : la fouille, et de quoi écrire la valeur de la strate quittée. */
 export interface EcranFouille {
@@ -122,9 +136,15 @@ export class Passage {
   occupe = $state(false);
   /** La fouille a été rebouchée dans cette strate : la fissure reste dessinée. */
   cicatrice = $state(false);
+  /** La phrase de la strate quittée, pendant sa descente ; null sinon. */
+  phrase: string | null = $state(null);
+  /** La durée du travelling en cours, en millisecondes : le sol défile à son rythme. */
+  travelling = $state(DUREES.descente);
 
   #d: DependancesPassage;
   #durees: Durees;
+  /** La strate descendrait d'elle-même, mais rien n'est dessous : le joueur l'a lu une fois. */
+  #sansSuite = false;
 
   constructor(dependances: DependancesPassage) {
     this.#d = dependances;
@@ -136,13 +156,22 @@ export class Passage {
   }
 
   /**
-   * Relit les objets nommés, à chaque image : une strate nomme ses objets en cours de jeu. Pendant la
-   * séquence, le noyau est déjà en bas : l'inventaire attend la fin de l'arrivée.
+   * À chaque image. Relit les objets nommés : une strate nomme ses objets en cours de jeu. Pendant la
+   * séquence, le noyau est déjà en bas : l'inventaire attend la fin de l'arrivée. Lance la descente
+   * d'une strate qui descend d'elle-même, le lit, dès que son seuil est atteint ; sans strate
+   * dessous, le dit une fois.
    */
   actualiser(): void {
     if (this.phase !== "jeu" || this.occupe) return;
-    const nommes = this.#d.noyau.nommes;
+    const { noyau } = this.#d;
+    const nommes = noyau.nommes;
     if (!memes(nommes, this.nommes)) this.nommes = nommes;
+    if (noyau.descenteAutomatique) {
+      void this.descendre();
+    } else if (noyau.seuil.atteint && noyau.seuil.automatique && !this.#sansSuite) {
+      this.#sansSuite = true;
+      this.#d.signaler(PAS_DE_SUITE);
+    }
   }
 
   #signaler(evenement: EvenementPassage): void {
@@ -211,13 +240,16 @@ export class Passage {
   /**
    * Descend avec les objets `emportes` (P5, P6) : le noyau engage tout, la partie est sauvegardée,
    * puis vient le spectacle. Le temps de la nouvelle strate part à la fin de l'arrivée. Sans choix,
-   * pendant le jeu, c'est la descente automatique : la présélection, sans écran.
+   * pendant le jeu, c'est la descente automatique : la présélection, sans écran. Une strate qui a une
+   * phrase pour sa descente la dit pendant le travelling, plus lent.
    */
   async descendre(emportes?: readonly string[]): Promise<void> {
     const { noyau } = this.#d;
     const automatique = this.phase === "jeu" && noyau.descenteAutomatique;
     if (this.occupe || (this.phase !== "fouille" && !automatique)) return;
     this.occupe = true;
+    // La phrase est celle de la strate quittée : elle se lit avant que le noyau ne change de strate.
+    const phrase = noyau.strate.textes[PHRASE_DESCENTE] ?? null;
     let descendent: string[];
     try {
       const fouille = await noyau.descendre(this.#d.maintenant(), emportes);
@@ -242,14 +274,18 @@ export class Passage {
     const sauvegarde = this.#d.sauvegarder().catch(() => false);
 
     const d = this.#durees;
+    const { descente, miCourse } = phrase === null ? d : d.lente;
+    this.phrase = phrase;
+    this.travelling = descente;
     // Le grondement dure le travelling : moins long, sans mouvement, il est coupé à sa fin.
-    this.#d.sonner?.("descente", d.descente / 1000);
+    this.#d.sonner?.("descente", descente / 1000);
     this.#passer("descente");
-    await this.#d.attendre(d.miCourse);
+    await this.#d.attendre(miCourse);
     // À mi-course, les anciens perdent un cran, et les plus vieux deviennent des cailloux.
     this.profondeur = noyau.etat.profondeur;
     this.transportes = this.#porter(descendent);
-    await this.#d.attendre(d.descente - d.miCourse);
+    await this.#d.attendre(descente - miCourse);
+    this.phrase = null;
 
     this.#passer("arrivee");
     let ecoule = 0;

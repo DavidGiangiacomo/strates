@@ -75,13 +75,39 @@ describe("le volet de l'inventaire", () => {
 });
 
 describe("le travelling", () => {
-  function monterDescente(phase: "descente" | "arrivee", poche?: () => DOMRect | null) {
+  function monterDescente(
+    phase: "descente" | "arrivee",
+    poche?: () => DOMRect | null,
+    lente: { phrase: string; travelling: number } | null = null,
+  ) {
     composant = mount(Descente, {
       target: document.body,
-      props: { phase, transportes: OBJETS, poche },
+      props: { phase, transportes: OBJETS, poche, ...lente },
     });
     flushSync();
   }
+
+  it("défile au rythme habituel, sans un mot, à chaque descente choisie", () => {
+    monterDescente("descente");
+    expect(document.querySelector("[data-test=phrase]")).toBeNull();
+    const sol = document.querySelector<HTMLElement>("[data-test=sol]")!;
+    expect(sol.style.getPropertyValue("--defilement")).toBe("2800ms");
+  });
+
+  it("dit la phrase du lit, sur un sol qui défile deux fois plus lentement", () => {
+    monterDescente("descente", undefined, { phrase: "C'était la seule fois.", travelling: 8000 });
+    const phrase = document.querySelector<HTMLElement>("[data-test=phrase]")!;
+    expect(texte(phrase)).toBe("C'était la seule fois.");
+    expect(phrase.getAttribute("role")).toBe("status");
+    expect(phrase.style.getPropertyValue("--travelling")).toBe("8000ms");
+    const sol = document.querySelector<HTMLElement>("[data-test=sol]")!;
+    expect(sol.style.getPropertyValue("--defilement")).toBe("6800ms");
+  });
+
+  it("ne garde pas la phrase à l'arrivée", () => {
+    monterDescente("arrivee", undefined, { phrase: "C'était la seule fois.", travelling: 8000 });
+    expect(document.querySelector("[data-test=phrase]")).toBeNull();
+  });
 
   it("fait descendre les objets en rangées, une par couche d'origine, avec leur usure", () => {
     monterDescente("descente");

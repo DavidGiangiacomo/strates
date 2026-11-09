@@ -233,9 +233,9 @@
         () => {
           session?.journal.suivre();
           courante?.opacite.actualiser();
+          // Le passage lance aussi la descente du lit, qui se fait sans écran de choix
+          // (docs/artefacts.md, § 6).
           passage.actualiser();
-          // La strate 7 descend d'elle-même, sans écran de choix (docs/artefacts.md, § 6).
-          if (noyau.descenteAutomatique) void passage.descendre();
         },
       ),
     );
@@ -400,7 +400,13 @@
     />
   {/if}
   {#if phase === "descente" || phase === "arrivee"}
-    <Descente {phase} transportes={passage.transportes} poche={() => bandeau?.poche() ?? null} />
+    <Descente
+      {phase}
+      transportes={passage.transportes}
+      phrase={passage.phrase}
+      travelling={passage.travelling}
+      poche={() => bandeau?.poche() ?? null}
+    />
   {/if}
   {#if avis || (retour && phase === "jeu")}
     <!-- Au-dessus de la séquence : une descente refusée doit se lire sur l'écran de fouille. Le

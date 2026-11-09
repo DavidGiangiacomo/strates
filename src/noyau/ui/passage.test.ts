@@ -10,7 +10,14 @@ import { creerEtatNoyau, type EtatNoyau } from "../logique/etat";
 import { Noyau } from "../logique/noyau";
 import { Registre, type StrateQuelconque } from "../logique/registre";
 import type { LogiqueStrate } from "../logique/types";
-import { DUREES, PAS_DE_SUITE, Passage, type EvenementPassage, type Phase } from "./passage.svelte";
+import {
+  DUREES,
+  PAS_DE_SUITE,
+  Passage,
+  PHRASE_DESCENTE,
+  type EvenementPassage,
+  type Phase,
+} from "./passage.svelte";
 import type { SonNoyau } from "./sons";
 
 type LogiqueFactice = LogiqueStrate<EtatFactice, ActionFactice>;
@@ -22,6 +29,8 @@ async function partie(
   logiques: LogiqueFactice[] = [creerLogiqueFactice(1), creerLogiqueFactice(2)],
   sauvegarder?: () => Promise<unknown>,
   etat: EtatNoyau = creerEtatNoyau(1, DEBUT),
+  /** Des textes de plus, pour la strate de ce numéro. */
+  textes: Partial<Record<number, Record<string, string>>> = {},
 ) {
   const registre = new Registre();
   for (const logique of logiques) {
@@ -31,7 +40,7 @@ async function partie(
         ({
           logique,
           vue: null,
-          textes: { "fouille.valeur": "Unités produites" },
+          textes: { "fouille.valeur": "Unités produites", ...textes[logique.numero] },
           formaterValeur: (v: number) => `${Math.floor(v)} u`,
           apparenceValeur: APPARENCE,
         }) as StrateQuelconque,
@@ -70,6 +79,14 @@ async function partie(
 function auSeuil(noyau: Noyau): void {
   (noyau.etatStrate as EtatFactice).cumul = 6.12e8;
   noyau.tick(0);
+}
+
+/** Une strate qui descend d'elle-même à son seuil, comme le lit. */
+function automatique(numero: 1 | 7 = 1): LogiqueFactice {
+  return {
+    ...creerLogiqueFactice(numero),
+    seuil: (e) => ({ atteint: e.cumul >= 1000, automatique: true }),
+  };
 }
 
 beforeEach(() => {
@@ -216,6 +233,9 @@ describe("la descente", () => {
     expect(passage.ecran).toBeNull();
     expect(passage.transportes).toEqual([]);
     expect(passage.occupe).toBe(false);
+    // Une strate sans phrase pour sa descente : le travelling habituel, sans un mot.
+    expect(passage.phrase).toBeNull();
+    expect(passage.travelling).toBe(DUREES.descente);
   });
 
   it("montre l'erreur et garde la fouille ouverte si le choix est refusé", async () => {
@@ -246,11 +266,7 @@ describe("la descente", () => {
   });
 
   it("descend seule, sans écran, quand la strate le demande", async () => {
-    const automatique: LogiqueFactice = {
-      ...creerLogiqueFactice(1),
-      seuil: (e) => ({ atteint: e.cumul >= 1000, automatique: true }),
-    };
-    const { noyau, passage } = await partie([automatique, creerLogiqueFactice(2)]);
+    const { noyau, passage } = await partie([automatique(), creerLogiqueFactice(2)]);
     await passage.descendre();
     expect(noyau.etat.profondeur).toBe(1);
 
@@ -263,6 +279,75 @@ describe("la descente", () => {
     await descend;
     expect(noyau.etat.profondeur).toBe(2);
     expect(noyau.etat.artefacts).toEqual(noyau.etat.meta.journal.strates[0]?.fouille?.emportes);
+  });
+});
+
+describe("la descente automatique", () => {
+  it("se lance d'elle-même, à la première image où le seuil est atteint", async () => {
+    const { noyau, passage, appels } = await partie([automatique(), creerLogiqueFactice(2)]);
+    passage.actualiser();
+    expect(passage.phase).toBe("jeu");
+
+    auSeuil(noyau);
+    passage.actualiser();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(passage.phase).toBe("descente");
+    expect(appels.resister).toBe(0);
+    // Une seule descente, même si l'image suivante la redemande.
+    passage.actualiser();
+    await vi.runAllTimersAsync();
+    expect(noyau.etat.profondeur).toBe(2);
+    expect(noyau.etat.meta.journal.strates.filter((e) => e.fouille)).toHaveLength(1);
+  });
+
+  it("fait résister le sol au bouton « creuser », même au seuil : la descente se fait sans lui", async () => {
+    const { noyau, passage, appels } = await partie([automatique(), creerLogiqueFactice(2)]);
+    auSeuil(noyau);
+    await passage.creuser();
+    expect(appels.resister).toBe(1);
+    expect(appels.sons).toEqual([["resiste", undefined]]);
+    expect(passage.phase).toBe("jeu");
+    expect(noyau.fouille).toBeNull();
+  });
+
+  it("dit une fois que la suite n'existe pas encore, quand rien n'est dessous", async () => {
+    const { noyau, passage, appels } = await partie([automatique()]);
+    auSeuil(noyau);
+    for (let i = 0; i < 3; i++) passage.actualiser();
+    expect(appels.messages).toEqual([PAS_DE_SUITE]);
+    expect(passage.phase).toBe("jeu");
+  });
+
+  it("dit la phrase de la strate quittée, sur un travelling deux fois plus lent", async () => {
+    const etat = creerEtatNoyau(1, DEBUT);
+    etat.profondeur = 7;
+    const phrase = "C'était la seule fois.";
+    const { noyau, passage, appels } = await partie(
+      [automatique(7), creerLogiqueFactice(8)],
+      undefined,
+      etat,
+      { 7: { [PHRASE_DESCENTE]: phrase } },
+    );
+    auSeuil(noyau);
+    passage.actualiser();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(passage.phase).toBe("descente");
+    expect(passage.phrase).toBe(phrase);
+    expect(passage.travelling).toBe(DUREES.lente.descente);
+    expect(DUREES.lente.descente).toBe(2 * DUREES.descente);
+    expect(appels.sons.at(-1)).toEqual(["descente", DUREES.lente.descente / 1000]);
+
+    // Le travelling habituel est passé : celui-ci continue, et la phrase avec lui.
+    await vi.advanceTimersByTimeAsync(DUREES.descente);
+    expect(passage.phase).toBe("descente");
+    expect(passage.profondeur).toBe(8);
+    expect(passage.phrase).toBe(phrase);
+    await vi.advanceTimersByTimeAsync(DUREES.lente.descente - DUREES.descente);
+    expect(passage.phase).toBe("arrivee");
+    expect(passage.phrase).toBeNull();
+    await vi.runAllTimersAsync();
+    expect(passage.phase).toBe("jeu");
+    expect(noyau.etat.profondeur).toBe(8);
   });
 });
 

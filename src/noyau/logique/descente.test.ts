@@ -444,4 +444,12 @@ describe("la descente automatique", () => {
     auSeuil(noyau);
     expect(noyau.descenteAutomatique).toBe(false);
   });
+
+  it("refuse la fouille que le joueur demande, même au seuil : le sol résiste jusqu'au bout", async () => {
+    const noyau = await partie([automatique, creerLogiqueFactice(2)]);
+    expect(noyau.demanderFouille()).toBe(false);
+    auSeuil(noyau);
+    expect(noyau.seuil.atteint).toBe(true);
+    expect(noyau.demanderFouille()).toBe(false);
+  });
 });

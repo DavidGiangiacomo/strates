@@ -309,9 +309,11 @@ export class Noyau {
   /**
    * Le joueur demande la descente : refusée tant que le seuil n'est pas atteint
    * (docs/architecture.md § 6, « La descente », étape 1). Acceptée, elle s'ouvre par `ouvrirFouille`.
+   * Dans une strate qui descend d'elle-même, elle est toujours refusée : le sol résiste jusqu'au bout,
+   * et la descente se fait sans le joueur (docs/strates/strate-7.md, § 4).
    */
   demanderFouille(): boolean {
-    return this.#seuil.atteint;
+    return this.#seuil.atteint && this.#seuil.automatique !== true;
   }
 
   /**

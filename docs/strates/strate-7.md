@@ -123,7 +123,7 @@ type ActionLit = { type: "fermer"; creux: number };   // bâtit la levée, ou la
 - **`tick(dt)`** fait passer les crues qui viennent dans le pas, une à une : à chacune, le limon va au premier creux atteint qui n'est pas plein, ou au bassin. La n-ième crue vient à n × 30 secondes de l'arrivée. Au bassin plein, les crues s'arrêtent.
 - **`pasMax`** vaut une crue, trente secondes ; un pas plus long donne le même lit.
 - **`absence(duree)`** fait passer d'un coup les crues de l'absence, sans tick (§ 10). Une descente qui n'est pas encore partie attend le retour. Les phrases qu'une crue déclenche pendant l'absence paraissent au retour, après celle du retour.
-- **`seuil()`** rend `{ atteint, automatique: true }`. Il est atteint une crue après le bassin plein, en présence du joueur. La descente elle-même, son déclenchement par l'interface et le bouton « creuser », sont l'objet de [#106](https://github.com/DavidGiangiacomo/strates/issues/106).
+- **`seuil()`** rend `{ atteint, automatique: true }`. Il est atteint une crue après le bassin plein, en présence du joueur. L'interface lance alors la descente, à la fin de l'image, et le bouton « creuser » résiste jusqu'au bout ([#106](https://github.com/DavidGiangiacomo/strates/issues/106) ; § 4).
 - **`valeurConvertible()`** rend `depose`.
 - La strate n'utilise pas d'aléatoire : la grande crue est toujours la 150ᵉ. Un geste impossible, comme fermer un creux plein, est ignoré sans erreur.
 
@@ -158,7 +158,7 @@ La boucle moyenne du §3, c'est **le creux** : quatre fois, l'eau trouve un creu
 ### La fin de la strate
 
 - **Le dernier creux plein**, il n'y a plus rien à fermer. Le jeu le dit, une fois : « Vous n'avez rien à décider ici. » Le joueur attentif l'entend à 1 h 46 ; le bassin met encore dix-huit minutes à atteindre la rive.
-- **Le bassin plein**, le fleuve passe ailleurs : l'eau ne monte plus, et le grain seul bouge encore. Une crue plus tard, la descente part. Pendant la descente : « C'était la seule fois. »
+- **Le bassin plein**, le fleuve passe ailleurs : l'eau ne monte plus, et le grain seul bouge encore. Une crue plus tard, la descente part. Pendant la descente : « C'était la seule fois. » Le travelling dure 8 secondes, deux fois celui des autres descentes, le temps de la phrase (§ 11).
 - **Pas de filet** : il n'y a pas de seuil à franchir, ni de fouille à ouvrir (`src/noyau/logique/filet.ts`).
 
 ### En simulation
@@ -344,7 +344,7 @@ Ce sont des choses simples, nommées par ce qu'elles font à qui les tient ([bib
   | Quand le dernier creux est plein : il n'y a plus rien à fermer | « Vous n'avez rien à décider ici. » |
   | Pendant la descente | « C'était la seule fois. » |
 
-  Chacune paraît seule, au centre de la coupe, puis s'efface. Chacune est vraie au moment où elle paraît : quand le dernier creux est plein, il ne reste plus rien à décider. Elles disent « vous » : c'est la seule fois du jeu (bible, § 2).
+  Chacune paraît seule, au centre de la coupe, puis s'efface. La dernière paraît au centre de l'écran de descente, sur un travelling de huit secondes, ou trois avec moins de mouvement. Chacune est vraie au moment où elle paraît : quand le dernier creux est plein, il ne reste plus rien à décider. Elles disent « vous » : c'est la seule fois du jeu (bible, § 2).
 - **Les mots de l'interface** : crue, limon, couche et rive (bible, § 4), sur la coupe ; coudée et doigt, sur l'échelle.
 - **La lecture de l'échelle**, en toutes lettres : « aucune coudée » à l'arrivée, « sept doigts », « neuf coudées et quatorze doigts », puis « trente-six coudées » à la rive. Les nombres en lettres ne comptent pas dans le budget.
 - **L'aide** : une page dessinée, la coupe d'une crue. L'eau monte, se repose derrière une levée, se retire, et la couche reste. Les quatre mots, et rien sur la fin. Elle ne dit pas « vous ».
@@ -377,7 +377,7 @@ Ce qui le fait tenir :
 4. **La patience de qui ne fait rien** (§ 7) : l'acte récompense aussi l'absence de tout geste. Faut-il qu'il demande au moins un creux fermé ?
 5. **L'échelle qui s'arrête** pendant qu'un creux se remplit : le joueur comprend-il que l'eau va au creux ? Le son de l'eau qui s'y engouffre doit l'y aider.
 6. **Le distrait** ferme peu de creux : ses passages tombent entre l'arrivée de l'eau et le creux plein. Un creux atteint pourrait se signaler davantage, sans que le jeu parle.
-7. **La descente qui attend** (§ 10) : une crue de délai suffit-elle pour voir le bassin plein ? Et si le joueur revient sur un autre onglet que celui du jeu ? À régler avec la descente automatique ([#106](https://github.com/DavidGiangiacomo/strates/issues/106)).
+7. **La descente qui attend** (§ 10) : une crue de délai suffit-elle pour voir le bassin plein ? Et si le joueur revient sur un autre onglet que celui du jeu ? *Réponse de [#106](https://github.com/DavidGiangiacomo/strates/issues/106) pour l'onglet : le jeu ne tourne pas tant que son onglet est caché. Quand il revient au premier plan, l'absence est rattrapée, et une descente qui n'était pas partie attend une crue de plus. Le joueur voit donc toujours le bassin plein pendant une crue. La durée de cette crue reste à juger au playtest.*
 8. **« Ce que vous avez laissé en haut est toujours là. »** : un joueur qui ne s'absente jamais une heure ne la lira pas. Le lit garde alors trois phrases sur quatre, comme le prévoit le §10 (« trois ou quatre textes »).
 9. **Une seule levée** : deux feraient deux décisions de plus, et donneraient un sens à l'ordre des creux. Mais le lit doit rester presque sans gestes.
 10. **La trace du lit au fond** : la coupe du bassin plein, à dessiner avec la fiche du fond ([#65](https://github.com/DavidGiangiacomo/strates/issues/65)) et ses traces ([#109](https://github.com/DavidGiangiacomo/strates/issues/109)).
