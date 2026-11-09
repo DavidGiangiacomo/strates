@@ -13,6 +13,8 @@ export const textes: Record<string, string> = {
   // ——— La coupe (fiche, § 6). Un creux se dit avec sa hauteur et son état.
   coupe: "Le bassin, en coupe",
   echelle: "Échelle de crue",
+  // L'œuf qui garde marque la rive sur l'échelle : les lecteurs d'écran l'entendent avec elle.
+  "echelle.rive": "la rive à {hauteur}",
   "creux.fond": "Creux au fond du bassin",
   "creux.hauteur": "Creux à {hauteur}",
   "creux.sec": "à sec",

@@ -49,6 +49,11 @@ export interface EtatLit {
   dette: IssueDette | null;
   /** Multiplicateurs des artefacts, relus à chaque tick. */
   multiplicateurs: { depot: number; patience: number };
+  /**
+   * Les objets d'en haut qui agissent ici, puissants ou utiles, relus à chaque tick : les affichages
+   * s'en servent (fiche, § 8).
+   */
+  objets: string[];
 }
 
 export function etatInitial(dette: IssueDette | null = null): EtatLit {
@@ -68,5 +73,6 @@ export function etatInitial(dette: IssueDette | null = null): EtatLit {
     dites: [{ cle: "phrase.arrivee", a: 0 }],
     dette,
     multiplicateurs: { depot: 1, patience: 1 },
+    objets: [],
   };
 }

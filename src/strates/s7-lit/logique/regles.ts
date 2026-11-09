@@ -29,6 +29,26 @@ export const DUREE_PHRASE = 10;
 /** La phrase du retour ne se dit qu'après une absence d'une heure au moins (fiche, § 10). */
 export const LONGUE_ABSENCE = 3600;
 
+// ——— Les objets d'en haut (fiche, § 8)
+
+/**
+ * Les couches à venir, dessinées d'avance : trois pour le rouleau qui marque, puissant ; une pour le
+ * gage qui revient, utile. Avec les deux, quatre.
+ */
+export const AVANCE: Readonly<Record<string, number>> = { "s6-sceau": 3, "s5-echo": 1 };
+/** L'œuf qui garde marque la rive d'avance sur l'échelle : jusqu'où le bassin se remplira. */
+export const OEUF = "s6-bulle";
+
+/** Le nombre de couches à venir que les objets dessinent d'avance. */
+export function couchesDAvance(etat: EtatLit): number {
+  return etat.objets.reduce((n, id) => n + (AVANCE[id] ?? 0), 0);
+}
+
+/** La rive est marquée sur l'échelle. */
+export function riveMarquee(etat: EtatLit): boolean {
+  return etat.objets.includes(OEUF);
+}
+
 /** Le creux `k` est plein. */
 export function creuxPlein(etat: EtatLit, k: number): boolean {
   return (etat.creux[k] ?? 0) >= VOLUME - EPSILON;

@@ -4,14 +4,26 @@
   // bord du bassin, côté fleuve, que le limon enterre. L'eau de chaque crue monte, se repose et se
   // retire. Un clic sur un creux y bâtit la levée ; au clavier, la tabulation va d'un creux à l'autre,
   // et Entrée la bâtit. Sous la coupe, la lecture de l'échelle, en lettres ; les lecteurs d'écran
-  // l'entendent à chaque coudée. Les phrases du jeu paraissent au centre, puis s'effacent.
+  // l'entendent à chaque coudée. Les phrases du jeu paraissent au centre, puis s'effacent. Les objets
+  // d'en haut dessinent d'avance, en pointillés, les couches à venir, et marquent la rive sur
+  // l'échelle (fiche, § 8).
   import type { ProprietesVue } from "../../../noyau/logique/types";
-  import type { ActionLit, EtatLit } from "../logique";
+  import { couchesAVenir, type ActionLit, type EtatLit } from "../logique";
   import { lireCoudees, lireEchelle } from "../logique/notation";
-  import { CREUX, creuxActif, etatCreux, fermable } from "../logique/regles";
+  import {
+    couchesDAvance,
+    CREUX,
+    creuxActif,
+    etatCreux,
+    fermable,
+    RIVE,
+    riveMarquee,
+  } from "../logique/regles";
   import {
     BASSIN,
     BORD_RIVE,
+    couchesAVenirDuBassin,
+    couchesAVenirDuCreux,
     couchesDuBassin,
     couchesDuCreux,
     CRETE,
@@ -36,6 +48,11 @@
 
   const bandes = $derived(couchesDuBassin(etat.couches));
   const poches = $derived(CREUX.map((_, k) => couchesDuCreux(etat.couches, k)));
+  // Les couches à venir, que le rouleau qui marque et le gage qui revient dessinent d'avance : elles
+  // se refont aux crues, et quand la levée bouge.
+  const avenir = $derived(couchesAVenir(etat, couchesDAvance(etat)));
+  const bandesAVenir = $derived(couchesAVenirDuBassin(etat.couches, avenir));
+  const pochesAVenir = $derived(CREUX.map((_, k) => couchesAVenirDuCreux(etat.couches, avenir, k)));
   const crue = $derived(eau(etat.temps, etat.pleinA, reduit));
   const actif = $derived(creuxActif(etat));
   const phrase = $derived(phraseCourante(etat, reduit));
@@ -123,6 +140,27 @@
             height={CRETE * PX * crue}
           />
         {/if}
+        {#each bandesAVenir as b, i (i)}
+          <rect
+            class="avenir"
+            x={BASSIN.x}
+            y={b.y}
+            width={BASSIN.largeur}
+            height={b.hauteur}
+            data-test="avenir"
+          />
+        {/each}
+        {#if riveMarquee(etat)}
+          <!-- L'œuf qui garde : jusqu'où le bassin se remplira. -->
+          <line
+            class="rive-marquee"
+            x1={ECHELLE.x - 8}
+            x2={ECHELLE.x + ECHELLE.largeur + 8}
+            y1={y(RIVE)}
+            y2={y(RIVE)}
+            data-test="rive-marquee"
+          />
+        {/if}
       </g>
       {#each CREUX as h, k (k)}
         {@const haut = y(h + POCHE.hauteur)}
@@ -156,6 +194,16 @@
               height={b.hauteur}
             />
           {/each}
+          {#each pochesAVenir[k] as b, i (i)}
+            <rect
+              class="avenir"
+              x={BORD_RIVE}
+              y={b.y}
+              width={POCHE.largeur}
+              height={b.hauteur}
+              data-test="avenir"
+            />
+          {/each}
           {#if crue > 0 && actif === k}
             <!-- L'eau s'engouffre dans le creux que le limon atteint. -->
             {@const fond = poches[k]?.at(-1)?.y ?? y(h)}
@@ -185,7 +233,11 @@
     </p>
   </div>
   <p class="lecture" aria-hidden="true">{lireEchelle(etat.niveau)}</p>
-  <p class="lecteur" aria-live="polite">{o("echelle")} : {lireCoudees(etat.niveau)}</p>
+  <p class="lecteur" aria-live="polite">
+    {o("echelle")} : {lireCoudees(etat.niveau)}{riveMarquee(etat)
+      ? `, ${o("echelle.rive").replace("{hauteur}", lireEchelle(RIVE))}`
+      : ""}
+  </p>
 </section>
 
 <style>
@@ -257,6 +309,19 @@
   }
   .couche.t3 {
     fill: var(--retenue-2);
+  }
+  /* Les couches à venir, en pointillés, à leur place (fiche, § 8). */
+  .avenir {
+    fill: none;
+    stroke: var(--encre);
+    stroke-width: 1;
+    stroke-dasharray: 5 4;
+    opacity: 0.7;
+  }
+  /* La rive, marquée d'avance sur l'échelle. */
+  .rive-marquee {
+    stroke: var(--encre);
+    stroke-width: 3;
   }
   .poche {
     fill: var(--roche);
