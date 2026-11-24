@@ -363,6 +363,12 @@ export interface DefinitionStrate<E, A extends ActionBase> {
    */
   apparenceValeur?: ApparenceValeur;
   /**
+   * La police de la phrase que la strate dit pendant sa descente (`phrase.descente`), et que le noyau
+   * écrit sur son sol : la voix du jeu y garde la lettre de la strate quittée. Sans elle, celle du
+   * noyau.
+   */
+  policePhrase?: string;
+  /**
    * La banque de sons de la strate, que sa vue joue par `son` : le noyau la charge au montage de la
    * vue, et la libère au démontage. Aucun son n'est commun à deux strates (§ 12).
    */

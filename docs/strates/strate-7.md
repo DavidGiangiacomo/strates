@@ -196,7 +196,7 @@ Le joueur vient de la dette : trois heures d'échéances, une décision par minu
 
 ## 6. Interface et direction artistique
 
-« Presque vide, grain, lenteur » (§5). La réalisation est l'objet de [#107](https://github.com/DavidGiangiacomo/strates/issues/107) ; le son, de [#114](https://github.com/DavidGiangiacomo/strates/issues/114). D'ici là, la boucle se joue sur une coupe sobre, en SVG ([#91](https://github.com/DavidGiangiacomo/strates/issues/91)) : le fleuve, le bassin et ses couches, les quatre creux, la levée, l'échelle et sa lecture, l'eau de chaque crue et les phrases du jeu. Elle ne dessine encore ni le grain, ni la roche aux encoches, ni les fosses de la dette.
+« Presque vide, grain, lenteur » (§5). La réalisation est faite ([#107](https://github.com/DavidGiangiacomo/strates/issues/107), `src/strates/s7-lit/vue/`, ci-dessous) ; le son est l'objet de [#114](https://github.com/DavidGiangiacomo/strates/issues/114).
 
 - **Disposition : la coupe du bassin**, vue de côté, sur presque tout l'écran.
   - **Le fleuve**, à gauche : une bande d'eau grise, qui monte à chaque crue.
@@ -224,6 +224,43 @@ Le joueur vient de la dette : trois heures d'échéances, une décision par minu
   - *lecteurs d'écran* : la lecture de l'échelle s'annonce à chaque coudée, pas à chaque crue ; une phrase du jeu s'annonce quand elle paraît ; un creux se dit avec sa hauteur et son état, « à sec », « sous l'eau », « fermé », « plein ».
 - **Ce qui la distingue** : c'est la seule strate où le temps fait tout. Les autres montraient ce qu'on avait, ce qu'on devait, ce qui s'accordait ; le lit montre ce qui s'est déposé.
 - **Pas d'écran de fouille** : la descente se fait sans lui, et emporte tout le catalogue (§ 9).
+
+### Dans le code ([#107](https://github.com/DavidGiangiacomo/strates/issues/107))
+
+*Choix tranchés le 24 novembre 2026 : un jour gris et voilé ; l'eau trouble qui s'éclaircit ; une linéale humaniste ; l'aide en trois petites coupes.*
+
+- **La coupe sur tout l'écran** (`vue/Vue.svelte`, `vue/coupe.ts`) : elle garde ses proportions, au plus grand, posée sur la roche en bas de l'écran, et le ciel est au-dessus. Le fleuve, la rive et la roche continuent jusqu'aux bords de l'écran, sans que rien ne défile.
+- **La palette** (`vue/theme.ts`) :
+  - un ciel couvert, gris, plus brumeux vers l'horizon ;
+  - le limon dans des ocres grisés, une couche sur deux un peu plus sombre, et plus sombre encore derrière une levée ;
+  - l'eau gris-vert, et trouble, couleur de limon, pendant la crue ;
+  - la terre sombre de la rive, et la roche du fond, plus sombre encore.
+
+  Ni le blanc net de la surface, ni les bois et les blés des caves, ni le papier vert pâle de l'atelier, ni le bleu nuit du chœur, ni le noir et le rouge de la dette.
+- **La police** : une linéale humaniste, Optima, sinon Candara, sinon une linéale de système, légère et espacée. Elle n'écrit que la lecture de l'échelle, les phrases du jeu et l'aide. La phrase de la descente la garde, sur le sol du noyau (`policePhrase`).
+- **Le grain** : un bruit gris, dessiné par le navigateur à partir d'un filtre SVG, sans fichier, sur tout l'écran. Il saute d'une place à l'autre huit fois par seconde, comme une pellicule : c'est la seule chose qui bouge entre deux crues. Avec moins de mouvement, il reste immobile.
+- **La crue** :
+  - l'eau monte de deux coudées et demie au-dessus du limon, trouble, son fil marqué d'un trait clair ;
+  - pendant ses dix secondes de repos, elle s'éclaircit de haut en bas (`clarte`, `passageTrouble`) ;
+  - au milieu du repos, la crue laisse son limon, et la couche monte au fond en cinq secondes (`tassement`) ;
+  - l'eau se retire claire.
+
+  Avec moins de mouvement, tout se fait en trois images, et la couche paraît d'un coup.
+- **Le rocher aux encoches** : une bosse basse au fond du bassin, haute de moins de deux coudées, gravée de huit groupes d'encoches. Les premières couches du bassin le recouvrent.
+- **Les fosses de la dette** : deux fosses creusées d'en haut dans la rive, à droite des creux, et comblées d'une terre plus claire. Au fond, des éclats si la dette a été soldée ; des tablettes entières, marquées d'un sceau, si elle est tombée en défaut. Sans issue connue, il n'y a pas de fosse.
+- **Les objets d'en haut**, posés sur la berge, en haut de la rive, de gauche à droite et sans un mot (`Berge.svelte`) :
+  - ceux de la dette : un bâton, un petit cylindre gravé, une pierre ronde, un œuf, une tablette dressée ;
+  - ceux du chœur : un morceau de planche, un roseau percé, un anneau, un galet plat, un coquillage.
+
+  Leur nom ne se lit que dans l'inventaire du noyau.
+- **La levée** : un bourrelet de terre, semé de pierres.
+- **L'échelle** : une pierre dressée, au sommet arrondi. Sa lecture s'écrit sur la roche, sous elle, en minuscules. Le lien de l'aide, discret, est sous la rive.
+- **Les phrases du jeu** paraissent au milieu du vide, entre le haut de l'écran et la plus haute eau des crues : elles montent avec le limon, pas avec chaque crue.
+- **L'aide** se pose dans le ciel, au-dessus du bassin (`Crue.svelte`) :
+  - trois petites coupes, chacune sur sa légende : l'eau monte, trouble ; elle se repose derrière la levée et s'éclaircit ; elle se retire, et sa couche reste dans le creux ;
+  - puis « À droite, la rive. ».
+
+  Elle n'a pas de numéro : le lit n'écrit pas ses nombres en chiffres. Sur un écran étroit, chaque moment a sa ligne.
 
 ## 7. Opacité et Compréhension
 
@@ -316,8 +353,9 @@ Ce sont des choses simples, nommées par ce qu'elles font à qui les tient ([bib
   - les multiplicateurs, que la boucle lit depuis [#91](https://github.com/DavidGiangiacomo/strates/issues/91) ;
   - les couches à venir, en pointillés, à leur place : trois avec le rouleau qui marque, une avec le gage qui revient, quatre avec les deux. Ce sont celles que les crues déposeront si rien ne change, la grande crue comprise. Elles suivent la levée : la bâtir ou la déplacer les redessine ;
   - la rive marquée d'un trait sur l'échelle par l'œuf qui garde. Les lecteurs d'écran l'entendent avec la lecture de l'échelle : « la rive à trente-six coudées » ;
-  - les noms d'en bas des objets de la dette, que le lit donne au noyau (`nommes`).
-- **Ce qui viendra ailleurs** : les raccourcis (le bâton qui creuse, le gage qui souffle) avec l'opacité du lit ([#115](https://github.com/DavidGiangiacomo/strates/issues/115)), les objets étranges (la pierre qui oblige, le gage qui chante) avec [#118](https://github.com/DavidGiangiacomo/strates/issues/118), et les objets posés sur la berge avec la direction artistique ([#107](https://github.com/DavidGiangiacomo/strates/issues/107)).
+  - les noms d'en bas des objets de la dette, que le lit donne au noyau (`nommes`) ;
+  - les objets posés sur la berge, dessinés sans un mot ([#107](https://github.com/DavidGiangiacomo/strates/issues/107), § 6).
+- **Ce qui viendra ailleurs** : les raccourcis (le bâton qui creuse, le gage qui souffle) avec l'opacité du lit ([#115](https://github.com/DavidGiangiacomo/strates/issues/115)), et les objets étranges (la pierre qui oblige, le gage qui chante) avec [#118](https://github.com/DavidGiangiacomo/strates/issues/118).
 
 ## 9. Valeur convertible
 
@@ -354,11 +392,12 @@ Ce sont des choses simples, nommées par ce qu'elles font à qui les tient ([bib
   | Quand le dernier creux est plein : il n'y a plus rien à fermer | « Vous n'avez rien à décider ici. » |
   | Pendant la descente | « C'était la seule fois. » |
 
-  Chacune paraît seule, au centre de la coupe, puis s'efface. La dernière paraît au centre de l'écran de descente, sur un travelling de huit secondes, ou trois avec moins de mouvement. Chacune est vraie au moment où elle paraît : quand le dernier creux est plein, il ne reste plus rien à décider. Elles disent « vous » : c'est la seule fois du jeu (bible, § 2).
+  Chacune paraît seule, au milieu du vide au-dessus du bassin, puis s'efface. La dernière paraît au centre de l'écran de descente, sur un travelling de huit secondes, ou trois avec moins de mouvement. Chacune est vraie au moment où elle paraît : quand le dernier creux est plein, il ne reste plus rien à décider. Elles disent « vous » : c'est la seule fois du jeu (bible, § 2).
 - **Les mots de l'interface** : crue, limon, couche et rive (bible, § 4), sur la coupe ; coudée et doigt, sur l'échelle.
 - **La lecture de l'échelle**, en toutes lettres : « aucune coudée » à l'arrivée, « sept doigts », « neuf coudées et quatorze doigts », puis « trente-six coudées » à la rive. Les nombres en lettres ne comptent pas dans le budget.
 - **L'aide** : une page dessinée, la coupe d'une crue. L'eau monte, se repose derrière une levée, se retire, et la couche reste. Les quatre mots, et rien sur la fin. Elle ne dit pas « vous ».
-  - Un lien discret, « Aide », l'ouvre sous la lecture de l'échelle. La page s'appelle « Une crue », et a quatre légendes : « La crue monte. », « Derrière la levée, l'eau se repose. », « Elle se retire, et laisse son limon : une couche. », « À droite, la rive. ».
+  - Un lien discret, « Aide », l'ouvre, sur la roche, sous la rive. La page s'appelle « Une crue », et a quatre légendes : « La crue monte. », « Derrière la levée, l'eau se repose. », « Elle se retire, et laisse son limon : une couche. », « À droite, la rive. ».
+  - Les trois premières sont chacune sous une petite coupe de la crue, dessinée ([#107](https://github.com/DavidGiangiacomo/strates/issues/107), § 6).
   - L'ouvrir est noté par le noyau, pour l'acte « sans aide » (§ 7).
 - **Le rappel de reprise** : rien (bible, § 10). Le noyau donne le lieu.
 - **Les traces pour le fond** (bible, § 5) : ses couches, dessinées, sans un mot. C'est la coupe du bassin plein, telle que le joueur l'a remplie : les couches sombres de l'eau retenue dans les creux, la couche épaisse de la grande crue, et dans la rive les fosses de la dette, tablettes brisées ou entières. Elle change avec le parcours : les levées du joueur, et l'issue de la dette.

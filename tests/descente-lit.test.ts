@@ -13,6 +13,7 @@ import { creerLogiqueFactice } from "../src/strates/factice/logique";
 import { strate as lit } from "../src/strates/s7-lit";
 import type { EtatLit } from "../src/strates/s7-lit/logique";
 import { CRUE } from "../src/strates/s7-lit/logique/regles";
+import { POLICE } from "../src/strates/s7-lit/vue/theme";
 
 const DEBUT = 1_000_000;
 const JOUR = 24 * 3600;
@@ -79,8 +80,11 @@ describe("la descente du lit", () => {
     expect(await lancee()).toBe(true);
     expect(passage.ecran).toBeNull();
     expect(passage.phrase).toBe("C'était la seule fois.");
+    // La voix du jeu garde la lettre du lit, sur le sol du noyau.
+    expect(passage.police).toBe(POLICE);
 
     await vi.runAllTimersAsync();
+    expect(passage.police).toBeNull();
     expect(noyau.etat.profondeur).toBe(8);
     // Tout le catalogue du lit est emporté, sans écran de choix : 4 points, trois objets.
     const fouille = noyau.etat.meta.journal.strates.find((e) => e.strate === 7)!.fouille!;

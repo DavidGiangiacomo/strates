@@ -24,8 +24,8 @@ export const textes: Record<string, string> = {
   "creux.ferme": "fermé",
   "creux.plein": "plein",
 
-  // ——— L'aide (fiche, § 11) : la coupe d'une crue, en quatre légendes, sous le dessin que la direction
-  // artistique fera (#107). Les quatre mots du lit, et rien sur la fin. Elle ne dit pas « vous ».
+  // ——— L'aide (fiche, § 11) : la coupe d'une crue, dessinée en trois moments, chacun sur sa légende,
+  // puis la rive. Les quatre mots du lit, et rien sur la fin. Elle ne dit pas « vous ».
   aide: "Aide",
   "aide.titre": "Une crue",
   "aide.fermer": "Refermer",
