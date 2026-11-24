@@ -293,6 +293,23 @@ export function eau(temps: number, pleinA: number | null, reduit = false): numbe
 }
 
 /**
+ * Où en est la crue à l'instant `temps` : son numéro, et sa montée, son repos ou son retrait. La
+ * n-ième crue monte de n × 30 − 15 à n × 30 − 5 secondes, se repose dix secondes, puis se retire.
+ * null avant la première, et quand le bassin est plein, une fois retirée la dernière : le fleuve
+ * passe ailleurs.
+ */
+export function momentCrue(
+  temps: number,
+  pleinA: number | null,
+): { crue: number; phase: "montee" | "repos" | "retrait" } | null {
+  if (temps < CRUE / 2) return null;
+  if (pleinA !== null && temps >= pleinA + CRUE / 2) return null;
+  const crue = Math.floor((temps + CRUE / 2) / CRUE);
+  const u = temps + CRUE / 2 - crue * CRUE;
+  return { crue, phase: u < 10 ? "montee" : u < 20 ? "repos" : "retrait" };
+}
+
+/**
  * La part claire de l'eau de la crue à l'instant `temps`, de 0, toute trouble, à 1, toute claire.
  * Elle monte chargée de limon, s'éclaircit de haut en bas pendant ses dix secondes de repos, et se
  * retire claire. `reduit` : en trois images, comme la crue.

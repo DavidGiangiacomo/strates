@@ -16,6 +16,7 @@ import {
   HAUT,
   hauteurRocher,
   LARGEUR,
+  momentCrue,
   passageTrouble,
   phraseCourante,
   placesSurLaBerge,
@@ -110,6 +111,19 @@ describe("l'eau de la crue", () => {
     expect(clarte(40)).toBe(1);
     expect(clarte(50)).toBe(0);
     for (let t = 15; t < 120; t += 0.7) expect([0, 0.5, 1]).toContain(clarte(t, true));
+  });
+
+  it("dit où en est la crue : sa montée, son repos, son retrait, et son numéro", () => {
+    expect(momentCrue(0, null)).toBeNull();
+    expect(momentCrue(14.9, null)).toBeNull();
+    expect(momentCrue(15, null)).toEqual({ crue: 1, phase: "montee" });
+    expect(momentCrue(25, null)).toEqual({ crue: 1, phase: "repos" });
+    expect(momentCrue(CRUE, null)).toEqual({ crue: 1, phase: "repos" });
+    expect(momentCrue(35, null)).toEqual({ crue: 1, phase: "retrait" });
+    expect(momentCrue(45, null)).toEqual({ crue: 2, phase: "montee" });
+    // Le bassin plein à la 300ᵉ crue : elle se retire, puis le fleuve passe ailleurs.
+    expect(momentCrue(300 * CRUE + 10, 300 * CRUE)).toEqual({ crue: 300, phase: "retrait" });
+    expect(momentCrue(300 * CRUE + 15, 300 * CRUE)).toBeNull();
   });
 
   it("passe de l'eau claire, au-dessus, à l'eau trouble, au-dessous, en douceur", () => {

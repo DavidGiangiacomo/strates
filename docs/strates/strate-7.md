@@ -196,7 +196,7 @@ Le joueur vient de la dette : trois heures d'échéances, une décision par minu
 
 ## 6. Interface et direction artistique
 
-« Presque vide, grain, lenteur » (§5). La réalisation est faite ([#107](https://github.com/DavidGiangiacomo/strates/issues/107), `src/strates/s7-lit/vue/`, ci-dessous) ; le son est l'objet de [#114](https://github.com/DavidGiangiacomo/strates/issues/114).
+« Presque vide, grain, lenteur » (§5). La réalisation est faite ([#107](https://github.com/DavidGiangiacomo/strates/issues/107), `src/strates/s7-lit/vue/`, ci-dessous), et le son aussi ([#114](https://github.com/DavidGiangiacomo/strates/issues/114), ci-dessous).
 
 - **Disposition : la coupe du bassin**, vue de côté, sur presque tout l'écran.
   - **Le fleuve**, à gauche : une bande d'eau grise, qui monte à chaque crue.
@@ -261,6 +261,24 @@ Le joueur vient de la dette : trois heures d'échéances, une décision par minu
   - puis « À droite, la rive. ».
 
   Elle n'a pas de numéro : le lit n'écrit pas ses nombres en chiffres. Sur un écran étroit, chaque moment a sa ligne.
+
+### Le son ([#114](https://github.com/DavidGiangiacomo/strates/issues/114))
+
+*Choix tranchés le 24 novembre 2026 : entre deux crues, le fleuve au loin ; au bassin plein, le fleuve s'éloigne jusqu'au silence.*
+
+- **Le fleuve** (`vue/sons.ts`) : un murmure d'eau très bas, en boucle de 24 secondes, à gauche comme le fleuve. Un grondement grave, et des bulles éparses.
+  - Il murmure entre deux crues, et enfle un peu pendant la crue. Il ne change de réglage qu'au début et à la fin de la crue, en huit secondes.
+  - Quand le bassin est plein, le fleuve passe ailleurs : son murmure s'efface en vingt-cinq secondes, et la descente vient dans le silence.
+- **L'eau de chaque crue** sonne au début de sa montée et de son retrait, et se tait au repos (`momentCrue`, dans `vue/coupe.ts`).
+  - *La montée* : venue du fleuve, à gauche, l'eau s'étend sur le bassin en dix secondes, de plus en plus proche, et clapote de plus en plus.
+  - *Le retrait* : elle s'écoule vers le fleuve, ses aigus se ferment, et il reste des gouttes de plus en plus rares.
+  - Trois montées et trois retraits, joués à tour de rôle, chacun un peu plus vite ou plus lentement : jamais tout à fait la même (`eauDeLaCrue`).
+  - Un moment déjà commencé quand la vue est montée ne sonne pas : on attend le suivant.
+- **Le creux qui se remplit** : quand la crue va à un creux, l'eau s'y engouffre au milieu de sa montée, plus sourde, à droite.
+- **La grande crue** : la même eau, plus grave, plus longue et plus forte.
+- **La levée** bâtie ou déplacée : une pelletée de terre tassée, un second coup plus léger, et des pierres qui s'entrechoquent, à droite. Celle qui disparaît sous le limon ne fait pas de bruit.
+- **Le calcul** : les sons se calculent quand on les demande, par étapes d'un quart de seconde, sans figer l'image. Les montées et les retraits se calculent à 22 kHz ; le fleuve et l'eau qui s'engouffre à 16 kHz, car ils n'ont pas d'aigus. Aucun nom n'est partagé avec la surface, les caves, l'atelier ou le sol.
+- **Vérifié dans Chromium** : le fleuve part au premier geste, la première crue sonne à quinze secondes, et aucune longue tâche ne fige l'image.
 
 ## 7. Opacité et Compréhension
 

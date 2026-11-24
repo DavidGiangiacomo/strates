@@ -7,11 +7,18 @@ import { flushSync, mount, unmount } from "svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { strate } from "..";
 import { elementsParCle, GLYPHES, glyphes } from "../../../noyau/logique/opacite";
-import type { CommandesNoyau, ContexteTick, SonStrate } from "../../../noyau/logique/types";
+import type {
+  CommandesNoyau,
+  ContexteTick,
+  ReglageAmbiance,
+  ReglageEffet,
+  SonStrate,
+} from "../../../noyau/logique/types";
 import { logique, type ActionLit, type EtatLit } from "../logique";
 import { etatInitial } from "../logique/etat";
-import { CRUE } from "../logique/regles";
+import { CRUE, GRANDE_CRUE } from "../logique/regles";
 import { ENCOCHES, TASSEMENT } from "./coupe";
+import { PLACES } from "./sons";
 import { POLICE } from "./theme";
 import Vue from "./Vue.svelte";
 
@@ -40,6 +47,7 @@ function monter(
   modifs: (etat: EtatLit) => void = () => {},
   mode: "jeu" | "remontee" = "jeu",
   opaques: readonly string[] = [],
+  son: SonStrate = silence,
 ) {
   const etat = $state(etatInitial());
   modifs(etat);
@@ -56,7 +64,7 @@ function monter(
       },
       lisible: (element: string) => !opaques.includes(element),
       mode,
-      son: silence,
+      son,
     },
   });
   flushSync();
@@ -369,5 +377,111 @@ describe("l'opacité", () => {
     expect(legendes[3]).toMatch(enGlyphes);
     // Les dessins restent : on voit la crue, sans son nom.
     expect(document.querySelectorAll("[data-test=crue-dessinee]")).toHaveLength(3);
+  });
+});
+
+describe("le son", () => {
+  /** Une banque qui note ce qu'on lui demande. */
+  function ecoute() {
+    const effets: [string, ReglageEffet | undefined][] = [];
+    const ambiances: [string, ReglageAmbiance][] = [];
+    const son: SonStrate = {
+      jouer: (nom, reglage) => effets.push([nom, reglage]),
+      ambiance: (nom, reglage) => ambiances.push([nom, reglage]),
+      voix() {},
+      note() {},
+    };
+    return { son, effets, ambiances, noms: () => effets.map(([nom]) => nom) };
+  }
+
+  it("fait murmurer le fleuve au loin dès l'arrivée, et l'enfle un peu pendant la crue", () => {
+    const { son, ambiances } = ecoute();
+    const { avancer } = monter(() => {}, "jeu", [], son);
+    expect(ambiances.at(-1)).toEqual(["fleuve", { volume: 0.2, fondu: 8 }]);
+    avancer(16);
+    expect(ambiances.at(-1)).toEqual(["fleuve", { volume: 0.32, fondu: 8 }]);
+    // Il ne change de réglage qu'au début et à la fin de la crue.
+    const avant = ambiances.length;
+    avancer(10);
+    expect(ambiances).toHaveLength(avant);
+  });
+
+  it("laisse le fleuve s'éloigner jusqu'au silence quand le bassin est plein", () => {
+    const { son, ambiances } = ecoute();
+    monter(
+      (e) => {
+        e.temps = 600;
+        e.pleinA = 600;
+      },
+      "jeu",
+      [],
+      son,
+    );
+    expect(ambiances.at(-1)).toEqual(["fleuve", { volume: 0, fondu: 25 }]);
+  });
+
+  it("fait monter l'eau de chaque crue, la tait au repos, puis la retire", () => {
+    const { son, effets, noms } = ecoute();
+    const { avancer } = monter(() => {}, "jeu", [], son);
+    avancer(14);
+    expect(noms()).toEqual([]);
+    // La première crue monte à quinze secondes, et va au creux du fond.
+    avancer(2);
+    expect(noms()).toEqual(["montee-1", "engouffre"]);
+    expect(effets[0]![1]).toMatchObject({ panoramique: PLACES.bassin });
+    expect(effets[1]![1]).toMatchObject({ panoramique: PLACES.creux, dans: 3 });
+    // Au repos, elle se tait ; elle se retire à trente-cinq secondes.
+    avancer(10);
+    expect(noms()).toHaveLength(2);
+    avancer(10);
+    expect(noms()).toEqual(["montee-1", "engouffre", "retrait-1"]);
+    // La suivante prend la variante suivante.
+    avancer(10);
+    expect(noms().slice(3)).toEqual(["montee-2", "engouffre"]);
+  });
+
+  it("ne fait pas sonner un moment déjà commencé quand la vue est montée", () => {
+    const { son, noms } = ecoute();
+    const { avancer } = monter(
+      (e) => {
+        e.temps = 20;
+      },
+      "jeu",
+      [],
+      son,
+    );
+    avancer(1);
+    expect(noms()).toEqual([]);
+    avancer(15);
+    expect(noms()).toEqual(["retrait-1"]);
+  });
+
+  it("fait la grande crue plus grave et plus longue", () => {
+    const { son, effets } = ecoute();
+    const { avancer } = monter(
+      (e) => {
+        e.temps = GRANDE_CRUE * CRUE - 15.5;
+        e.crues = GRANDE_CRUE - 1;
+      },
+      "jeu",
+      [],
+      son,
+    );
+    avancer(1);
+    const [nom, reglage] = effets[0]!;
+    expect(nom).toMatch(/^montee-/);
+    expect(reglage!.vitesse).toBeLessThan(0.75);
+  });
+
+  it("fait entendre la levée bâtie, et rien quand elle disparaît sous le limon", () => {
+    const { son, effets, noms } = ecoute();
+    const { etat } = monter(() => {}, "jeu", [], son);
+    logique.agir(etat, { type: "fermer", creux: 1 }, CTX);
+    flushSync();
+    expect(noms()).toEqual(["levee"]);
+    expect(effets[0]![1]).toMatchObject({ panoramique: PLACES.creux });
+    etat.levee = null;
+    flushSync();
+    expect(noms()).toEqual(["levee"]);
   });
 });
