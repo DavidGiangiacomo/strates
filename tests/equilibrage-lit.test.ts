@@ -1,13 +1,15 @@
 // L'équilibrage du lit (#116) : des parties complètes, jouées par des joueurs automatiques, en continu
 // ou avec de longues absences, sans artefact puis avec les objets d'un jeu correct, doivent tomber dans
-// les cibles de la fiche (docs/strates/strate-7.md) et de l'issue. Les mesures sont publiées dans
+// les cibles de la fiche (docs/strates/strate-7.md) et de l'issue. Les actes de compréhension qu'ils
+// accomplissent, et le κ qu'ils en gagnent, sont mesurés aussi (#115). Les mesures sont publiées dans
 // docs/strates/strate-7-mesures.md, tenu à jour par ce test.
 // Pour le régénérer après un changement de règles : npm run mesures
 import { describe, expect, it } from "vitest";
 import { ATTENTIF, DISTRAIT, PREVOYANT, SANS_UN_GESTE, type ProfilLit } from "../sim/joueurs/lit";
 import { mesurerLit, sessions, type Absence, type MesuresLit } from "../sim/mesures/lit";
 import { artefact, preselection } from "../src/noyau/logique/artefacts";
-import { CRUE, RIVE, VOLUME } from "../src/strates/s7-lit/logique/regles";
+import { SANS_AIDE, SANS_ARTEFACT } from "../src/noyau/logique/comprehension";
+import { ACTES, CRUE, RIVE, VOLUME } from "../src/strates/s7-lit/logique/regles";
 
 const H = 3600;
 const JOUR = 24 * H;
@@ -147,6 +149,29 @@ describe("l'équilibrage du lit", () => {
     expect(MESURES.avec["sans-un-geste"]!.plein).toBe(MESURES.sans["sans-un-geste"]!.plein);
   });
 
+  it("fait accomplir les actes de la fiche : la levée avant l'eau au prévoyant, la patience à tous", () => {
+    chaque((m, variante, nom) => {
+      const propres = m.actes.filter((a) => a === ACTES.leveeAvantLEau || a === ACTES.patience);
+      const attendus =
+        RYTHMES[nom]!.profil === PREVOYANT
+          ? [ACTES.leveeAvantLEau, ACTES.patience]
+          : [ACTES.patience];
+      expect(propres, `${nom}, ${variante}`).toEqual(attendus);
+      // Les joueurs automatiques n'ouvrent jamais l'aide.
+      expect(m.actes, `${nom}, ${variante}`).toContain(SANS_AIDE);
+      expect(m.actes.includes(SANS_ARTEFACT), `${nom}, ${variante}`).toBe(variante === "sans");
+    });
+  });
+
+  it("rapporte de 5 à 11 points de κ : arrivé au mieux à 85, le prévoyant sans objets descend à 96", () => {
+    chaque((m, variante, nom) => {
+      const prevoyant = RYTHMES[nom]!.profil === PREVOYANT;
+      const attendu = 2 + 3 + (prevoyant ? 3 : 0) + (variante === "sans" ? 3 : 0);
+      expect(m.kappa, `${nom}, ${variante}`).toBe(attendu);
+    });
+    expect(85 + MESURES.sans.prevoyant!.kappa).toBe(96);
+  });
+
   it("publie ses mesures dans docs/strates/strate-7-mesures.md (sinon : npm run mesures)", async () => {
     await expect(rapport()).toMatchFileSnapshot("../docs/strates/strate-7-mesures.md");
   });
@@ -176,6 +201,14 @@ function tableau(entetes: string[], lignes: string[][]): string {
   ].join("\n");
 }
 
+/** Les actes, dits en mots. */
+const NOMS_ACTES: Record<string, string> = {
+  [SANS_AIDE]: "sans aide",
+  [SANS_ARTEFACT]: "sans artefact",
+  [ACTES.leveeAvantLEau]: "levée avant l'eau",
+  [ACTES.patience]: "patience",
+};
+
 function resultats(variante: Variante): string {
   return tableau(
     [
@@ -187,6 +220,8 @@ function resultats(variante: Variante): string {
       "Couches retenues",
       "Limon",
       "Points",
+      "Actes",
+      "κ",
     ],
     NOMS.map((nom) => {
       const m = MESURES[variante][nom]!;
@@ -199,6 +234,8 @@ function resultats(variante: Variante): string {
         String(m.retenues),
         `${entier(m.depose)} doigts`,
         String(m.points),
+        m.actes.map((a) => NOMS_ACTES[a] ?? a).join(", "),
+        `+${m.kappa}`,
       ];
     }),
   );
@@ -237,6 +274,8 @@ ${resultats("avec")}
 - **Présence** : le temps où le joueur était là, jusqu'à la descente.
 - **Levées** : les levées bâties ; **couches retenues** : les crues dont l'eau s'est reposée derrière une levée.
 - **Limon** : la valeur convertible, à la descente.
+- **Actes** : les actes de compréhension accomplis (fiche, § 7), dans l'ordre. « Sans aide » se constate au seuil : ces joueurs n'ouvrent jamais l'aide. « Sans artefact » se constate à la descente, si aucun objet n'agissait. **κ** : ce qu'ils rapportent, au barème du noyau, sur les 11 points du lit.
+- **La levée avant l'eau** ne vient qu'au prévoyant : il bâtit chaque levée sur un creux encore sec. Les autres attendent l'eau. Personne ne déplace de levée : tous ont la patience.
 - **Ce que les objets font gagner** au bassin plein : ${gain("prevoyant")} au prévoyant, ${gain("attentif")} à l'attentif, ${gain("voyageur-2-semaines")} au voyageur, ${gain("part-aussitot")} à qui part dès l'arrivée, rien à qui reste sans un geste.
 `;
 }

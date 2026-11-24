@@ -105,3 +105,34 @@ export function fermable(etat: EtatLit, k: unknown): k is number {
 export function cruesA(temps: number): number {
   return Math.floor((temps + EPSILON) / CRUE);
 }
+
+// ——— La Compréhension (fiche, § 7)
+
+/** Les actes propres du lit, que la logique signale au noyau, qui en tient le barème. */
+export const ACTES = {
+  /**
+   * Une levée bâtie sur un creux encore au-dessus du limon, que la crue atteint ensuite. Le creux du
+   * fond ne compte pas : l'eau l'atteint dès la première crue.
+   */
+  leveeAvantLEau: "levee-avant-l-eau",
+  /** La descente sans avoir jamais déplacé une levée d'un creux qui n'était pas plein. */
+  patience: "patience",
+} as const;
+
+/**
+ * Les éléments opaques du lit (fiche, § 7) : le sens des mots et des mesures. La crue, l'eau, les
+ * couches, l'échelle et ses traits, les creux et la levée ne se cachent jamais.
+ */
+export const OPAQUES = {
+  /** La crue et le limon : levés à la première crue. */
+  crue: "crue",
+  /** La couche et la rive : levées au premier creux plein. */
+  couche: "couche",
+  /** Les mesures de l'échelle : on voit monter le limon, pas sa mesure, jusqu'à la première coudée. */
+  mesures: "mesures",
+} as const;
+
+/** Le bâton qui creuse lève les mots du lit et les mesures de l'échelle dès l'arrivée. */
+export const BATON = "s6-stylet";
+/** Le gage qui souffle lève la crue et le limon dès l'arrivée. */
+export const SOUFFLE = "s5-souffle";

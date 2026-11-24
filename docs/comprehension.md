@@ -202,7 +202,15 @@ Ce sont les formules des fiches (§ 3 et § 7) : le coût d'un exemplaire, la r�
   - il ne remplit jamais le premier plan : il l'agrandit dès qu'il le peut ;
   - arrivé avec κ = 19 ou 22, il descend au réseau avec κ = 28 s'il a gardé ses objets, 34 s'il n'en a jamais emporté. Comme dans les caves, ces chiffres sont un plafond : ces joueurs n'ouvrent jamais l'aide.
 
-**À venir** : les actes propres des strates 4 à 7, avec leurs fiches.
+**Fait par [#115](https://github.com/DavidGiangiacomo/strates/issues/115)** : le lit branché sur κ et sur l'opacité ([fiche](strates/strate-7.md), § 7).
+- **Ses deux actes propres** entrent au barème, 3 points chacun : la levée avant l'eau, bâtie sur un creux encore sec que la crue atteint ensuite, et la patience, aucune levée déplacée d'un creux qui n'était pas plein. Avec « sans aide » et « sans artefact », le lit a ses 11 points.
+- **Son opacité** porte sur les mots et les mesures : la crue et le limon, la couche et la rive, et la lecture de l'échelle. La crue elle-même, l'eau, les couches, l'échelle, les creux et la levée ne se cachent jamais. Les mots se lèvent à la première crue, au premier creux plein et à la première coudée, par le bâton qui creuse et le gage qui souffle, ou au délai.
+- **Mesuré par les joueurs automatiques** ([`strate-7-mesures.md`](strates/strate-7-mesures.md)), comme la fiche le prévoyait :
+  - le prévoyant accomplit les deux actes ; les autres, la patience seulement ;
+  - un jeu correct gagne dans le lit 5 points sur 11 avec ses objets, et 8 sans ;
+  - arrivé au mieux avec κ = 85, le prévoyant qui a laissé ses objets en haut descend au fond avec 96. Comme ailleurs, ces chiffres sont un plafond : ces joueurs n'ouvrent jamais l'aide.
+
+**À venir** : les actes propres des strates 4 à 6, avec leur code.
 
 ## 9. Questions ouvertes
 

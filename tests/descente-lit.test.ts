@@ -87,7 +87,8 @@ describe("la descente du lit", () => {
     expect(passage.police).toBeNull();
     expect(noyau.etat.profondeur).toBe(8);
     // Tout le catalogue du lit est emporté, sans écran de choix : 4 points, trois objets.
-    const fouille = noyau.etat.meta.journal.strates.find((e) => e.strate === 7)!.fouille!;
+    const entree = noyau.etat.meta.journal.strates.find((e) => e.strate === 7)!;
+    const fouille = entree.fouille!;
     expect(fouille.points).toBe(4);
     expect([...fouille.emportes].sort()).toEqual(
       catalogueDe(7)
@@ -95,6 +96,12 @@ describe("la descente du lit", () => {
         .sort(),
     );
     expect(passage.artefacts).toEqual(noyau.etat.artefacts);
+    // Sans un geste, sans aide ni objet : la patience, et les deux actes du noyau, 8 points de κ
+    // (fiche, § 7).
+    expect([...entree.actes].sort()).toEqual(["patience", "sans-aide", "sans-artefact"]);
+    expect(entree.kappaGagne).toBe(8);
+    // Les mots du lit et ses mesures se sont levés à l'usage.
+    expect([...entree.leves].sort()).toEqual(["couche", "crue", "mesures"]);
   });
 
   it("attend le retour du joueur si le bassin s'est rempli pendant son absence", async () => {

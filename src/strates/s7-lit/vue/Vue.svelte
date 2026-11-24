@@ -12,6 +12,10 @@
   // d'écran l'entendent à chaque coudée. Les phrases du jeu paraissent au milieu du vide, au-dessus
   // du bassin, puis s'effacent. Les objets d'en haut dessinent aussi d'avance, en pointillés, les
   // couches à venir, et marquent la rive sur l'échelle (fiche, § 8).
+  //
+  // Tant qu'ils sont opaques (fiche, § 7), les mots du lit sont des glyphes, à travers `o`, et ses
+  // mesures aussi : on voit monter le limon, pas sa mesure.
+  import { glyphes } from "../../../noyau/logique/opacite";
   import type { ProprietesVue } from "../../../noyau/logique/types";
   import { couchesAVenir, type ActionLit, type EtatLit } from "../logique";
   import { lireCoudees, lireEchelle } from "../logique/notation";
@@ -22,6 +26,7 @@
     creuxActif,
     etatCreux,
     fermable,
+    OPAQUES,
     RIVE,
     riveMarquee,
   } from "../logique/regles";
@@ -60,7 +65,7 @@
   import Crue from "./Crue.svelte";
   import { VARIABLES } from "./theme";
 
-  let { etat, agir, noyau, o, mode }: ProprietesVue<EtatLit, ActionLit> = $props();
+  let { etat, agir, noyau, o, lisible, mode }: ProprietesVue<EtatLit, ActionLit> = $props();
 
   const reduit =
     typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -141,10 +146,22 @@
     if (e.key === "Escape" && aideOuverte) refermerAide();
   }
 
+  /**
+   * Une mesure de l'échelle, en lettres. Tant que les mesures sont opaques, des glyphes, un par mot,
+   * toujours les mêmes à la même place.
+   */
+  const mesuresLisibles = $derived(lisible(OPAQUES.mesures));
+  function mesure(doigts: number, place: string, lire = lireEchelle): string {
+    const texte = lire(doigts);
+    return mesuresLisibles ? texte : glyphes(place, texte);
+  }
+
   /** Un creux se dit avec sa hauteur et son état : « Creux à neuf coudées, sous l'eau ». */
   function etiquette(k: number): string {
     const lieu =
-      k === 0 ? o("creux.fond") : o("creux.hauteur").replace("{hauteur}", lireEchelle(CREUX[k]!));
+      k === 0
+        ? o("creux.fond")
+        : o("creux.hauteur").replace("{hauteur}", mesure(CREUX[k]!, `creux.${k}`));
     return `${lieu}, ${o(`creux.${etatCreux(etat, k)}`)}`;
   }
 </script>
@@ -354,7 +371,7 @@
   </p>
   <div class="socle" bind:clientHeight={hauteurSocle}>
     <div class="cadre">
-      <p class="lecture" aria-hidden="true">{lireEchelle(etat.niveau)}</p>
+      <p class="lecture" aria-hidden="true">{mesure(etat.niveau, "echelle.lecture")}</p>
       <button
         class="lien-aide"
         bind:this={lienAide}
@@ -366,8 +383,8 @@
     </div>
   </div>
   <p class="lecteur" aria-live="polite">
-    {o("echelle")} : {lireCoudees(etat.niveau)}{riveMarquee(etat)
-      ? `, ${o("echelle.rive").replace("{hauteur}", lireEchelle(RIVE))}`
+    {o("echelle")} : {mesure(etat.niveau, "echelle.lecture", lireCoudees)}{riveMarquee(etat)
+      ? `, ${o("echelle.rive").replace("{hauteur}", mesure(RIVE, "echelle.rive"))}`
       : ""}
   </p>
   <!-- Le grain, comme d'une pellicule, sur tout l'écran. -->

@@ -298,6 +298,22 @@ Le joueur arrive avec κ = 85 au mieux, et plutôt de 55 à 65 pour un jeu corre
 
 Comme celles des autres strates, elles n'écrivent pas les multiplicateurs des objets.
 
+### Dans le code ([#115](https://github.com/DavidGiangiacomo/strates/issues/115))
+
+*Choix tranchés le 24 novembre 2026 : les glyphes sont ceux du noyau ; les actes et le κ des joueurs automatiques sont mesurés avec l'équilibrage.*
+
+- **Les éléments opaques** (`opacite`, dans `logique/index.ts` ; `OPAQUES`, dans `logique/regles.ts`) :
+  - *la crue et le limon* couvrent le nom de l'échelle pour les lecteurs d'écran (« Échelle de crue »), le titre de l'aide et sa première légende, et les nœuds « Crue » et « Limon » du graphe ;
+  - *la couche et la rive* couvrent la troisième et la quatrième légende de l'aide, la rive marquée par l'œuf qui garde, et le nœud « Rive » ;
+  - *les mesures* ne couvrent pas de texte : la vue demande si elles sont levées (`lisible`) pour la lecture de l'échelle, sur la roche et pour les lecteurs d'écran, et pour les hauteurs des creux et de la rive marquée.
+- **Ce qui se montre à leur place** : les glyphes du noyau, un par mot, toujours les mêmes à la même place. Les dessins restent : l'aide montre la crue, sans la nommer. « Derrière la levée, l'eau se repose. » se lit toujours.
+- **Les levées par l'usage** : chaque crue redit celles qui sont acquises, la crue et le limon dès la première, la couche et la rive au premier creux plein, les mesures à la première coudée. Le noyau ne les note qu'une fois. Elles se font aussi pendant l'absence.
+- **La levée avant l'eau** : l'état note si la levée a été bâtie sur un creux que le limon n'avait pas encore atteint (`avantLEau`, version 3 de l'état, migrée). Quand la crue y laisse sa première eau, derrière elle, le lit signale l'acte.
+  - Le creux du fond ne compte pas : le limon l'atteint dès l'arrivée.
+  - Une levée bâtie sur un creux déjà sous l'eau, ou déplacée avant que l'eau ne l'atteigne, ne la vaut pas.
+- **La patience** se signale au bassin plein, si aucune levée n'a été déplacée d'un creux qui n'était pas plein. Le bassin plein, il n'y a plus rien à fermer : c'est déjà vrai à la descente. Elle se signale aussi quand le bassin se remplit pendant l'absence.
+- **Mesuré par les joueurs automatiques** ([`strate-7-mesures.md`](strate-7-mesures.md)) : le prévoyant accomplit les deux actes ; les autres, la patience seulement. Sans objets, le prévoyant gagne 11 points et les autres 8 ; avec les objets d'un jeu correct, 8 et 5. Arrivé au mieux avec κ = 85, le prévoyant qui a laissé ses objets en haut descend au fond avec 96.
+
 ## 8. Artefacts reçus
 
 Les objets de la dette sont **puissants**, ceux du chœur **utiles**, ceux du réseau **décoratifs** ; ceux de l'atelier, des caves et de la surface sont des cailloux. Les catalogues sont dans [`artefacts.md`](../artefacts.md), § 8 ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : leurs effets suivent la réception par famille ci-dessous, et seront codés par [#108](https://github.com/DavidGiangiacomo/strates/issues/108).
@@ -354,8 +370,9 @@ Ce sont des choses simples, nommées par ce qu'elles font à qui les tient ([bib
   - les couches à venir, en pointillés, à leur place : trois avec le rouleau qui marque, une avec le gage qui revient, quatre avec les deux. Ce sont celles que les crues déposeront si rien ne change, la grande crue comprise. Elles suivent la levée : la bâtir ou la déplacer les redessine ;
   - la rive marquée d'un trait sur l'échelle par l'œuf qui garde. Les lecteurs d'écran l'entendent avec la lecture de l'échelle : « la rive à trente-six coudées » ;
   - les noms d'en bas des objets de la dette, que le lit donne au noyau (`nommes`) ;
-  - les objets posés sur la berge, dessinés sans un mot ([#107](https://github.com/DavidGiangiacomo/strates/issues/107), § 6).
-- **Ce qui viendra ailleurs** : les raccourcis (le bâton qui creuse, le gage qui souffle) avec l'opacité du lit ([#115](https://github.com/DavidGiangiacomo/strates/issues/115)), et les objets étranges (la pierre qui oblige, le gage qui chante) avec [#118](https://github.com/DavidGiangiacomo/strates/issues/118).
+  - les objets posés sur la berge, dessinés sans un mot ([#107](https://github.com/DavidGiangiacomo/strates/issues/107), § 6) ;
+  - les raccourcis : le bâton qui creuse lève dès l'arrivée les mots du lit et les mesures de l'échelle, le gage qui souffle la crue et le limon ([#115](https://github.com/DavidGiangiacomo/strates/issues/115), § 7).
+- **Ce qui viendra ailleurs** : les objets étranges (la pierre qui oblige, le gage qui chante) avec [#118](https://github.com/DavidGiangiacomo/strates/issues/118).
 
 ## 9. Valeur convertible
 

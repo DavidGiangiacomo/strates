@@ -21,38 +21,40 @@ Chaque rythme est un joueur automatique (`sim/joueurs/lit.ts`), qui joue à l'ho
 
 ## Sans artefact
 
-| Rythme | Bassin plein | Descente | Présence | Levées | Couches retenues | Limon | Points |
-|---|---|---|---|---|---|---|---|
-| prevoyant | 2 h 00 | 2 h 00 | 2 h 00 | 4 | 100 | 1 941 doigts | 4 |
-| attentif | 2 h 04 | 2 h 05 | 2 h 05 | 4 | 86 | 1 941 doigts | 4 |
-| distrait | 2 h 13 | 2 h 14 | 2 h 14 | 1 | 25 | 1 941 doigts | 4 |
-| sans-un-geste | 2 h 18 | 2 h 18 | 2 h 18 | 0 | 0 | 1 941 doigts | 4 |
-| voyageur-2-h | 2 h 13 | 2 h 14 | 0 h 14 | 1 | 25 | 1 941 doigts | 4 |
-| voyageur-2-semaines | 2 h 13 | 14 j 0 h 02 | 0 h 02 | 1 | 25 | 1 941 doigts | 4 |
-| sessions-1-h | 2 h 13 | 3 h 01 | 0 h 16 | 1 | 25 | 1 941 doigts | 4 |
-| sessions-30-min | 2 h 11 | 2 h 41 | 0 h 41 | 2 | 36 | 1 941 doigts | 4 |
-| nuit | 2 h 13 | 8 h 31 | 0 h 31 | 1 | 25 | 1 941 doigts | 4 |
-| part-aussitot | 2 h 18 | 14 j 0 h 01 | 0 h 01 | 0 | 0 | 1 941 doigts | 4 |
+| Rythme | Bassin plein | Descente | Présence | Levées | Couches retenues | Limon | Points | Actes | κ |
+|---|---|---|---|---|---|---|---|---|---|
+| prevoyant | 2 h 00 | 2 h 00 | 2 h 00 | 4 | 100 | 1 941 doigts | 4 | levée avant l'eau, patience, sans aide, sans artefact | +11 |
+| attentif | 2 h 04 | 2 h 05 | 2 h 05 | 4 | 86 | 1 941 doigts | 4 | patience, sans aide, sans artefact | +8 |
+| distrait | 2 h 13 | 2 h 14 | 2 h 14 | 1 | 25 | 1 941 doigts | 4 | patience, sans aide, sans artefact | +8 |
+| sans-un-geste | 2 h 18 | 2 h 18 | 2 h 18 | 0 | 0 | 1 941 doigts | 4 | patience, sans aide, sans artefact | +8 |
+| voyageur-2-h | 2 h 13 | 2 h 14 | 0 h 14 | 1 | 25 | 1 941 doigts | 4 | patience, sans aide, sans artefact | +8 |
+| voyageur-2-semaines | 2 h 13 | 14 j 0 h 02 | 0 h 02 | 1 | 25 | 1 941 doigts | 4 | patience, sans aide, sans artefact | +8 |
+| sessions-1-h | 2 h 13 | 3 h 01 | 0 h 16 | 1 | 25 | 1 941 doigts | 4 | patience, sans aide, sans artefact | +8 |
+| sessions-30-min | 2 h 11 | 2 h 41 | 0 h 41 | 2 | 36 | 1 941 doigts | 4 | patience, sans aide, sans artefact | +8 |
+| nuit | 2 h 13 | 8 h 31 | 0 h 31 | 1 | 25 | 1 941 doigts | 4 | patience, sans aide, sans artefact | +8 |
+| part-aussitot | 2 h 18 | 14 j 0 h 01 | 0 h 01 | 0 | 0 | 1 941 doigts | 4 | patience, sans aide, sans artefact | +8 |
 
 ## Avec les objets d'un jeu correct
 
 La présélection de 14 points dans le chœur, puis celle de 28 dans la dette : le gage qui souffle, le gage qui revient, la caution de bois, le gage patient, le bâton qui creuse, le rouleau qui marque, la pierre qui pèse, l'œuf qui garde. Sur l'eau retenue, × 1,41 ; sur l'absence, × 1,25.
 
-| Rythme | Bassin plein | Descente | Présence | Levées | Couches retenues | Limon | Points |
-|---|---|---|---|---|---|---|---|
-| prevoyant | 1 h 46 | 1 h 46 | 1 h 46 | 4 | 72 | 1 941 doigts | 4 |
-| attentif | 1 h 51 | 1 h 51 | 1 h 51 | 4 | 61 | 1 941 doigts | 4 |
-| distrait | 1 h 53 | 1 h 54 | 1 h 54 | 4 | 56 | 1 941 doigts | 4 |
-| sans-un-geste | 2 h 18 | 2 h 18 | 2 h 18 | 0 | 0 | 1 941 doigts | 4 |
-| voyageur-2-h | 1 h 44 | 2 h 02 | 0 h 02 | 1 | 15 | 1 941 doigts | 4 |
-| voyageur-2-semaines | 1 h 44 | 14 j 0 h 02 | 0 h 02 | 1 | 15 | 1 941 doigts | 4 |
-| sessions-1-h | 1 h 43 | 2 h 01 | 0 h 11 | 2 | 23 | 1 941 doigts | 4 |
-| sessions-30-min | 1 h 44 | 2 h 01 | 0 h 31 | 2 | 35 | 1 941 doigts | 4 |
-| nuit | 1 h 49 | 8 h 31 | 0 h 31 | 1 | 18 | 1 941 doigts | 4 |
-| part-aussitot | 1 h 50 | 14 j 0 h 01 | 0 h 01 | 0 | 0 | 1 941 doigts | 4 |
+| Rythme | Bassin plein | Descente | Présence | Levées | Couches retenues | Limon | Points | Actes | κ |
+|---|---|---|---|---|---|---|---|---|---|
+| prevoyant | 1 h 46 | 1 h 46 | 1 h 46 | 4 | 72 | 1 941 doigts | 4 | levée avant l'eau, patience, sans aide | +8 |
+| attentif | 1 h 51 | 1 h 51 | 1 h 51 | 4 | 61 | 1 941 doigts | 4 | patience, sans aide | +5 |
+| distrait | 1 h 53 | 1 h 54 | 1 h 54 | 4 | 56 | 1 941 doigts | 4 | patience, sans aide | +5 |
+| sans-un-geste | 2 h 18 | 2 h 18 | 2 h 18 | 0 | 0 | 1 941 doigts | 4 | patience, sans aide | +5 |
+| voyageur-2-h | 1 h 44 | 2 h 02 | 0 h 02 | 1 | 15 | 1 941 doigts | 4 | patience, sans aide | +5 |
+| voyageur-2-semaines | 1 h 44 | 14 j 0 h 02 | 0 h 02 | 1 | 15 | 1 941 doigts | 4 | patience, sans aide | +5 |
+| sessions-1-h | 1 h 43 | 2 h 01 | 0 h 11 | 2 | 23 | 1 941 doigts | 4 | patience, sans aide | +5 |
+| sessions-30-min | 1 h 44 | 2 h 01 | 0 h 31 | 2 | 35 | 1 941 doigts | 4 | patience, sans aide | +5 |
+| nuit | 1 h 49 | 8 h 31 | 0 h 31 | 1 | 18 | 1 941 doigts | 4 | patience, sans aide | +5 |
+| part-aussitot | 1 h 50 | 14 j 0 h 01 | 0 h 01 | 0 | 0 | 1 941 doigts | 4 | patience, sans aide | +5 |
 
 - **Bassin plein** : le limon atteint la rive, en temps depuis l'arrivée, absences comprises. **Descente** : au même compte, une crue après le bassin plein, ou après le retour du joueur.
 - **Présence** : le temps où le joueur était là, jusqu'à la descente.
 - **Levées** : les levées bâties ; **couches retenues** : les crues dont l'eau s'est reposée derrière une levée.
 - **Limon** : la valeur convertible, à la descente.
+- **Actes** : les actes de compréhension accomplis (fiche, § 7), dans l'ordre. « Sans aide » se constate au seuil : ces joueurs n'ouvrent jamais l'aide. « Sans artefact » se constate à la descente, si aucun objet n'agissait. **κ** : ce qu'ils rapportent, au barème du noyau, sur les 11 points du lit.
+- **La levée avant l'eau** ne vient qu'au prévoyant : il bâtit chaque levée sur un creux encore sec. Les autres attendent l'eau. Personne ne déplace de levée : tous ont la patience.
 - **Ce que les objets font gagner** au bassin plein : 14,0 min au prévoyant, 13,5 min à l'attentif, 29,5 min au voyageur, 28,0 min à qui part dès l'arrivée, rien à qui reste sans un geste.

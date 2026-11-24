@@ -125,10 +125,11 @@ describe("un état de la version 1", () => {
   it("prend la liste des objets, vide : le premier tick la relit", () => {
     const v1: Record<string, unknown> = { ...nouveau() };
     delete v1.objets;
-    const migre = logique.migrations[1]!(v1) as EtatLit;
+    delete v1.avantLEau;
+    const migre = logique.migrations[2]!(logique.migrations[1]!(v1)) as EtatLit;
     expect(migre.objets).toEqual([]);
     logique.tick(migre, 0.1, contexte({ "s6-bulle": "puissant" }));
     expect(migre.objets).toEqual(["s6-bulle"]);
-    expect(logique.versionEtat).toBe(2);
+    expect(logique.versionEtat).toBe(3);
   });
 });
