@@ -404,6 +404,7 @@
       {phase}
       transportes={passage.transportes}
       phrase={passage.phrase}
+      police={passage.police}
       travelling={passage.travelling}
       poche={() => bandeau?.poche() ?? null}
     />

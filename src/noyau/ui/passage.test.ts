@@ -235,6 +235,7 @@ describe("la descente", () => {
     expect(passage.occupe).toBe(false);
     // Une strate sans phrase pour sa descente : le travelling habituel, sans un mot.
     expect(passage.phrase).toBeNull();
+    expect(passage.police).toBeNull();
     expect(passage.travelling).toBe(DUREES.descente);
   });
 

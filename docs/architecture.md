@@ -265,6 +265,8 @@ interface DefinitionStrate<E, A extends ActionBase> {
   formaterValeur?(valeur: number): string;
   /** La police et les couleurs de la valeur convertible à l'écran de fouille : le dernier fragment de la strate quittée. */
   apparenceValeur?: { police: string; couleur: string; fond: string };
+  /** La police de sa phrase de descente (`phrase.descente`), que le noyau écrit sur son sol. Sans elle, celle du noyau. */
+  policePhrase?: string;
   /** Les glyphes de ses textes opaques, dans son style. Sans eux, ceux du noyau. */
   glyphes?: string;
   /** Sa banque de sons, que sa vue joue par `son` : chargée au montage, libérée au démontage. */
@@ -393,7 +395,7 @@ La logique est dans `Noyau` (`ouvrirFouille`, `reboucher`, `descendre`, `reprend
    - Il écrit la valeur convertible et le prix d'un point de plus (`valeurPourPoints`) dans la notation de la strate quittée : `DefinitionStrate.formaterValeur` et la clé de texte `fouille.valeur` (I1). La valeur prend aussi la police et les couleurs de la strate (`apparenceValeur`).
    - Jusqu'à « descendre », le joueur peut **reboucher** (`reboucher()`) : rien n'est noté, et la strate reprend là où elle s'était figée.
    - En descente automatique, `descendre()` sans choix ouvre la fouille et applique la présélection, sans écran.
-   - Une strate peut avoir une phrase pour sa descente, la clé de texte `phrase.descente` : seul le lit en a une, « C'était la seule fois. ». Le passage la lit avant de changer de strate, et l'écran de descente la dit au centre, sur un travelling deux fois plus lent (`DUREES.lente` : 8 s, ou 3 s avec moins de mouvement).
+   - Une strate peut avoir une phrase pour sa descente, la clé de texte `phrase.descente` : seul le lit en a une, « C'était la seule fois. ». Le passage la lit avant de changer de strate, avec la police de la strate (`policePhrase`), et l'écran de descente la dit au centre, sur un travelling deux fois plus lent (`DUREES.lente` : 8 s, ou 3 s avec moins de mouvement).
 4. `descendre(maintenant, emportes)` vérifie le choix et charge la strate suivante. Si le chargement échoue, rien n'a changé : la fouille reste ouverte. Puis tout s'engage d'un coup, avant l'animation :
    - la Compréhension de la strate quittée se conclut : « sans artefact » est constaté si aucun objet n'y agissait, puis le gain de ses actes est crédité à κ et noté au journal (`kappaGagne`) ;
    - les objets que la strate quittée a nommés sont notés au journal (`nommes`) : ils gardent leur nom d'en bas ;

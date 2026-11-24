@@ -138,6 +138,8 @@ export class Passage {
   cicatrice = $state(false);
   /** La phrase de la strate quittée, pendant sa descente ; null sinon. */
   phrase: string | null = $state(null);
+  /** La police de cette phrase, celle de la strate quittée ; null pour celle du noyau. */
+  police: string | null = $state(null);
   /** La durée du travelling en cours, en millisecondes : le sol défile à son rythme. */
   travelling = $state(DUREES.descente);
 
@@ -250,6 +252,7 @@ export class Passage {
     this.occupe = true;
     // La phrase est celle de la strate quittée : elle se lit avant que le noyau ne change de strate.
     const phrase = noyau.strate.textes[PHRASE_DESCENTE] ?? null;
+    const police = noyau.strate.policePhrase ?? null;
     let descendent: string[];
     try {
       const fouille = await noyau.descendre(this.#d.maintenant(), emportes);
@@ -276,6 +279,7 @@ export class Passage {
     const d = this.#durees;
     const { descente, miCourse } = phrase === null ? d : d.lente;
     this.phrase = phrase;
+    this.police = phrase === null ? null : police;
     this.travelling = descente;
     // Le grondement dure le travelling : moins long, sans mouvement, il est coupé à sa fin.
     this.#d.sonner?.("descente", descente / 1000);
@@ -286,6 +290,7 @@ export class Passage {
     this.transportes = this.#porter(descendent);
     await this.#d.attendre(descente - miCourse);
     this.phrase = null;
+    this.police = null;
 
     this.#passer("arrivee");
     let ecoule = 0;

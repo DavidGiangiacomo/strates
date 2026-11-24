@@ -78,7 +78,7 @@ describe("le travelling", () => {
   function monterDescente(
     phase: "descente" | "arrivee",
     poche?: () => DOMRect | null,
-    lente: { phrase: string; travelling: number } | null = null,
+    lente: { phrase: string; travelling: number; police?: string } | null = null,
   ) {
     composant = mount(Descente, {
       target: document.body,
@@ -94,12 +94,17 @@ describe("le travelling", () => {
     expect(sol.style.getPropertyValue("--defilement")).toBe("2800ms");
   });
 
-  it("dit la phrase du lit, sur un sol qui défile deux fois plus lentement", () => {
-    monterDescente("descente", undefined, { phrase: "C'était la seule fois.", travelling: 8000 });
+  it("dit la phrase du lit, dans sa police, sur un sol qui défile deux fois plus lentement", () => {
+    monterDescente("descente", undefined, {
+      phrase: "C'était la seule fois.",
+      travelling: 8000,
+      police: "Optima, sans-serif",
+    });
     const phrase = document.querySelector<HTMLElement>("[data-test=phrase]")!;
     expect(texte(phrase)).toBe("C'était la seule fois.");
     expect(phrase.getAttribute("role")).toBe("status");
     expect(phrase.style.getPropertyValue("--travelling")).toBe("8000ms");
+    expect(phrase.style.fontFamily).toContain("Optima");
     const sol = document.querySelector<HTMLElement>("[data-test=sol]")!;
     expect(sol.style.getPropertyValue("--defilement")).toBe("6800ms");
   });

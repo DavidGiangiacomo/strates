@@ -5,8 +5,8 @@
   // d'origine. À mi-course, quand la Profondeur change, les anciens perdent un cran, et les plus vieux
   // deviennent des cailloux (#45). À l'arrivée, ils glissent vers le compteur du bandeau, leur poche.
   // Les durées suivent celles du passage (passage.svelte.ts, DUREES). La descente du lit, la seule que
-  // le joueur ne choisit pas, est deux fois plus lente, et sa phrase y paraît au centre, puis
-  // s'efface (docs/strates/strate-7.md, § 11).
+  // le joueur ne choisit pas, est deux fois plus lente, et sa phrase y paraît au centre, dans la
+  // police du lit, puis s'efface (docs/strates/strate-7.md, § 11).
   import type { ObjetInventaire } from "../logique/artefacts";
   import { zoomEcran } from "./ecran";
   import { etiquette, NIVEAUX, parCouche } from "./inventaire";
@@ -16,6 +16,7 @@
     phase,
     transportes,
     phrase = null,
+    police = null,
     travelling = 4000,
     poche,
   }: {
@@ -23,6 +24,8 @@
     transportes: readonly ObjetInventaire[];
     /** La phrase de la strate quittée, s'il y en a une : celle du lit. */
     phrase?: string | null;
+    /** La police de la strate quittée, pour sa phrase ; sans elle, celle du noyau. */
+    police?: string | null;
     /** La durée du travelling, en millisecondes. */
     travelling?: number;
     /** Où est le compteur des artefacts : les objets le visent à l'arrivée. */
@@ -59,7 +62,13 @@
   data-test="sol"
 ></div>
 {#if phrase && phase === "descente"}
-  <p class="phrase" style:--travelling="{travelling}ms" role="status" data-test="phrase">
+  <p
+    class="phrase"
+    style:--travelling="{travelling}ms"
+    style:font-family={police}
+    role="status"
+    data-test="phrase"
+  >
     {phrase}
   </p>
 {/if}
@@ -125,9 +134,10 @@
     margin: 0;
     padding: 0 16px;
     font:
-      italic 26px/1.3 Georgia,
+      26px/1.3 Georgia,
       "Times New Roman",
       serif;
+    letter-spacing: 0.04em;
     color: #ecebe6;
     text-align: center;
     pointer-events: none;
