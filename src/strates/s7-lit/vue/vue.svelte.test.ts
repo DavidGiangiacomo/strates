@@ -1,10 +1,12 @@
 // @vitest-environment happy-dom
 // La vue du lit (fiche, § 6) : sa palette et son grain, les creux qu'on ferme d'un clic ou au clavier,
 // la crue trouble qui s'éclaircit et la couche qui monte, le rocher aux encoches, les fosses de la
-// dette, les objets sur la berge, la lecture de l'échelle, les phrases du jeu et l'aide dessinée.
+// dette, les objets sur la berge, la lecture de l'échelle, les phrases du jeu et l'aide dessinée ;
+// les mots et les mesures encore opaques, en glyphes.
 import { flushSync, mount, unmount } from "svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { strate } from "..";
+import { elementsParCle, GLYPHES, glyphes } from "../../../noyau/logique/opacite";
 import type { CommandesNoyau, ContexteTick, SonStrate } from "../../../noyau/logique/types";
 import { logique, type ActionLit, type EtatLit } from "../logique";
 import { etatInitial } from "../logique/etat";
@@ -27,7 +29,18 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-function monter(modifs: (etat: EtatLit) => void = () => {}, mode: "jeu" | "remontee" = "jeu") {
+/** Pour chaque clé de texte, l'élément opaque qui la couvre. */
+const ELEMENT_DE = elementsParCle(logique.opacite ?? []);
+
+/**
+ * Monte la vue, avec les éléments `opaques` encore opaques : leurs clés de texte deviennent des
+ * glyphes, comme à travers la couche d'opacité du noyau.
+ */
+function monter(
+  modifs: (etat: EtatLit) => void = () => {},
+  mode: "jeu" | "remontee" = "jeu",
+  opaques: readonly string[] = [],
+) {
   const etat = $state(etatInitial());
   modifs(etat);
   const actions: ActionLit[] = [];
@@ -37,8 +50,11 @@ function monter(modifs: (etat: EtatLit) => void = () => {}, mode: "jeu" | "remon
       etat,
       agir: (action: ActionLit) => actions.push(action),
       noyau: commandes,
-      o: (cle: string) => strate.textes[cle] ?? `?${cle}`,
-      lisible: () => true,
+      o: (cle: string) => {
+        const texte = strate.textes[cle] ?? `?${cle}`;
+        return opaques.includes(ELEMENT_DE.get(cle) ?? "") ? glyphes(cle, texte) : texte;
+      },
+      lisible: (element: string) => !opaques.includes(element),
       mode,
       son: silence,
     },
@@ -307,5 +323,51 @@ describe("l'aide", () => {
     flushSync();
     expect(document.querySelector("[data-test=aide]")).toBeNull();
     ouvrir.mockRestore();
+  });
+});
+
+describe("l'opacité", () => {
+  /** Rien que des glyphes du noyau, un par mot. */
+  const enGlyphes = new RegExp(`^[${GLYPHES}]( [${GLYPHES}])*$`, "u");
+
+  it("écrit en glyphes les mesures encore opaques : on voit monter le limon, pas sa mesure", () => {
+    const { avancer } = monter(
+      (e) => {
+        e.objets = ["s6-bulle"];
+      },
+      "jeu",
+      ["mesures"],
+    );
+    expect(texte(".lecture")).toMatch(enGlyphes);
+    const lecteur = texte(".lecteur");
+    expect(lecteur).toMatch(/^Échelle de crue : /);
+    expect(lecteur).not.toMatch(/coudée|doigt/);
+    expect(lecteur).toMatch(/, la rive à /);
+    const [, , ...hauts] = etiquettes();
+    expect(etiquettes()[0]).toBe("Creux au fond du bassin, sous l'eau");
+    for (const etiquette of hauts) {
+      expect(etiquette).toMatch(/^Creux à .+, à sec$/);
+      expect(etiquette).not.toMatch(/coudée/);
+    }
+    // Le limon monte quand même : la coupe le montre.
+    avancer(40 * CRUE);
+    expect(texte(".lecture")).toMatch(enGlyphes);
+  });
+
+  it("ne nomme pas dans l'aide la crue, le limon, la couche ni la rive encore opaques", () => {
+    monter(() => {}, "jeu", ["crue", "couche"]);
+    document.querySelector<HTMLButtonElement>("[data-test=lien-aide]")!.click();
+    flushSync();
+    expect(texte("[data-test=aide] h3")).toMatch(enGlyphes);
+    const legendes = [...document.querySelectorAll("[data-test=aide] li")].map((li) =>
+      (li.textContent ?? "").replace(/\s+/g, " ").trim(),
+    );
+    expect(legendes[0]).toMatch(enGlyphes);
+    // La levée et l'eau ne se cachent jamais.
+    expect(legendes[1]).toBe("Derrière la levée, l'eau se repose.");
+    expect(legendes[2]).toMatch(enGlyphes);
+    expect(legendes[3]).toMatch(enGlyphes);
+    // Les dessins restent : on voit la crue, sans son nom.
+    expect(document.querySelectorAll("[data-test=crue-dessinee]")).toHaveLength(3);
   });
 });

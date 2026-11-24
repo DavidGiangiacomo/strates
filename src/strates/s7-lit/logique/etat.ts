@@ -33,6 +33,11 @@ export interface EtatLit {
   creux: number[];
   /** Le creux que ferme la levée ; null s'il n'y en a pas. */
   levee: number | null;
+  /**
+   * La levée a été bâtie sur un creux encore au-dessus du limon, où l'eau n'allait pas encore : si la
+   * crue l'atteint avant qu'elle ne bouge, c'est la levée avant l'eau (fiche, § 7).
+   */
+  avantLEau: boolean;
   /** Tout le limon déposé, en doigts : la valeur convertible (D-003). */
   depose: number;
   /** Les couches, de la plus ancienne à la plus récente : pour le dessin, et pour la trace laissée au fond. */
@@ -63,6 +68,7 @@ export function etatInitial(dette: IssueDette | null = null): EtatLit {
     niveau: 0,
     creux: CREUX.map(() => 0),
     levee: null,
+    avantLEau: false,
     depose: 0,
     couches: [],
     pleinA: null,

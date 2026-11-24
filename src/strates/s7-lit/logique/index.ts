@@ -3,12 +3,14 @@
 // levée, derrière laquelle l'eau se repose et laisse tout son limon. Le bassin plein à la rive, la
 // descente vient seule, une crue plus tard, sous les yeux du joueur (§ 4 et § 10). L'absence se calcule
 // crue par crue, sans plafond, et le bassin plein attend le retour. Le jeu y parle, en quelques
-// phrases (§ 11).
+// phrases (§ 11). Les mots du lit et ses mesures se lèvent à l'usage, et deux actes s'y accomplissent :
+// la levée avant l'eau, et la patience (§ 7).
 import { CATALOGUE } from "../../../noyau/logique/catalogue";
 import { EFFETS_NEUTRES } from "../../../noyau/logique/effets";
 import type {
   ContexteTick,
   EffetsActifs,
+  ElementOpaque,
   Formule,
   GrapheDependances,
   Journal,
@@ -17,19 +19,25 @@ import type {
 import { textes } from "../textes.fr";
 import { etatInitial, type Couche, type EtatLit, type IssueDette } from "./etat";
 import {
+  ACTES,
+  BATON,
   creuxActif,
+  creuxAtteint,
   creuxPlein,
   CRUE,
   cruesA,
+  DOIGTS,
   DUREE_PHRASE,
   EPSILON,
   fermable,
   FORCE_GRANDE_CRUE,
   GRANDE_CRUE,
   LONGUE_ABSENCE,
+  OPAQUES,
   PASSE,
   REPOS,
   RIVE,
+  SOUFFLE,
   tousPleins,
   VOLUME,
 } from "./regles";
@@ -88,6 +96,11 @@ function passerCrue(etat: EtatLit, t: number, ctx: ContexteTick, differees: stri
   const k = creuxActif(etat);
   if (k !== null) {
     const retenue = etat.levee === k;
+    // La levée avant l'eau : bâtie quand ce creux était encore sec, la crue l'atteint (fiche, § 7).
+    if (retenue && etat.avantLEau) {
+      ctx.emettre({ type: "acte", acte: ACTES.leveeAvantLEau });
+      etat.avantLEau = false;
+    }
     const apport = (retenue ? REPOS * etat.multiplicateurs.depot : PASSE) * force * patience;
     const pris = Math.min(apport, VOLUME - etat.creux[k]!);
     etat.creux[k] = etat.creux[k]! + pris;
@@ -95,7 +108,10 @@ function passerCrue(etat: EtatLit, t: number, ctx: ContexteTick, differees: stri
     etat.couches.push({ crue: etat.crues, ou: k, epaisseur: pris, retenue });
     if (!creuxPlein(etat, k)) return;
     etat.creux[k] = VOLUME;
-    if (retenue) etat.levee = null;
+    if (retenue) {
+      etat.levee = null;
+      etat.avantLEau = false;
+    }
     ctx.emettre({ type: "trace", cle: "creux.plein", valeurs: { creux: k } });
     // Le dernier creux plein : il n'y a plus rien à fermer.
     if (tousPleins(etat)) {
@@ -115,6 +131,23 @@ function passerCrue(etat: EtatLit, t: number, ctx: ContexteTick, differees: stri
   etat.pleinA = t;
   if (!differees) etat.descenteA = t + CRUE;
   ctx.emettre({ type: "trace", cle: "bassin.plein" });
+  // La patience : jusqu'au bout, aucune levée déplacée d'un creux qui n'était pas plein. Le bassin
+  // plein, il n'y a plus rien à fermer : c'est déjà vrai à la descente (fiche, § 7).
+  if (etat.deplacements === 0) ctx.emettre({ type: "acte", acte: ACTES.patience });
+}
+
+/**
+ * Les levées par l'usage (fiche, § 7) : la crue et le limon à la première crue, la couche et la rive au
+ * premier creux plein, les mesures de l'échelle à la première coudée. Chaque crue les redit : le noyau
+ * ne note une levée qu'une fois, et une partie commencée avant l'opacité les retrouve à la crue
+ * suivante.
+ */
+function lever(etat: EtatLit, ctx: ContexteTick): void {
+  ctx.emettre({ type: "levee", element: OPAQUES.crue });
+  if (etat.creux.some((_, k) => creuxPlein(etat, k))) {
+    ctx.emettre({ type: "levee", element: OPAQUES.couche });
+  }
+  if (etat.niveau >= DOIGTS - EPSILON) ctx.emettre({ type: "levee", element: OPAQUES.mesures });
 }
 
 /** Pour prévoir les crues sans rien signaler au noyau. */
@@ -136,6 +169,7 @@ export function couchesAVenir(etat: EtatLit, n: number): Couche[] {
     niveau: etat.niveau,
     creux: [...etat.creux],
     levee: etat.levee,
+    avantLEau: false,
     depose: etat.depose,
     couches: [],
     pleinA: null,
@@ -163,6 +197,7 @@ function avancer(
   const venues = cruesA(fin);
   while (etat.pleinA === null && etat.crues < venues) {
     passerCrue(etat, (etat.crues + 1) * CRUE, ctx, differees);
+    lever(etat, ctx);
   }
   etat.temps = fin;
 }
@@ -202,6 +237,28 @@ function graphe(): GrapheDependances {
   };
 }
 
+/**
+ * L'opacité (fiche, § 7) : le sens des mots du lit et de ses mesures. La crue, l'eau, les couches,
+ * l'échelle et ses traits, les creux et la levée se voient toujours ; ce sont leurs noms qui sont
+ * des glyphes, dans l'aide, dans le graphe et pour les lecteurs d'écran, et la lecture de l'échelle.
+ * Le bâton qui creuse les lève tous dès l'arrivée, le gage qui souffle la crue et le limon. Le délai
+ * L(κ) les lève aussi.
+ */
+const OPACITE: readonly ElementOpaque[] = [
+  {
+    id: OPAQUES.crue,
+    cles: ["echelle", "aide.titre", "aide.crue", "noeud.crue", "noeud.limon"],
+    objets: [BATON, SOUFFLE],
+  },
+  {
+    id: OPAQUES.couche,
+    cles: ["echelle.rive", "aide.couche", "aide.rive", "noeud.rive"],
+    objets: [BATON],
+  },
+  // La lecture de l'échelle, et les hauteurs des creux et de la rive : la vue les demande (`lisible`).
+  { id: OPAQUES.mesures, objets: [BATON] },
+];
+
 /** Les formules réelles (fiche, § 7), de la plus simple à la plus profonde, écrites en lettres. */
 function formules(): Formule[] {
   return ["crue", "passe", "retenue", "creux", "rive", "limon"].map((noeud) => ({
@@ -212,10 +269,12 @@ function formules(): Formule[] {
 
 export const logique: LogiqueStrate<EtatLit, ActionLit> = {
   numero: 7,
-  versionEtat: 2,
+  versionEtat: 3,
   migrations: {
     // Version 2 (#108) : les objets d'en haut qui agissent ici. Le premier tick les relit.
     1: (etat) => ({ ...(etat as object), objets: [] }),
+    // Version 3 (#115) : la levée avant l'eau. Une levée déjà bâtie ne la vaudra pas.
+    2: (etat) => ({ ...(etat as object), avantLEau: false }),
   },
   // Une crue. Le pas peut être plus long : les crues y passent une à une.
   pasMax: CRUE,
@@ -244,6 +303,8 @@ export const logique: LogiqueStrate<EtatLit, ActionLit> = {
     // Une levée déplacée d'un creux qui n'était pas plein : celle d'un creux plein a disparu.
     if (etat.levee !== null) etat.deplacements += 1;
     etat.levee = action.creux;
+    // Bâtie sur un creux que le limon n'a pas encore atteint : l'eau n'y va pas encore.
+    etat.avantLEau = !creuxAtteint(etat, action.creux);
   },
 
   /**
@@ -271,6 +332,7 @@ export const logique: LogiqueStrate<EtatLit, ActionLit> = {
 
   graphe,
   formules,
+  opacite: OPACITE,
   // Les objets nommés (descente-1-2.md, § 6) : l'inventaire les montre sous leur nom d'en bas. Le noyau
   // ne garde que ceux du joueur.
   nommes: () => NOMMES,

@@ -2,6 +2,7 @@
 // joue à l'horloge, comme dans le jeu : le joueur est là, seconde après seconde, ou absent, et le noyau
 // rattrape alors l'absence d'un coup, par la politique propre du lit (docs/strates/strate-7.md, § 10).
 import { pointsDeFouille } from "../../src/noyau/logique/artefacts";
+import { BAREME, gainDesActes, SANS_ARTEFACT } from "../../src/noyau/logique/comprehension";
 import { creerEtatNoyau } from "../../src/noyau/logique/etat";
 import { Noyau } from "../../src/noyau/logique/noyau";
 import { Registre, type StrateQuelconque } from "../../src/noyau/logique/registre";
@@ -36,6 +37,14 @@ export interface MesuresLit {
   multiplicateurs: { depot: number; patience: number };
   /** Le plafond × 4 des artefacts a-t-il agi ? */
   plafonne: boolean;
+  /**
+   * Les actes de compréhension accomplis (fiche, § 7), dans l'ordre : ceux que le lit signale, « sans
+   * aide » au seuil, et « sans artefact » si aucun objet n'agissait ici, que le noyau constatera à la
+   * descente.
+   */
+  actes: string[];
+  /** Le κ que ces actes rapportent, au barème du noyau. */
+  kappa: number;
 }
 
 /**
@@ -87,6 +96,10 @@ export async function mesurerLit(
   }
 
   const e = etat();
+  const actes = [...(noyau.etat.meta.journal.strates.find((x) => x.strate === 7)?.actes ?? [])];
+  if (!noyau.etat.artefacts.some((id) => noyau.effets.niveau(id) !== null)) {
+    actes.push(SANS_ARTEFACT);
+  }
   return {
     plein: e.pleinA,
     descente,
@@ -99,6 +112,8 @@ export async function mesurerLit(
     points: pointsDeFouille(e.depose),
     multiplicateurs: { ...e.multiplicateurs },
     plafonne: noyau.effets.plafonne,
+    actes,
+    kappa: gainDesActes(BAREME, 7, actes),
   };
 }
 
