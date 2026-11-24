@@ -15,6 +15,11 @@
   //
   // Tant qu'ils sont opaques (fiche, § 7), les mots du lit sont des glyphes, à travers `o`, et ses
   // mesures aussi : on voit monter le limon, pas sa mesure.
+  //
+  // Le son (#114) : le fleuve au loin, qui enfle un peu à chaque crue et s'éloigne quand le bassin est
+  // plein ; l'eau de chaque crue, qui monte, se tait au repos, puis se retire ; l'eau qui s'engouffre
+  // dans le creux atteint ; la levée qu'on bâtit.
+  import { untrack } from "svelte";
   import { glyphes } from "../../../noyau/logique/opacite";
   import type { ProprietesVue } from "../../../noyau/logique/types";
   import { couchesAVenir, type ActionLit, type EtatLit } from "../logique";
@@ -51,6 +56,7 @@
     FOSSES,
     HAUTEUR,
     LARGEUR,
+    momentCrue,
     passageTrouble,
     phraseCourante,
     PIERRE,
@@ -63,9 +69,10 @@
     y,
   } from "./coupe";
   import Crue from "./Crue.svelte";
+  import { eauDeLaCrue, PLACES, volumeFleuve } from "./sons";
   import { VARIABLES } from "./theme";
 
-  let { etat, agir, noyau, o, lisible, mode }: ProprietesVue<EtatLit, ActionLit> = $props();
+  let { etat, agir, noyau, o, lisible, mode, son }: ProprietesVue<EtatLit, ActionLit> = $props();
 
   const reduit =
     typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -107,6 +114,58 @@
     const hautCoupe = hauteurLit - hauteurSocle - hauteurCoupe;
     const eauHaute = ((dessus - CRETE * PX) / HAUTEUR) * hauteurCoupe;
     return Math.max(0, (hautCoupe + eauHaute) / 2);
+  });
+
+  // ——— Le son (fiche, § 6)
+
+  // Le fleuve au loin : il enfle un peu pendant la crue, et s'éloigne jusqu'au silence quand le
+  // bassin est plein. Il ne change de réglage que deux fois par crue.
+  const enCrue = $derived(crue > 0);
+  const plein = $derived(etat.pleinA !== null);
+  $effect(() => {
+    son.ambiance("fleuve", volumeFleuve(enCrue, plein));
+  });
+
+  // L'eau de chaque crue sonne au début de sa montée et de son retrait, et se tait au repos. La
+  // montée vers un creux atteint fait aussi entendre l'eau qui s'y engouffre. Un moment déjà commencé
+  // quand la vue est montée ne sonne pas : on attend le suivant.
+  const moment = $derived(momentCrue(etat.temps, etat.pleinA));
+  const cleMoment = $derived(moment ? `${moment.crue}.${moment.phase}` : "");
+  let momentEntendu = untrack(() => cleMoment);
+  $effect(() => {
+    const cle = cleMoment;
+    if (cle === momentEntendu) return;
+    momentEntendu = cle;
+    untrack(() => {
+      if (!moment || moment.phase === "repos") return;
+      const { variante, vitesse, volume } = eauDeLaCrue(moment.crue);
+      if (moment.phase === "retrait") {
+        son.jouer(`retrait-${variante}`, { volume, vitesse, panoramique: PLACES.bassin });
+        return;
+      }
+      son.jouer(`montee-${variante}`, { volume, vitesse, panoramique: PLACES.bassin });
+      // L'eau atteint le creux au milieu de sa montée.
+      if (actif !== null) {
+        son.jouer("engouffre", {
+          volume: 0.8 * volume,
+          vitesse,
+          panoramique: PLACES.creux,
+          dans: 3,
+        });
+      }
+    });
+  });
+
+  // La levée bâtie, ou déplacée : de la terre et des pierres, au bord du creux. Celle qui disparaît
+  // sous le limon, quand son creux est plein, ne fait pas de bruit.
+  let leveeEntendue = untrack(() => etat.levee);
+  $effect(() => {
+    const levee = etat.levee;
+    if (levee === leveeEntendue) return;
+    leveeEntendue = levee;
+    if (levee !== null) {
+      untrack(() => son.jouer("levee", { volume: 0.6, panoramique: PLACES.creux }));
+    }
   });
 
   /** Pendant la remontée, le lit se montre, et rien ne s'y fait. */
