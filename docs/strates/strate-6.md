@@ -1,6 +1,6 @@
 # Strate 6 — La dette
 
-*Fiche de design, issue [#64](https://github.com/DavidGiangiacomo/strates/issues/64). Écrite après la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)) et le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)). Les chiffres viennent d'une simulation grossière de onze profils de joueur (§ 4), à refaire avec le simulateur headless quand la boucle sera codée ([#73](https://github.com/DavidGiangiacomo/strates/issues/73), [#105](https://github.com/DavidGiangiacomo/strates/issues/105)).*
+*Fiche de design, issue [#64](https://github.com/DavidGiangiacomo/strates/issues/64). Écrite après la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)) et le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)). Les chiffres viennent d'une simulation grossière de onze profils de joueur (§ 4). La boucle est codée ([#73](https://github.com/DavidGiangiacomo/strates/issues/73), `src/strates/s6-dette/`), en développement seulement : ses joueurs automatiques retrouvent ces chiffres à deux minutes près. L'équilibrage les reprendra avec le simulateur headless ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)).*
 
 *Choix tranchés le 17 octobre 2026 :*
 - *une promesse s'achète à terme : on l'obtient tout de suite, elle rapporte dès qu'elle est faite, et on la paie à la crue fixée. Plus le terme est loin, plus elle coûte ;*
@@ -13,7 +13,9 @@
 - *une échéance qu'on ne peut pas payer est reportée de deux crues, majorée d'un quart. On tombe en défaut quand ce qu'on doit dépasse la confiance, ou quand la grande crue n'est pas couverte (§ 3) ;*
 - *la confiance ne grandit que de ce qui est honoré en entier, jamais de la majoration d'un report. Sans cette règle, promettre tout à crédit était la façon la plus rapide de finir (§ 3, § 8) ;*
 - *on convertit le prix des promesses honorées, sans les intérêts : payer cher ne doit pas rapporter de points (§ 9) ;*
-- *les objets d'en haut sont des gages : ils augmentent la confiance, et adoucissent les reports (§ 8) ;*
+- *les objets d'en haut sont des gages : ils augmentent la confiance, et adoucissent les reports (§ 8).*
+
+*Choix tranché le 25 novembre 2026, avec la boucle ([#73](https://github.com/DavidGiangiacomo/strates/issues/73)) :*
 - *jusqu'à la grande crue, l'absence compte en entier (§ 10).*
 
 *Renvois : « §6 » désigne une section du [design doc](../design-doc.md), « § 6 » une section de cette fiche.*
@@ -144,6 +146,7 @@ interface Echeance {
 
 interface EtatDette {
   temps: number;               // secondes depuis l'arrivée, absences comprises
+  crues: number;               // la dernière crue passée
   caisse: number;
   promises: Record<IdPromesse, number>;  // exemplaires promis
   echeances: Echeance[];       // ce qui reste dû, dans l'ordre du livre
@@ -154,7 +157,9 @@ interface EtatDette {
   grandeCrue: number | null;   // la crue de la grande crue, une fois fixée
   issue: "soldee" | "defaut" | null;
   issueA: number | null;
+  reportees: number;           // les reports de toute la strate : le journal, et l'acte « sans un report »
   livre: { cle: string; valeurs: Record<string, number> }[];  // les dernières lignes, formatées par la vue
+  ecrites: number;             // les lignes écrites depuis l'arrivée : la vue garde à chacune sa place
   multiplicateurs: { confiance: number; report: number };     // artefacts, relus à chaque tick
 }
 
@@ -167,6 +172,20 @@ type ActionDette =
 - **`pasMax`** vaut une crue, trente secondes : le pas est coupé à chaque crue.
 - **`seuil()`** rend `{ atteint, issue }` : atteint dès que l'issue est connue, soldée ou en défaut.
 - La strate n'utilise pas d'aléatoire. Un geste impossible est ignoré sans erreur.
+
+### Dans le code ([#73](https://github.com/DavidGiangiacomo/strates/issues/73))
+
+Le module est `src/strates/s6-dette/`. Il est inscrit au registre en développement seulement, comme l'atelier : la version publiée ne change pas pendant la recette du lit. Les outils de développement y sautent, ou juste avant la dernière promesse (`dette-avant-la-derniere-promesse`).
+- **Les montants** s'arrondissent à trois chiffres significatifs dès qu'ils s'écrivent au livre : le prix d'un exemplaire, ce qui est dû, calculé sur ce prix arrondi, et chaque report. Seule la caisse, qui croît au fil des secondes, ne l'est pas.
+- **L'affichage arrondit ce qu'on a vers le bas, et ce qu'on doit vers le haut** : une caisse qui s'écrit au-dessus d'une échéance la couvre toujours (§ 13, question 6).
+- **Une échéance échue** garde sa crue, et ce qui en reste dû, sans majoration : le report n'a pas lieu.
+- **Un report ne dépasse pas la grande crue.** Une échéance de la quatrième tablette due après elle y tombe aussi : tout ce qui reste dû tombe ensemble.
+- **Une tablette se brise aussi quand on solde** sa dernière échéance, sans attendre la crue.
+- **Un refus répété** ne s'écrit qu'une fois au livre.
+- **Les gages** : les leviers `confiance` et `report` agissent dès que la première tablette est brisée (§ 8). L'éveil écrit au livre, les affichages, les raccourcis, les effets uniques et les noms d'en bas viendront avec [#90](https://github.com/DavidGiangiacomo/strates/issues/90).
+- **L'absence** saute d'une échéance à la suivante : entre deux, la caisse croît en ligne droite. Deux semaines se calculent d'un coup.
+- **Le livre** garde ses quarante dernières lignes ; la vue, un livre de comptes sobre en attendant [#89](https://github.com/DavidGiangiacomo/strates/issues/89), en montre dix.
+- **Restent à faire** : l'écran de fouille à deux issues et le filet ([#88](https://github.com/DavidGiangiacomo/strates/issues/88)), l'opacité et les actes ([#104](https://github.com/DavidGiangiacomo/strates/issues/104)), les objets ([#90](https://github.com/DavidGiangiacomo/strates/issues/90)), les textes ([#74](https://github.com/DavidGiangiacomo/strates/issues/74)), la direction artistique ([#89](https://github.com/DavidGiangiacomo/strates/issues/89)), le son ([#103](https://github.com/DavidGiangiacomo/strates/issues/103)), l'équilibrage ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)), et le test du prototype (§ 12).
 
 ## 4. Boucle moyenne et seuil de fouille
 
@@ -241,6 +260,10 @@ Onze joueurs automatiques, sans aucun artefact. Le script est un brouillon en Py
 - **Les points disent où l'on est tombé** : 28 en soldant ; 23 en défaut à la grande crue, quand des échéances de la quatrième tablette restaient dues ; 18 dans la troisième tablette ; 11 ou 12 dans la deuxième.
 - **Le naïf montre un piège** : cesser de promettre après un report ne sauve pas. Les reports, majorés d'un quart toutes les deux crues, croissent plus vite que le rapport. Il faut au contraire promettre encore, à terme long, ou solder dès que la caisse le permet : c'est ce que fait « apprend » (§ 13, question 4).
 - **Beaucoup de joueurs finiront en défaut**, et c'est voulu (§9). Ceux qui regardent leurs échéances soldent, quel que soit leur rythme.
+- **Avec la boucle codée** ([#73](https://github.com/DavidGiangiacomo/strates/issues/73)), les joueurs automatiques (`sim/joueurs/dette.ts`), sans objet, retrouvent la simulation :
+  - le naturel solde en 2 h 52, avec 118 promesses et sans un report. Il ouvre la deuxième tablette à 19 minutes, la troisième à 52, la quatrième à 1 h 37 et la dernière à 2 h 31 ;
+  - le réflexe tombe en défaut à 49 minutes, avec 12 points, après 55 reports ;
+  - celui qui apprend solde en 2 h 54, après 6 reports.
 
 ## 5. Le choc d'arrivée
 
@@ -381,8 +404,9 @@ Ce sont des **gages** (bible, § 6) : on les nomme par ce qu'ils valent ou ce qu
 - **Ce que fait une absence**, en simulation :
   - le joueur naturel, ou l'hésitant, s'absente une heure, douze heures ou deux jours, à n'importe quel moment des quatre premières tablettes, ou dans la dernière avant d'avoir fixé la grande crue. Il revient sans défaut : le rapport à 80 % lui coûte de 0 à 4 reports, puis il solde ;
   - une longue absence lui fait même gagner du temps de jeu, jusqu'à 27 minutes : douze heures de rapport ;
-  - les joueurs trop engagés tombent pendant l'absence comme en jeu : le réflexe, ou l'optimiste qui part au milieu de la quatrième tablette.
-- **Pendant les douze crues de la grande crue**, une absence change tout : une grande crue tout juste couverte à 100 % ne l'est plus à 80 %. En simulation, le joueur naturel qui s'absente juste après sa dernière promesse tombe en défaut, même pour une heure. D'où la proposition : **jusqu'à la grande crue, l'absence compte en entier**. Tout s'est joué à la dernière promesse, et la présence du joueur n'y change rien. Sans cette exception, partir pendant la grande crue serait le seul vrai risque d'un livre bien tenu.
+  - les joueurs trop engagés tombent pendant l'absence comme en jeu : le réflexe, ou l'optimiste qui part au milieu de la quatrième tablette ;
+  - avec la boucle codée ([#73](https://github.com/DavidGiangiacomo/strates/issues/73)), le joueur naturel qui part une heure, douze heures ou deux jours, à 30 minutes, à 40 minutes ou à deux heures de jeu, revient sans défaut. Il compte de 2 à 6 reports, puis solde ; douze heures lui font gagner de 13 à 30 minutes de jeu. Parti juste après sa dernière promesse, il solde.
+- **Pendant les douze crues de la grande crue**, une absence change tout : une grande crue tout juste couverte à 100 % ne l'est plus à 80 %. En simulation, le joueur naturel qui s'absente juste après sa dernière promesse tombe en défaut, même pour une heure. D'où la règle, tranchée le 25 novembre 2026 : **jusqu'à la grande crue, l'absence compte en entier**. Tout s'est joué à la dernière promesse, et la présence du joueur n'y change rien. Sans cette exception, partir pendant la grande crue serait le seul vrai risque d'un livre bien tenu.
 - **Le calcul est direct** : entre deux échéances, la caisse croît en ligne droite. Deux jours font 5 760 crues, mais quelques centaines d'échéances au plus : `absence()` les parcourt une à une, sans simuler crue par crue.
 - « Revenir après deux jours peut signifier revenir en défaut » (§9) : c'est vrai pour un livre trop engagé, et pour lui seul.
 
@@ -421,14 +445,16 @@ Pourquoi la dette tient comme jeu autonome de deux heures :
 3. Le quart d'heure avant la dernière promesse est-il tendu, ou vide ?
 4. Le défaut est-il vécu comme une issue acceptable ?
 
+*Le prototype est codé ([#73](https://github.com/DavidGiangiacomo/strates/issues/73)), en développement seulement. Le test se préparera quand la recette du lit le permettra : un lien de départ et un protocole court. L'issue reste ouverte jusque-là.*
+
 ## 13. Questions ouvertes
 
 1. **L'attente de la grande crue** : un quart d'heure avec 23 promesses faites et rien à décider. Si c'est trop long, la dernière tablette peut revenir plus vite (8 crues → 6) ou être moins majorée.
 2. **La marge d'I5** : le joueur hésitant solde en 3 h 05, à dix minutes de la limite. Un vrai joueur, plus lent, pourrait la dépasser. C'est la première mesure de l'équilibrage ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)).
 3. **Le prix d'un défaut à la grande crue** : 24 points, ou 23, quand D-003 annonçait qu'un défaut en fin de strate ne coûterait que 3 points. Le poids de la dernière tablette se règle si le catalogue le demande.
 4. **Le piège du naïf** (§ 4) : arrêter de promettre après un report mène au défaut. L'aide doit dire comment sortir d'un report : promettre à terme long, solder dès que la caisse le permet. À défaut, les reports pourraient être plus doux dans les premières tablettes.
-5. **L'absence pendant la grande crue** (§ 10) : l'exception proposée, à trancher.
-6. **La précision des sceaux** : trois chiffres significatifs suffisent-ils pour comparer une caisse et une échéance presque égales ? L'affichage de la caisse prévue (§ 8) le règle pour qui a l'objet ; κ pourrait le donner aussi.
+5. **L'absence pendant la grande crue** (§ 10) : l'exception proposée, à trancher. *Tranché le 25 novembre 2026 : l'absence compte en entier jusqu'à la grande crue.*
+6. **La précision des sceaux** : trois chiffres significatifs suffisent-ils pour comparer une caisse et une échéance presque égales ? L'affichage de la caisse prévue (§ 8) le règle pour qui a l'objet ; κ pourrait le donner aussi. *Réponse de la boucle ([#73](https://github.com/DavidGiangiacomo/strates/issues/73)) : la caisse s'écrit arrondie vers le bas, ce qu'on doit vers le haut. Une caisse qui s'écrit au-dessus d'une échéance la couvre toujours ; l'inverse peut tromper d'un chiffre, du côté prudent.*
 7. **Les termes** : le joueur naturel prend le terme long six fois sur dix. Faut-il le majorer davantage (× 1,8) pour équilibrer le choix ?
 8. **La dernière tablette, 24 promesses d'un coup** : un geste pour toutes les faire, sauf la dernière ?
 9. **Les noms des promesses** (§ 3) : à trancher avec les textes ([#74](https://github.com/DavidGiangiacomo/strates/issues/74)).

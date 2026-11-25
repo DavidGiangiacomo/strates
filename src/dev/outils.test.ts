@@ -4,10 +4,13 @@ import type { EntreeJournal, NumeroStrate } from "../noyau/logique/types";
 import { logique as logiqueAtelier } from "../strates/s3-atelier/logique";
 import { assemblageAcheve } from "../strates/s3-atelier/logique/regles";
 import type { EtatAtelier } from "../strates/s3-atelier/logique/etat";
+import { logique as logiqueDette, type EtatDette } from "../strates/s6-dette/logique";
+import { CRUE, toutDu } from "../strates/s6-dette/logique/regles";
 import { CASE_DERNIERE } from "./atelier";
 import {
   atelierAvantLeSeuil,
   copierEtat,
+  detteAvantLaDernierePromesse,
   entreeCourante,
   lireArtefacts,
   modifierEtat,
@@ -126,5 +129,43 @@ describe("l'atelier avant le seuil", () => {
     const derniere = atelier.pieces.find((p) => !p.case)!;
     derniere.case = CASE_DERNIERE;
     expect(assemblageAcheve(atelier)).toBe(true);
+  });
+});
+
+describe("la dette avant la dernière promesse", () => {
+  const ctx = { effets: { multiplicateur: () => 1, niveau: () => null }, emettre: () => {} };
+  const promettre = (etat: EtatDette) =>
+    logiqueDette.agir(etat, { type: "promettre", promesse: "toutesLesCrues", terme: 2 }, ctx);
+
+  it("saute à la dernière tablette, toute promise sauf une, la grande crue à fixer", () => {
+    const etat = detteAvantLaDernierePromesse(partie());
+    expect(etat.profondeur).toBe(6);
+    expect(etat.meta.journal.strates.map((e) => e.strate)).toEqual([1, 2]);
+    expect(etat.strates[6]!.version).toBe(logiqueDette.versionEtat);
+    const dette = etat.strates[6]!.etat as EtatDette;
+    expect(dette.tablette).toBe(5);
+    expect(dette.brisees).toBe(4);
+    expect(dette.echeances).toHaveLength(23);
+    expect(dette.grandeCrue).toBeNull();
+  });
+
+  it("tombe en défaut si la dernière promesse vient trop tôt, et se solde deux crues plus tard", () => {
+    const tot = structuredClone(
+      detteAvantLaDernierePromesse(partie()).strates[6]!.etat,
+    ) as EtatDette;
+    promettre(tot);
+    logiqueDette.tick(tot, 12 * CRUE, ctx);
+    expect(tot.issue).toBe("defaut");
+
+    const patient = structuredClone(
+      detteAvantLaDernierePromesse(partie()).strates[6]!.etat,
+    ) as EtatDette;
+    logiqueDette.tick(patient, 3 * CRUE, ctx);
+    promettre(patient);
+    expect(patient.grandeCrue).not.toBeNull();
+    const total = toutDu(patient);
+    logiqueDette.tick(patient, 12 * CRUE, ctx);
+    expect(patient.issue).toBe("soldee");
+    expect(total).toBeGreaterThan(0);
   });
 });

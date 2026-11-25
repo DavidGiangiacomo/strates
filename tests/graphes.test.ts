@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { creerJoueur as joueurAtelier, NATUREL as NATUREL_ATELIER } from "../sim/joueurs/atelier";
 import { CORRECT as CORRECT_CAVES, creerJoueur as joueurCaves } from "../sim/joueurs/caves";
+import { creerJoueur as joueurDette, NATUREL as NATUREL_DETTE } from "../sim/joueurs/dette";
 import { ATTENTIF as ATTENTIF_LIT, creerJoueur as joueurLit } from "../sim/joueurs/lit";
 import { CORRECT as CORRECT_SURFACE, creerJoueur as joueurSurface } from "../sim/joueurs/surface";
 import { formulesAccessibles } from "../src/noyau/logique/comprehension";
@@ -45,6 +46,8 @@ const JOUEURS: Partial<Record<NumeroStrate, (noyau: Noyau) => { seconde(t: numbe
       },
     };
   },
+  // La dette se joue par passages, toutes les cinq secondes : près de trois heures de crues.
+  6: (noyau) => joueurDette(noyau, NATUREL_DETTE),
   // Le lit se joue par passages, toutes les cinq minutes : deux heures de crues.
   7: (noyau) => joueurLit(noyau, ATTENTIF_LIT),
 };

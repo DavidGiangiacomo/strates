@@ -6,12 +6,13 @@ import { describe, expect, it } from "vitest";
 import { strate as surface } from "../src/strates/s1-surface";
 import { strate as caves } from "../src/strates/s2-caves";
 import { strate as atelier } from "../src/strates/s3-atelier";
+import { strate as dette } from "../src/strates/s6-dette";
 import { strate as lit } from "../src/strates/s7-lit";
 import { RIVE, VOLUME } from "../src/strates/s7-lit/logique/regles";
 
 /** Le limon du bassin plein : la valeur convertible du lit, toujours la même (fiche, § 9). */
 const BASSIN_PLEIN = RIVE + 4 * VOLUME;
-const AUTRES = { surface, caves, atelier };
+const AUTRES = { surface, caves, atelier, dette };
 
 describe("I1 : le lit ne partage ni sa ressource, ni son unité, ni sa notation", () => {
   it("écrit son seul nombre en toutes lettres, en doigts, et aucun chiffre", () => {
