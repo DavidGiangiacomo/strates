@@ -182,10 +182,10 @@ Le module est `src/strates/s6-dette/`. Il est inscrit au registre en développem
 - **Un report ne dépasse pas la grande crue.** Une échéance de la quatrième tablette due après elle y tombe aussi : tout ce qui reste dû tombe ensemble.
 - **Une tablette se brise aussi quand on solde** sa dernière échéance, sans attendre la crue.
 - **Un refus répété** ne s'écrit qu'une fois au livre.
-- **Les gages** : les leviers `confiance` et `report` agissent dès que la première tablette est brisée (§ 8). L'éveil écrit au livre, les affichages, les raccourcis, les effets uniques et les noms d'en bas viendront avec [#90](https://github.com/DavidGiangiacomo/strates/issues/90).
+- **Les gages** : les leviers `confiance` et `report` agissent dès que la première tablette est brisée (§ 8). Le reste de leurs effets est venu avec [#90](https://github.com/DavidGiangiacomo/strates/issues/90) (§ 8, « Dans le code »).
 - **L'absence** saute d'une échéance à la suivante : entre deux, la caisse croît en ligne droite. Deux semaines se calculent d'un coup.
 - **Le livre** garde ses quarante dernières lignes ; la vue, un livre de comptes sobre en attendant [#89](https://github.com/DavidGiangiacomo/strates/issues/89), en montre dix.
-- **Restent à faire** : l'opacité et les actes ([#104](https://github.com/DavidGiangiacomo/strates/issues/104)), les objets ([#90](https://github.com/DavidGiangiacomo/strates/issues/90)), les textes ([#74](https://github.com/DavidGiangiacomo/strates/issues/74)), la direction artistique ([#89](https://github.com/DavidGiangiacomo/strates/issues/89)), le son ([#103](https://github.com/DavidGiangiacomo/strates/issues/103)), l'équilibrage ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)), et le test du prototype (§ 12).
+- **Restent à faire** : l'opacité et les actes ([#104](https://github.com/DavidGiangiacomo/strates/issues/104)), les textes ([#74](https://github.com/DavidGiangiacomo/strates/issues/74)), la direction artistique ([#89](https://github.com/DavidGiangiacomo/strates/issues/89)), le son ([#103](https://github.com/DavidGiangiacomo/strates/issues/103)), l'équilibrage ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)), et le test du prototype (§ 12).
 
 ## 4. Boucle moyenne et seuil de fouille
 
@@ -393,6 +393,18 @@ Ce sont des **gages** (bible, § 6) : on les nomme par ce qu'ils valent ou ce qu
 - **I2** : le noyau plafonne le produit des multiplicateurs à × 4. Au plafond, tout sur la confiance, la strate dure encore 2 h 10.
 - **I5** : toute la simulation du § 4 est faite **sans aucun artefact**. Le joueur naturel solde de 2 h 51 à 3 h 02, le joueur hésitant jusqu'à 3 h 05 : sous les 3 h 15, avec dix minutes de marge. C'est le premier réglage à surveiller à l'équilibrage (§ 13).
 - **Les noms d'en bas** sont donnés par la dette, qui écrit : ce sont les seuls objets du jeu nommés par ce qu'ils garantissent.
+
+### Dans le code ([#90](https://github.com/DavidGiangiacomo/strates/issues/90))
+
+- **Les objets qui agissent ici** sont ceux du chœur, puissants, et ceux du réseau, utiles : l'état les relit à chaque tick (`objets`, version 2 de l'état). Ceux de l'atelier et d'au-dessus n'y sont que des ornements ou des cailloux.
+- **L'éveil**, à la première tablette brisée : les leviers `confiance` et `report` agissent ; le livre écrit chaque objet sous son nom d'en bas, un par ligne, « Les témoins ont reconnu le gage qui chante. » ; et la dette nomme les gages, que l'inventaire du noyau montre dès lors sous leur nom d'en bas.
+- **La caisse prévue** rejoue les règles du livre sur une copie de l'état : la caisse au rapport présent, les échéances payées dans l'ordre, et celles que la caisse ne couvre pas reportées, ce qui pèse sur les suivantes. Elle s'écrit, à l'encre noire, sous chacune des prochaines échéances avec le gage qui revient, sous la prochaine seulement avec ce qui monte, et sous la grande crue une fois fixée.
+- **Mesures**, avec les joueurs automatiques :
+  - avec les objets d'un jeu correct (la confiance × 1,5, le report × 1,875), le joueur naturel solde en 2 h 34 : la fiche annonçait 2 h 36 ;
+  - sur le tableau ci-dessus, la confiance seule, le joueur naturel est retrouvé à deux minutes près ;
+  - le joueur réflexe ne tombe pas plus tôt avec plus de confiance : de 0 h 56 à 0 h 59, au lieu de 0 h 40 à 0 h 43. L'écart vient de son modèle de jeu, non de l'éveil ; l'équilibrage le reprendra ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)) ;
+  - avec le report × 1,875 d'un jeu correct, le réflexe tient jusqu'à 1 h 22 et emporte 19 points, toujours en défaut : les gages ne rendent pas le crédit rentable.
+- **Restent ailleurs**, comme pour le lit : les raccourcis, avec l'opacité ([#104](https://github.com/DavidGiangiacomo/strates/issues/104)), et les effets uniques du gage qui chante et du battement sec ([#118](https://github.com/DavidGiangiacomo/strates/issues/118)).
 
 ## 9. Valeur convertible
 

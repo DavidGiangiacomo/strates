@@ -176,6 +176,22 @@ export function majorationReport(etat: Readonly<EtatDette>): number {
   return MAJORATION_REPORT / Math.sqrt(etat.multiplicateurs.report);
 }
 
+/** Le gage qui revient : la caisse prévue à chacune des prochaines échéances (§ 8). */
+export const GAGE_QUI_REVIENT = "s5-echo";
+/** Ce qui monte : la caisse prévue à la prochaine échéance seulement (§ 8). */
+export const CE_QUI_MONTE = "s4-jauge";
+
+/**
+ * Où s'écrit la caisse prévue (§ 8) : à chacune des prochaines échéances avec le gage qui revient, à
+ * la prochaine seulement avec ce qui monte, et nulle part avant l'éveil des gages.
+ */
+export function caissePrevueAffichee(etat: Readonly<EtatDette>): "toutes" | "prochaine" | null {
+  if (etat.brisees < 1) return null;
+  if (etat.objets.includes(GAGE_QUI_REVIENT)) return "toutes";
+  if (etat.objets.includes(CE_QUI_MONTE)) return "prochaine";
+  return null;
+}
+
 /** La caisse couvre-t-elle ce montant ? */
 export function couvre(caisse: number, montant: number): boolean {
   return caisse >= montant * (1 - EPSILON);

@@ -10,7 +10,7 @@ import {
   REFLEXE,
   type ProfilDette,
 } from "../../../../sim/joueurs/dette";
-import { pointsDeFouille } from "../../../noyau/logique/artefacts";
+import { pointsDeFouille, preselection } from "../../../noyau/logique/artefacts";
 import { creerEtatNoyau } from "../../../noyau/logique/etat";
 import { Noyau } from "../../../noyau/logique/noyau";
 import { Registre, type StrateQuelconque } from "../../../noyau/logique/registre";
@@ -22,11 +22,15 @@ const HEURE = 3600;
 /** I5 : la strate se termine en moins de 3 h 15 sans aucun artefact. */
 const I5 = 3 * HEURE + 15 * MINUTE;
 
-async function demarrer(): Promise<Noyau> {
+/** Ce qu'emporte un jeu correct du réseau (21 points) et du chœur (14 points) : docs/artefacts.md, § 8. */
+const JEU_CORRECT = [...preselection(21, 4), ...preselection(14, 5)];
+
+async function demarrer(artefacts: readonly string[] = []): Promise<Noyau> {
   const registre = new Registre();
   registre.enregistrer(6, async () => ({ logique, vue: null, textes: {} }) as StrateQuelconque);
   const etat = creerEtatNoyau(1, 0);
   etat.profondeur = 6;
+  etat.artefacts = [...artefacts];
   const noyau = new Noyau(registre, etat);
   await noyau.demarrer(0);
   return noyau;
@@ -39,8 +43,9 @@ async function demarrer(): Promise<Noyau> {
 async function jouer(
   profil: ProfilDette,
   absence?: { quand: (etat: EtatDette) => boolean; duree: number },
+  artefacts: readonly string[] = [],
 ) {
-  const noyau = await demarrer();
+  const noyau = await demarrer(artefacts);
   const etat = () => noyau.etatStrate as EtatDette;
   const joueur = creerJoueur(noyau, profil);
   let lignes: string[] | null = null;
@@ -124,5 +129,25 @@ describe("les absences de la fiche (§ 10)", () => {
     expect(lignes!.at(-1)).toBe("Échu. Le reste demeure dû.");
     expect(etat.issue).toBe("defaut");
     expect(journal.seuil).toMatchObject({ issue: "defaut" });
+  });
+});
+
+describe("avec les objets d'un jeu correct (§ 8)", () => {
+  it("se solde en 2 h 34 pour le joueur naturel : la confiance × 1,5, éveillée à la première tablette brisée", async () => {
+    const { noyau, etat } = await jouer(NATUREL, undefined, JEU_CORRECT);
+    expect(etat.issue).toBe("soldee");
+    expect(etat.issueA! / HEURE).toBeGreaterThan(2.45);
+    expect(etat.issueA! / HEURE).toBeLessThan(2.7);
+    expect(etat.multiplicateurs.confiance).toBeCloseTo(1.5, 9);
+    // La dette a nommé les gages du joueur : l'inventaire les montre sous leur nom d'en bas.
+    expect([...noyau.nommes].sort()).toEqual(
+      JEU_CORRECT.filter((id) => id.startsWith("s5")).sort(),
+    );
+  });
+
+  it("laisse tomber le joueur réflexe en défaut : les gages ne rendent pas le crédit rentable", async () => {
+    const { etat } = await jouer(REFLEXE, undefined, JEU_CORRECT);
+    expect(etat.issue).toBe("defaut");
+    expect(pointsDeFouille(etat.valeur)).toBeLessThan(28);
   });
 });

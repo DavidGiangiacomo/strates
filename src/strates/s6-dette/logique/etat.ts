@@ -29,6 +29,8 @@ export interface Echeance {
 export interface LigneLivre {
   cle: string;
   valeurs: Record<string, number>;
+  /** L'objet d'en haut qu'elle cite, par son identifiant : la vue l'écrit sous son nom d'en bas. */
+  objet?: string;
 }
 
 /** Comment la dette s'achève : soldée, ou en défaut (§ 4). */
@@ -66,6 +68,11 @@ export interface EtatDette {
   ecrites: number;
   /** Les multiplicateurs des gages, relus à chaque tick, une fois éveillés (§ 8). */
   multiplicateurs: { confiance: number; report: number };
+  /**
+   * Les objets d'en haut qui agissent ici, puissants ou utiles, relus à chaque tick : l'éveil les
+   * écrit au livre, et les affichages s'en servent (§ 8).
+   */
+  objets: string[];
 }
 
 /**
@@ -106,5 +113,6 @@ export function etatInitial(): EtatDette {
     livre: [{ cle: "livre.entree", valeurs: {} }],
     ecrites: 1,
     multiplicateurs: { confiance: 1, report: 1 },
+    objets: [],
   };
 }

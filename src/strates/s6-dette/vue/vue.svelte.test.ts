@@ -184,6 +184,44 @@ describe("le livre", () => {
   });
 });
 
+describe("les gages (fiche, § 8)", () => {
+  it("écrivent la caisse prévue à chaque échéance avec le gage qui revient, une fois éveillés", () => {
+    const { etat } = monter((e) => {
+      e.objets = ["s5-echo"];
+    });
+    expect(document.querySelectorAll("[data-test=prevue]")).toHaveLength(0);
+    etat.brisees = 1;
+    flushSync();
+    expect(tous("[data-test=prevue]")).toEqual(["Caisse prévue : 36.", "Caisse prévue : 30."]);
+    expect(document.querySelector("[data-test=prevue]")!.getAttribute("aria-label")).toBe(
+      "Caisse prévue : trente-six.",
+    );
+  });
+
+  it("ne l'écrivent qu'à la prochaine échéance avec ce qui monte", () => {
+    monter((e) => {
+      e.objets = ["s4-jauge"];
+      e.brisees = 1;
+    });
+    expect(tous(".echeance")).toEqual([
+      "Dû à la 1ʳᵉ crue : 12. une mesure d'orge Caisse prévue : 36. Solder",
+      "Dû à la 2ᵉ crue : 16. une mesure d'orge Solder",
+    ]);
+  });
+
+  it("sont reconnus au livre sous leur nom d'en bas", () => {
+    monter((e) => {
+      e.livre.push({ cle: "livre.eveil", valeurs: {}, objet: "s5-voix" });
+      e.livre.push({ cle: "livre.eveil", valeurs: {}, objet: "s4-conduite" });
+      e.ecrites += 2;
+    });
+    expect(tous(".livre li").slice(-2)).toEqual([
+      "Les témoins ont reconnu le gage qui chante.",
+      "Les témoins ont reconnu le grave qui dure.",
+    ]);
+  });
+});
+
 describe("la fin", () => {
   it("s'écrit à sa place, et plus rien ne se fait : soldée", () => {
     monter((etat) => {
