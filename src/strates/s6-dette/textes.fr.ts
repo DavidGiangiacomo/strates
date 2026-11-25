@@ -44,11 +44,16 @@ export const textes: Record<string, string> = {
   echeance: "Dû à la {crue} crue : {montant}.",
   "echeance.grandeCrue": "Dû à la grande crue : {montant}.",
   "echeance.reports": "reportée {n} fois",
+  // Une échéance honorée à cette crue : noire, jusqu'à la crue suivante (§ 6).
+  "echeance.honoree": "Honoré.",
   // La caisse prévue, que montrent le gage qui revient et ce qui monte (§ 8).
   "echeance.prevue": "Caisse prévue : {montant}.",
   solder: "Solder",
   "grandeCrue.attendue": "Tout ce qui reste dû tombe à la grande crue : {montant}.",
   "grandeCrue.fixee": "La grande crue, à la {crue} crue : {montant}.",
+
+  // ——— Le compte des crues, au bord droit : le reste de la strate (bible, § 3), une couche par crue.
+  compte: "Le compte des crues",
 
   // ——— Les infobulles : ce que chaque chose est, sans dire quoi en faire.
   "infobulle.caisse": "Ce qu'on a.",

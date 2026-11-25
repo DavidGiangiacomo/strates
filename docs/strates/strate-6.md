@@ -238,7 +238,7 @@ Le joueur naturel fait 118 promesses. Avant la dernière tablette, il en fait un
 - **Dans le code** ([#88](https://github.com/DavidGiangiacomo/strates/issues/88)) :
   - l'issue va au journal dès qu'elle est connue, même pendant une absence. Le retour la dit, après ce qui est tombé, et le bouton « creuser » cesse de résister ;
   - l'écran de fouille écrit l'issue au-dessus de la valeur, dans les mots du noyau, ceux de la coupe : « soldée » ou « en défaut » ;
-  - la fissure part de la dernière ligne du livre, celle de l'issue. La direction artistique la fera partir de la grande crue, dans le compte des crues ([#89](https://github.com/DavidGiangiacomo/strates/issues/89)) ;
+  - la fissure partait de la dernière ligne du livre, celle de l'issue. Avec la direction artistique ([#89](https://github.com/DavidGiangiacomo/strates/issues/89), § 6), elle part de la couche de l'issue, dans le compte des crues : la grande crue, ou la crue du défaut ;
   - le délai de la fissure compte le temps de strate, absence comprise, comme partout : une dette tombée pendant l'absence la trouve déjà tracée au retour ;
   - un test joue la descente jusqu'au lit pour chaque issue, et pour un défaut pendant l'absence (`tests/descente-dette.test.ts`). Le lit y garde les fosses de la dette : brisées si elle est soldée, entières en défaut.
 
@@ -312,6 +312,39 @@ Tableaux d'échéances, rouge et noir (§5). C'est la strate la plus sombre (§1
   - *lecteurs d'écran* : un montant se lit en entier, « cent vingt-cinq milliards », et non sceau par sceau.
 - **Ce qui la distingue** : c'est la seule strate qui montre l'avenir plutôt que le présent. On n'y regarde pas sa caisse, mais ce qu'elle devra être, à telle crue.
 - **À l'écran de fouille** (§ 9) : la valeur en sceaux, à l'encre noire sur l'argile, et la ligne de l'issue au-dessus, « soldée » ou « en défaut » ([storyboard](descente-1-2.md), § 4).
+
+### Dans le code ([#89](https://github.com/DavidGiangiacomo/strates/issues/89))
+
+*Choix tranchés le 25 novembre 2026 : le compte des crues se lit comme le limon ; quatre colonnes ; une terre presque noire ; un romain gravé.*
+
+- **La palette** (`vue/theme.ts`) :
+  - une terre de fosse à archives, brun-noir, un peu moins sombre vers le haut ;
+  - des tablettes d'argile chamois, aux bords un peu irréguliers, que la lumière accroche en haut ;
+  - l'encre noire, à 10,8:1 sur l'argile, et un rouge de terre cuite, à 5,2:1, et à 4,6:1 sur un bouton ;
+  - le compte des crues garde les ocres grisés du limon du lit, où le joueur les reconnaîtra.
+- **La police** : un romain gravé, Baskerville, sinon Constantia ou Book Antiqua. Une ombre fine creuse les lettres dans l'argile ; les titres sont en capitales espacées ; les chiffres sont tabulaires, et les montants de l'échéancier alignés à droite.
+- **Les sceaux** sont de petites empreintes rondes, de la teinte de l'encre qui les entoure. Le caractère reste dans le texte, sans se voir.
+- **La disposition**, sur quatre colonnes :
+  - en haut, une bande d'argile : la caisse, le rapport, la confiance, la crue qui vient ;
+  - la tablette ouverte, ses encoches creusées pour les exemplaires qui restent, à peine tracées pour ceux promis. Dessous, sur la terre, les tablettes brisées, en tas, trois éclats chacune ;
+  - l'échéancier, puis le livre ;
+  - au bord droit, le compte des crues, son nom gravé le long de la bande.
+
+  Sur un écran étroit, tout s'empile, et la bande longe l'échéancier.
+- **La confiance** : une barre où ce qu'on doit s'écrit en rouge, et ce qui reste en noir ; de même pour « Dû : 28 sur 60 ».
+- **L'échéancier** :
+  - une échéance honorée à sa crue, ou soldée avant, passe au noir et porte « Honoré. » ;
+  - elle s'efface lentement jusqu'à la crue suivante, où elle quitte la liste. Le livre garde, sur sa ligne, la promesse et la crue où elle a été honorée ;
+  - un report s'écrit sous sa ligne, en rouge.
+- **Le compte des crues** (`vue/compte.ts`, `vue/Compte.svelte`) :
+  - vingt-quatre couches déposées sous le trait du présent, les plus vieilles trouvées là ;
+  - vingt crues à venir au-dessus, chacune un trait, piquées de rouge, une piqûre par échéance ;
+  - la grande crue, une couche épaisse, cerclée de rouge.
+
+  À chaque crue, la bande descend d'un cran ; le trait du présent ne bouge pas. À l'issue, le compte s'arrête, la crue qui vient ne se compte plus, et la fissure part de la couche de l'issue.
+- **Le mouvement** : les lignes changent d'encre en un peu plus d'une seconde, et la bande descend en autant. Avec moins de mouvement, tout se fait d'un coup, et la ligne honorée ne s'efface pas avant de partir.
+- **Les lecteurs d'écran** entendent les montants en mots, dans un texte qu'ils sont seuls à lire, comme dans l'atelier. Le rapport, ce que rapporte une sorte et la grande crue se disent désormais en mots, eux aussi.
+- **À l'écran de fouille**, la valeur s'écrit dans la police de la dette, à l'encre noire sur l'argile (`apparenceValeur`).
 
 ## 7. Opacité et Compréhension
 
@@ -490,7 +523,7 @@ Les textes sont dans `src/strates/s6-dette/textes.fr.ts`.
 - **Les infobulles** disent ce que sont la caisse, le rapport, la confiance, un terme et « Solder », sans dire quoi en faire.
 - **Le rappel de reprise** (bible, § 10) : la dernière ligne du livre, puis la tablette ouverte (« Tablette 3 sur 5. »), la grande crue dès que la dernière tablette s'ouvre, ou la fin.
 - **Les traces** pour le fond : « Honoré. Plus rien n'est dû. » ou « Échu. Le reste demeure dû. », et « Honoré : {montant}. » Elles comptent dans le budget du fond.
-- **Le budget** : 509 mots écrits sur 850, hors formules et traces. L'opacité en ajoute quatre ([#104](https://github.com/DavidGiangiacomo/strates/issues/104), § 7) : 513.
+- **Le budget** : 509 mots écrits sur 850, hors formules et traces. L'opacité en ajoute quatre ([#104](https://github.com/DavidGiangiacomo/strates/issues/104), § 7), et la direction artistique cinq ([#89](https://github.com/DavidGiangiacomo/strates/issues/89), § 6), « Honoré. » et « Le compte des crues » : 518.
 
 ## 12. Critère R5
 
