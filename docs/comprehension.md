@@ -210,7 +210,15 @@ Ce sont les formules des fiches (§ 3 et § 7) : le coût d'un exemplaire, la r�
   - un jeu correct gagne dans le lit 5 points sur 11 avec ses objets, et 8 sans ;
   - arrivé au mieux avec κ = 85, le prévoyant qui a laissé ses objets en haut descend au fond avec 96. Comme ailleurs, ces chiffres sont un plafond : ces joueurs n'ouvrent jamais l'aide.
 
-**À venir** : les actes propres des strates 4 à 6, avec leur code.
+**Fait par [#104](https://github.com/DavidGiangiacomo/strates/issues/104)** : la dette branchée sur κ et sur l'opacité ([fiche](strates/strate-6.md), § 7).
+- **Ses trois actes propres** entrent au barème : soldée (4), sans un report (3), et la grande crue au plus juste (2), fixée avec moins de deux crues de rapport d'avance puis honorée. Avec « sans aide » et « sans artefact », la dette a ses 15 points.
+- **Son opacité** porte sur les noms des promesses, la valeur de la confiance, le report et les majorations des termes. Les échéances, leurs crues et leurs montants, la caisse, le rapport, le refus d'une promesse et la grande crue ne se cachent jamais. Les noms se lèvent à la première promesse de chaque sorte, la confiance au premier refus ou à la première tablette brisée, le report quand une échéance reportée retombe, les majorations à la première promesse à 6 ou 18 crues. Le doigt qui montre et le gage qui souffle lèvent les noms dès l'arrivée, le gage qui souffle aussi la confiance. Le délai les lève tous.
+- **Mesuré par les joueurs automatiques**, comme la fiche le prévoyait :
+  - le joueur naturel accomplit les trois actes, « apprend » tous sauf « sans un report » ;
+  - le joueur naturel gagne dans la dette 15 points sur 15 sans objet, et 12 avec ceux d'un jeu correct ;
+  - arrivé au mieux avec κ = 70, il descend au lit avec 85 s'il a laissé ses objets en haut. Comme ailleurs, ces chiffres sont un plafond : ces joueurs n'ouvrent jamais l'aide.
+
+**À venir** : les actes propres des strates 4 et 5, avec leur code.
 
 ## 9. Questions ouvertes
 

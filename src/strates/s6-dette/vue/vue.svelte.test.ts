@@ -1,9 +1,11 @@
 // @vitest-environment happy-dom
 // La vue de la dette (fiche, § 6), en livre de comptes sobre : la caisse et la confiance, la tablette
-// et ses termes, l'échéancier, les dernières lignes du livre, et la fin.
+// et ses termes, l'échéancier, les dernières lignes du livre, et la fin. Puis ce qui reste opaque
+// (§ 7) : les noms en glyphes, la confiance sans sa valeur, le report sans sa crue.
 import { flushSync, mount, unmount } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { strate } from "..";
+import { elementsParCle, glyphes } from "../../../noyau/logique/opacite";
 import type { CommandesNoyau, ContexteTick, SonStrate } from "../../../noyau/logique/types";
 import { logique, type ActionDette, type EtatDette } from "../logique";
 import { etatInitial } from "../logique/etat";
@@ -24,7 +26,18 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-function monter(modifs: (etat: EtatDette) => void = () => {}, mode: "jeu" | "remontee" = "jeu") {
+/** Pour chaque clé de texte, l'élément opaque qui la couvre. */
+const ELEMENT_DE = elementsParCle(logique.opacite ?? []);
+
+/**
+ * Monte la vue, avec les éléments `opaques` encore opaques : leurs clés de texte deviennent des
+ * glyphes, ceux de la dette, comme à travers la couche d'opacité du noyau.
+ */
+function monter(
+  modifs: (etat: EtatDette) => void = () => {},
+  mode: "jeu" | "remontee" = "jeu",
+  opaques: readonly string[] = [],
+) {
   const etat = $state(etatInitial());
   modifs(etat);
   const actions: ActionDette[] = [];
@@ -34,8 +47,13 @@ function monter(modifs: (etat: EtatDette) => void = () => {}, mode: "jeu" | "rem
       etat,
       agir: (action: ActionDette) => actions.push(action),
       noyau: commandes,
-      o: (cle: string) => strate.textes[cle] ?? `?${cle}`,
-      lisible: () => true,
+      o: (cle: string) => {
+        const texte = strate.textes[cle] ?? `?${cle}`;
+        return opaques.includes(ELEMENT_DE.get(cle) ?? "")
+          ? glyphes(cle, texte, strate.glyphes)
+          : texte;
+      },
+      lisible: (element: string) => !opaques.includes(element),
       mode,
       son: silence,
     },
@@ -278,6 +296,65 @@ describe("le livre et son aide (fiche, § 11)", () => {
     expect(boutons("[data-sorte=orge]")[0]!.getAttribute("title")).toBeTruthy();
     expect(boutons(".echeance")[0]!.getAttribute("title")).toBe(
       "Honorer avant le terme, au plein montant.",
+    );
+  });
+});
+
+describe("l'opacité (fiche, § 7)", () => {
+  /** Rien que des glyphes de la dette, un par mot : jamais le disque plein, qui est son sceau. */
+  const enGlyphes = new RegExp(`^[${strate.glyphes}]( [${strate.glyphes}])*$`, "u");
+
+  it("écrit en glyphes le nom d'une sorte encore opaque ; son prix, son rapport et ses termes restent lisibles", () => {
+    monter(() => {}, "jeu", ["nom.orge"]);
+    const [orge, huile] = tous(".sorte h3");
+    expect(orge).toMatch(enGlyphes);
+    expect(orge).not.toMatch(/●/);
+    expect(huile).toBe("une jarre d'huile");
+    expect(texte("[data-sorte=orge] .rapporte")).toBe("rapporte 3 par crue");
+    expect(tous("[data-sorte=orge] button")[0]).toBe("à 2 crues : 20, à la 2ᵉ");
+    // L'échéancier aussi le tait, sans rien cacher de ce qui est dû.
+    expect(tous(".echeance .promesse")[0]).toMatch(enGlyphes);
+    expect(tous(".echeance .du")).toEqual(["Dû à la 1ʳᵉ crue : 12.", "Dû à la 2ᵉ crue : 16."]);
+  });
+
+  it("montre la confiance en barre sans échelle tant que sa valeur est opaque", () => {
+    monter(() => {}, "jeu", ["confiance"]);
+    expect(document.querySelector(".etat-confiance")).toBeNull();
+    expect(texte(".confiance .libelle")).toBe("La confiance");
+    const part = document.querySelector<HTMLElement>(".confiance .part")!;
+    expect(part.style.width).toBe(`${(28 / 60) * 100}%`);
+  });
+
+  it("écrit « Reporté. » tant que le report est opaque : sa crue et sa majoration se lisent à l'échéancier", () => {
+    const { etat, avancer } = monter(() => {}, "jeu", ["report"]);
+    etat.caisse = 0;
+    etat.honore = 100;
+    etat.echeances = [
+      { numero: 1, promesse: "orge", crue: 1, du: 9, origine: 9, prix: 9, reports: 0 },
+    ];
+    avancer(CRUE);
+    expect(tous(".livre li").at(-1)).toBe("Reporté.");
+    expect(document.querySelector(".livre li:last-child")!.classList.contains("rouge")).toBe(true);
+    expect(tous(".echeance .du")).toEqual(["Dû à la 3ᵉ crue : 4."]);
+    expect(tous(".echeance .reports")).toEqual(["reportée 1 fois"]);
+  });
+
+  it("tait dans l'aide les majorations des termes, et le report, encore opaques", () => {
+    monter(() => {}, "jeu", ["majorations", "report"]);
+    document.querySelector<HTMLButtonElement>("[data-test=lien-aide]")!.click();
+    flushSync();
+    const [promesse, , report] = tous("[data-test=aide] dd");
+    expect(promesse).toMatch(/^Une promesse rapporte à chaque crue, dès qu'elle est faite\. /);
+    expect(promesse).not.toMatch(/majoré|%/);
+    expect(report).toMatch(enGlyphes);
+  });
+
+  it("dit dans l'aide les majorations une fois levées", () => {
+    monter();
+    document.querySelector<HTMLButtonElement>("[data-test=lien-aide]")!.click();
+    flushSync();
+    expect(tous("[data-test=aide] dd")[0]).toMatch(
+      / À 2 crues, le prix tel quel ; à 6 crues, majoré de 20 % ; à 18 crues, de 60 %\.$/,
     );
   });
 });

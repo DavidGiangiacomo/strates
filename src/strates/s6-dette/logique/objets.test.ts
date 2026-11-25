@@ -1,6 +1,6 @@
 // Les objets d'en haut dans la dette (fiche, § 8) : ceux qui agissent ici, leur éveil à la première
-// tablette brisée, les gages que la dette nomme, et la caisse prévue. Leurs raccourcis viennent avec
-// l'opacité (#104), leurs effets uniques avec #118.
+// tablette brisée, les gages que la dette nomme, et la caisse prévue. Leurs raccourcis passent par
+// l'opacité (comprehension.test.ts), leurs effets uniques viendront avec #118.
 import { describe, expect, it } from "vitest";
 import { CATALOGUE } from "../../../noyau/logique/catalogue";
 import { effetsActifs, preselection } from "../../../noyau/logique/artefacts";
@@ -172,7 +172,7 @@ describe("la caisse prévue (§ 8)", () => {
 
 describe("l'état", () => {
   it("passe en version 2 : la liste des objets, vide, que le premier tick relit", () => {
-    expect(logique.versionEtat).toBe(2);
+    expect(logique.versionEtat).toBeGreaterThanOrEqual(2);
     const v1: Partial<EtatDette> = nouveau();
     delete v1.objets;
     expect(logique.migrations[1]!(v1)).toEqual({ ...v1, objets: [] });

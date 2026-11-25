@@ -62,6 +62,11 @@ export interface EtatDette {
   issueA: number | null;
   /** Les reports de toute la strate : le journal les compte, l'acte « sans un report » aussi (#104). */
   reportees: number;
+  /**
+   * La dernière promesse a fixé la grande crue au plus juste : la caisse prévue la couvrait avec moins
+   * de deux crues de rapport d'avance. Si elle est honorée, c'est un acte (§ 7).
+   */
+  auPlusJuste: boolean;
   /** Les dernières lignes du livre. */
   livre: LigneLivre[];
   /** Les lignes écrites depuis l'arrivée : la dernière du livre porte ce numéro. */
@@ -109,6 +114,7 @@ export function etatInitial(): EtatDette {
     issue: null,
     issueA: null,
     reportees: 0,
+    auPlusJuste: false,
     // Le livre commence vide : son en-tête, toujours lisible, dit la règle de l'absence (§ 10).
     livre: [],
     ecrites: 0,
