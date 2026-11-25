@@ -142,10 +142,7 @@ describe("l'échéancier", () => {
     const { avancer } = monter();
     avancer(CRUE);
     expect(tous(".echeance .du")).toEqual(["Dû à la 2ᵉ crue : 16."]);
-    expect(tous(".livre li")).toEqual([
-      "Les échéances tombent à leur crue, qu'on soit là ou non.",
-      "Dû à la 1ʳᵉ crue : 12. Honoré.",
-    ]);
+    expect(tous(".livre li")).toEqual(["Dû à la 1ʳᵉ crue : 12. Honoré."]);
   });
 
   it("écrit le refus de la confiance, et le report sous sa crue", () => {
@@ -219,6 +216,69 @@ describe("les gages (fiche, § 8)", () => {
       "Les témoins ont reconnu le gage qui chante.",
       "Les témoins ont reconnu le grave qui dure.",
     ]);
+  });
+});
+
+describe("le livre et son aide (fiche, § 11)", () => {
+  it("écrit en tête, toujours, que les échéances tombent qu'on soit là ou non", () => {
+    const { avancer } = monter();
+    expect(texte("[data-test=entree]")).toBe(
+      "Les échéances tombent à leur crue, qu'on soit là ou non.",
+    );
+    avancer(40 * CRUE);
+    expect(texte("[data-test=entree]")).toBe(
+      "Les échéances tombent à leur crue, qu'on soit là ou non.",
+    );
+  });
+
+  it("ouvre l'aide, la note pour l'acte « sans aide », y met le focus, et la referme par Échap", () => {
+    let consultations = 0;
+    const etat = $state(etatInitial());
+    composant = mount(Vue, {
+      target: document.body,
+      props: {
+        etat,
+        agir: () => {},
+        noyau: { ...commandes, ouvrirAide: () => consultations++ },
+        o: (cle: string) => strate.textes[cle] ?? `?${cle}`,
+        lisible: () => true,
+        mode: "jeu",
+        son: silence,
+      },
+    });
+    flushSync();
+    const lien = document.querySelector<HTMLButtonElement>("[data-test=lien-aide]")!;
+    expect(lien.getAttribute("aria-expanded")).toBe("false");
+    lien.click();
+    flushSync();
+    expect(consultations).toBe(1);
+    const aide = document.querySelector<HTMLElement>("[data-test=aide]")!;
+    expect(document.activeElement).toBe(aide);
+    expect(tous("[data-test=aide] dt")).toEqual([
+      "La promesse",
+      "L'échéance",
+      "Le report",
+      "La confiance",
+      "Les tablettes",
+      "Les sceaux",
+    ]);
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    flushSync();
+    expect(document.querySelector("[data-test=aide]")).toBeNull();
+    expect(document.activeElement).toBe(lien);
+  });
+
+  it("donne une infobulle à la caisse, au rapport, à la confiance, aux termes et à « Solder »", () => {
+    monter();
+    expect(document.querySelector(".caisse .libelle")!.getAttribute("title")).toBe("Ce qu'on a.");
+    expect(document.querySelector(".confiance")!.getAttribute("title")).toBe(
+      "Ce qu'on peut devoir, au plus.",
+    );
+    expect(document.querySelector(".rapport")!.getAttribute("title")).toBeTruthy();
+    expect(boutons("[data-sorte=orge]")[0]!.getAttribute("title")).toBeTruthy();
+    expect(boutons(".echeance")[0]!.getAttribute("title")).toBe(
+      "Honorer avant le terme, au plein montant.",
+    );
   });
 });
 

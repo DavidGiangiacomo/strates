@@ -326,7 +326,7 @@ Environ 5 000 mots pour tout le jeu (§2). Chaque fiche reprend son budget dans 
 | 3 · L'atelier | 700 | la nomenclature et les légendes du plan ; 430 écrits |
 | 4 · Le réseau | 600 | le carnet de relevés et la légende du schéma |
 | 5 · Le chœur | 300 | des indications, et pas une phrase |
-| 6 · La dette | 850 | le livre de comptes : la strate la plus longue |
+| 6 · La dette | 850 | le livre de comptes : la strate la plus longue ; 509 écrits |
 | 7 · Le lit | 100 | les quatre phrases du jeu, et l'interface |
 | 8 · Le fond | 350 | les traces des sept couches, et leurs variantes |
 | Les rappels de reprise | 300 | trois lignes par couche, au plus (§ 10) |
@@ -359,9 +359,10 @@ Jamais de résumé de la civilisation, d'indice, ni de « vous ». Les lignes «
 - **Les textes des strates 1 et 2** ([#60](https://github.com/DavidGiangiacomo/strates/issues/60)) : faits. Les vieux remplacent les anciens, plus aucun texte ne dit « vous », les deux restes sont plantés (le serveur « au sous-sol, au frais », la cave profonde où « on trouve les roues sans moulin »), et les traces suivent le § 5. Les tests interdisent désormais « vous » et les mots du § 2, comme « creuser ».
 - **Les textes de l'atelier** ([#68](https://github.com/DavidGiangiacomo/strates/issues/68)) : faits ([fiche](strates/strate-3.md), § 11). La légende dit « ajustée » et « à reprendre ». Les objets d'en haut s'y éveillent « Hors plan », sous leur nom d'en bas, et la notice du plan ne dit rien de la fin. La feuille qui annonce écrit, dans les caves, « Il reste 53 cases. ».
 - **Le catalogue** ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)) : fait ([`artefacts.md`](artefacts.md), § 8). Les noms d'en bas suivent le § 6, dont « la pierre qui oblige » ; au fond, des encoches.
-- **Le rappel de reprise** ([#58](https://github.com/DavidGiangiacomo/strates/issues/58)) : fait, pour la surface, les caves et l'atelier (§ 10). Le résumé d'absence ne dit plus « votre », et les rappels ont écrit 9 de leurs 300 mots : le reste de chaque rappel est une ligne de la couche.
+- **Le rappel de reprise** ([#58](https://github.com/DavidGiangiacomo/strates/issues/58)) : fait, pour la surface, les caves et l'atelier (§ 10), puis pour la dette ([#74](https://github.com/DavidGiangiacomo/strates/issues/74)). Le résumé d'absence ne dit plus « votre », et les rappels ont écrit 12 de leurs 300 mots : le reste de chaque rappel est une ligne de la couche.
 - **Les fiches** des strates 4, 7 et 8, et la révision de celle du chœur ([#62](https://github.com/DavidGiangiacomo/strates/issues/62), [#63](https://github.com/DavidGiangiacomo/strates/issues/63), [#65](https://github.com/DavidGiangiacomo/strates/issues/65), [#75](https://github.com/DavidGiangiacomo/strates/issues/75)) : leur § 2 part du § 4, leur § 11 du § 5 et du § 9. Celles de l'atelier, de la dette et du lit sont faites ([`strate-3.md`](strates/strate-3.md), [`strate-6.md`](strates/strate-6.md), [`strate-7.md`](strates/strate-7.md)).
 - **Les textes du lit** ([#92](https://github.com/DavidGiangiacomo/strates/issues/92)) : faits ([fiche](strates/strate-7.md), § 11). Les quatre phrases du § 8, sans variante selon la dette, et une aide en quatre légendes, dans un budget de 100 mots, dont 86 écrits.
+- **Les textes de la dette** ([#74](https://github.com/DavidGiangiacomo/strates/issues/74)) : faits ([fiche](strates/strate-6.md), § 11). Le livre de comptes, ses deux fins mot pour mot celles du § 7, l'annonce de l'absence en tête du livre, et les « Usages du livre », une aide qui constate sans conseiller. Les gages s'éveillent sous leur nom d'en bas (§ 6), et les traces suivent le § 5. 509 mots écrits sur 850.
 - **Les traces du fond** ([#109](https://github.com/DavidGiangiacomo/strates/issues/109)) : les § 5 et 7.
 
 ## 12. Questions ouvertes

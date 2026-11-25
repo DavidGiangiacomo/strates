@@ -17,7 +17,7 @@ import type {
 } from "../../../noyau/logique/types";
 import { textes } from "../textes.fr";
 import { etatInitial, type Echeance, type EtatDette } from "./etat";
-import { remplir } from "./notation";
+import { crueOrdinale, ecrireLigne, formaterSceaux, remplir } from "./notation";
 import {
   arrondir,
   confiance,
@@ -109,11 +109,15 @@ function lireEffets(etat: EtatDette, effets: EffetsActifs): void {
 
 /** L'échéance est honorée en entier : la confiance en grandit, et la valeur convertible. */
 function honorer(etat: EtatDette, e: Echeance, cle: string, compte: Compte | null): void {
+  const avant = confiance(etat);
   etat.caisse = Math.max(0, etat.caisse - e.du);
   etat.honore += e.origine;
   etat.valeur += e.prix;
   etat.echeances.splice(etat.echeances.indexOf(e), 1);
   ecrire(etat, cle, { numero: e.numero, crue: e.crue ?? etat.crues, montant: e.du });
+  // Après un report, le livre dit ce que la confiance y gagne : le dû d'avant le report, et rien de
+  // ce que le report a coûté (fiche, § 13, question 12).
+  if (e.reports > 0) ecrire(etat, "livre.confiance", { montant: confiance(etat) - avant });
   if (compte) compte.honorees++;
 }
 
@@ -374,6 +378,33 @@ function solder(etat: EtatDette, numero: number, ctx: ContexteTick): void {
   briser(etat, ctx);
 }
 
+/**
+ * Où en est le seuil, dans les mots que le livre a déjà écrits : la fin, la grande crue fixée, la
+ * dernière tablette ouverte, ou, avant elle, la tablette ouverte.
+ */
+function ligneSeuil(etat: EtatDette): string {
+  if (etat.issue !== null) return textes[`livre.${etat.issue}`] ?? "";
+  if (etat.grandeCrue !== null) {
+    return remplir(textes["livre.grandeCrue"] ?? "", { crue: crueOrdinale(etat.grandeCrue) });
+  }
+  if (etat.tablette === TABLETTES) return textes["livre.derniere"] ?? "";
+  return remplir(textes["rappel.tablette"] ?? "", { n: String(etat.tablette) });
+}
+
+/**
+ * Le rappel de reprise (bible, § 10) : la dernière ligne du livre, puis où en est le seuil, sauf si
+ * cette ligne vient de le dire. Rien que le joueur n'ait déjà lu.
+ */
+function rappel(etat: EtatDette): string[] {
+  const derniere = etat.livre.at(-1);
+  const lignes = derniere
+    ? [ecrireLigne(derniere, textes[derniere.cle] ?? "", (x) => formaterSceaux(x))]
+    : [];
+  const seuil = ligneSeuil(etat);
+  if (!lignes.includes(seuil)) lignes.push(seuil);
+  return lignes;
+}
+
 /** Le résumé du retour (§ 10) : « 14 échéances honorées, 2 reportées. » ; null si rien n'est tombé. */
 function resumeAbsence({ honorees, reportees }: Compte): string | null {
   const t = (cle: string, n: number) =>
@@ -495,6 +526,7 @@ export const logique: LogiqueStrate<EtatDette, ActionDette> = {
   // Les gages que la dette nomme, une fois éveillés : l'inventaire du noyau les montre sous leur nom
   // d'en bas, et ils le gardent plus bas (descente-1-2.md, § 6). Le noyau ne garde que ceux du joueur.
   nommes: (etat) => (etat.brisees >= 1 ? NOMMES : []),
+  rappel,
 
   /** Pour le journal de session : la caisse, ce qu'on doit, la confiance, les tablettes, les reports. */
   releve(etat) {

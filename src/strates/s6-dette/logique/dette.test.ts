@@ -137,7 +137,7 @@ describe("l'arrivée (§ 3)", () => {
     ]);
     expect(confiance(etat)).toBe(60);
     expect(doit(etat)).toBe(28);
-    expect(cles(etat)).toEqual(["livre.entree"]);
+    expect(cles(etat)).toEqual([]);
     expect(logique.seuil(etat)).toEqual({ atteint: false });
   });
 
@@ -202,7 +202,7 @@ describe("promettre (§ 3)", () => {
     agir(etat, { type: "promettre", promesse: "orge", terme: 2 }, ctx);
     agir(etat, { type: "promettre", promesse: "orge", terme: 2 }, ctx);
     expect(etat.promises.orge).toBe(3);
-    expect(cles(etat)).toEqual(["livre.entree", "livre.refus"]);
+    expect(cles(etat)).toEqual(["livre.refus"]);
     expect(textes["livre.refus"]).toBe("La confiance ne suffit pas.");
     expect(
       evenements.filter((e) => e.type === "trace" && e.cle === "promesse.refusee"),
@@ -295,6 +295,59 @@ describe("les reports et le défaut (§ 3)", () => {
     expect(etat.crues).toBe(11);
     expect(etat.livre).toEqual(livre);
     expect(etat.promises.orge).toBe(2);
+  });
+});
+
+describe("la confiance après un report (§ 13, question 12)", () => {
+  it("s'écrit sous l'échéance honorée : ce qu'elle y gagne, sur le dû d'avant le report", () => {
+    const etat = neuf();
+    etat.caisse = 0;
+    etat.honore = 100;
+    etat.echeances = [echeance(1, "orge", 1, 100)];
+    avancer(etat, CRUE);
+    expect(etat.echeances[0]!.du).toBe(118);
+    etat.caisse = 1_000;
+    avancer(etat, 2 * CRUE);
+    expect(etat.livre.slice(-2)).toEqual([
+      { cle: "livre.honore", valeurs: { numero: 1, crue: 3, montant: 118 } },
+      // 5 × 100, et non 5 × 118 : le report n'a rien rendu à la confiance.
+      { cle: "livre.confiance", valeurs: { montant: 500 } },
+    ]);
+    expect(textes["livre.confiance"]).toBe(
+      "La confiance y gagne {montant}, sur le dû d'avant le report.",
+    );
+  });
+
+  it("ne s'écrit pas sous une échéance honorée à son terme, sans report", () => {
+    const etat = neuf();
+    avancer(etat, 2 * CRUE);
+    expect(cles(etat)).toEqual(["livre.honore", "livre.honore"]);
+  });
+});
+
+describe("le rappel de reprise (bible, § 10)", () => {
+  const rappel = (etat: EtatDette) => logique.rappel!(etat).map((l) => l.replace(/\u202f/g, " "));
+
+  it("dit la dernière ligne du livre, puis la tablette ouverte", () => {
+    const etat = neuf();
+    expect(rappel(etat)).toEqual(["Tablette 1 sur 5."]);
+    avancer(etat, CRUE);
+    expect(rappel(etat)).toEqual(["Dû à la 1ʳᵉ crue : 12. Honoré.", "Tablette 1 sur 5."]);
+  });
+
+  it("dit la grande crue, dès que la dernière tablette s'ouvre, puis quand elle est fixée", () => {
+    const etat = avantLaDernierePromesse();
+    expect(rappel(etat)).toEqual(["Tout ce qui reste dû tombe à la grande crue."]);
+    agir(etat, { type: "promettre", promesse: "toutesLesCrues", terme: 2 });
+    expect(rappel(etat)).toEqual(["La grande crue : à la 12ᵉ crue."]);
+  });
+
+  it("dit la fin, une fois, quand le livre vient de l'écrire", () => {
+    const etat = neuf();
+    etat.caisse = 0;
+    etat.echeances = [echeance(1, "orge", 1, 100)];
+    avancer(etat, CRUE);
+    expect(rappel(etat)).toEqual(["Échu. Le reste demeure dû."]);
   });
 });
 

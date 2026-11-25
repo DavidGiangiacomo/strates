@@ -4,6 +4,7 @@ import { strate as surface } from "../s1-surface";
 import { strate as caves } from "../s2-caves";
 import { strate as atelier } from "../s3-atelier";
 import { strate as lit } from "../s7-lit";
+import { CATALOGUE } from "../../noyau/logique/catalogue";
 import { logique } from "./logique";
 import { PROMESSES } from "./logique/regles";
 import { textes } from "./textes.fr";
@@ -17,6 +18,7 @@ const interdits =
 const LIVRE = [
   "livre.entree",
   "livre.honore",
+  "livre.confiance",
   "livre.solde",
   "livre.reporte",
   "livre.reporteAdouci",
@@ -75,9 +77,43 @@ describe("les textes de la dette", () => {
     }
   });
 
-  it("tiennent dans leur budget, 850 mots, le plus grand de toutes les strates, hors formules", () => {
+  it("ne jugent pas le défaut : il se note comme le reste (bible, § 2)", () => {
+    for (const [cle, texte] of Object.entries(textes)) {
+      expect(texte, cle).not.toMatch(/échec|perdu|faute|hélas|malheur|ruine|réussi|gagné\b/i);
+    }
+  });
+
+  it("donnent une aide qui constate les règles, et la sortie d'un report sans la conseiller", () => {
+    const usages = ["promesse", "echeance", "report", "confiance", "tablettes", "sceaux"];
+    expect(textes["aide.titre"]).toBe("Usages du livre");
+    for (const u of usages) {
+      expect(textes[`aide.${u}.titre`], u).toBeTruthy();
+      expect(textes[`aide.${u}`], u).toBeTruthy();
+    }
+    const aide = usages.map((u) => textes[`aide.${u}`]!).join(" ");
+    // Ce qui montre la sortie : une échéance se solde avant sa crue, une promesse rapporte d'abord.
+    expect(aide).toMatch(/se solde/);
+    expect(aide).toMatch(/rapporte à chaque crue, dès qu'elle est faite/);
+    expect(aide).not.toMatch(/il faut|mieux|conseil|pensez|essayez|n'oubliez/i);
+  });
+
+  it("laissent au fond leurs traces : la ligne de l'issue, et le compte de ce qui a été honoré", () => {
+    expect(textes["trace.soldee"]).toBe(textes["livre.soldee"]);
+    expect(textes["trace.defaut"]).toBe(textes["livre.defaut"]);
+    expect(textes["trace.honore"]).toBe("Honoré : {montant}.");
+    expect(Object.keys(textes).filter((cle) => cle.startsWith("trace."))).toHaveLength(3);
+  });
+
+  it("nomment les gages par ce qu'ils valent ou garantissent : cinq mots au plus (bible, § 6)", () => {
+    for (const a of CATALOGUE.filter((x) => x.origine === 5)) {
+      expect(a.nomDEnBas).toMatch(/^(le |la |l')(gage|caution)\b/u);
+      expect(a.nomDEnBas.split(" ").length).toBeLessThanOrEqual(5);
+    }
+  });
+
+  it("tiennent dans leur budget, 850 mots, le plus grand de toutes les strates, hors formules et traces", () => {
     const total = Object.entries(textes)
-      .filter(([cle]) => !cle.startsWith("formule."))
+      .filter(([cle]) => !cle.startsWith("formule.") && !cle.startsWith("trace."))
       .reduce((n, [, t]) => n + mots(t), 0);
     expect(total).toBeLessThanOrEqual(850);
   });
