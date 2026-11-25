@@ -346,6 +346,29 @@ Tableaux d'échéances, rouge et noir (§5). C'est la strate la plus sombre (§1
 - **Les lecteurs d'écran** entendent les montants en mots, dans un texte qu'ils sont seuls à lire, comme dans l'atelier. Le rapport, ce que rapporte une sorte et la grande crue se disent désormais en mots, eux aussi.
 - **À l'écran de fouille**, la valeur s'écrit dans la police de la dette, à l'encre noire sur l'argile (`apparenceValeur`).
 
+### Le son ([#103](https://github.com/DavidGiangiacomo/strates/issues/103))
+
+*Choix tranchés le 25 novembre 2026 : presque rien entre deux gestes ; l'eau seule à chaque crue ; soldée, l'eau se retire ; le stylet bute au refus.*
+
+- **Presque rien** (`vue/sons.ts`) : la fosse à archives n'a pas de fond sonore. Seuls sonnent les gestes, les crues et les tablettes. Pas de musique.
+- **Promettre**, à gauche, où se tient la tablette :
+  - le stylet presse trois coins dans l'argile, de plus en plus légers ;
+  - trois dixièmes de seconde plus tard, le sceau, pressé et non frappé, fixe le terme ;
+  - quand la confiance ne permet pas la promesse, le stylet bute : un toc sec, sans sceau. La vue le sait dès le clic, par la règle même de la logique (`confianceSuffit`).
+- **Solder** : le stylet seul, qui écrit l'échéance honorée avant son terme.
+- **À chaque crue**, l'eau, doucement, au bord droit, où se tient le compte des crues :
+  - une vague vient toucher le bord, s'ouvre à sa crête et repart, avec quelques gouttes ;
+  - c'est la même qu'il y ait des échéances ou non, mais jamais tout à fait au même pas ;
+  - les crues qu'une absence fait passer d'un coup ne sonnent pas, ni celle de l'issue.
+- **Une tablette brisée** : un craquement sec, à gauche. La fêlure, puis deux plus petites, et des éclats qui tombent sur la terre.
+- **La grande crue** : une nappe d'eau profonde, gonflée de houles lentes, au bord droit. Elle monte crue après crue pendant les douze crues, de 0,12 à 0,55 du volume.
+  - Soldée, elle se retire en quatre secondes, puis la dernière tablette se brise.
+  - En défaut, elle se tait d'un coup : « Échu. », le silence.
+- **Le calcul** :
+  - les gestes et les tablettes se calculent à 22 kHz ; l'eau, qui n'a pas d'aigus, à 16 kHz, par étapes, sans figer l'image ;
+  - aucun nom n'est partagé avec la surface, les caves, l'atelier, le lit ou le sol.
+- **Vérifié dans Chromium** : les sept sons se jouent depuis les outils de développement. Une promesse, un refus et une crue ne font aucune longue tâche.
+
 ## 7. Opacité et Compréhension
 
 Le joueur arrive avec κ = 70 au mieux, et plutôt de 55 à 65 pour un jeu correct. Le délai de levée vaut alors de 5 à 7 minutes. Le graphe de dépendances est là dès l'arrivée ; les formules en sont à 10 ou 40 % ([`comprehension.md`](../comprehension.md), § 3).

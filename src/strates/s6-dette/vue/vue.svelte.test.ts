@@ -6,10 +6,17 @@ import { flushSync, mount, unmount } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { strate } from "..";
 import { elementsParCle, glyphes } from "../../../noyau/logique/opacite";
-import type { CommandesNoyau, ContexteTick, SonStrate } from "../../../noyau/logique/types";
+import type {
+  CommandesNoyau,
+  ContexteTick,
+  ReglageAmbiance,
+  ReglageEffet,
+  SonStrate,
+} from "../../../noyau/logique/types";
 import { logique, type ActionDette, type EtatDette } from "../logique";
 import { etatInitial } from "../logique/etat";
 import { CRUE, EXEMPLAIRES, montantDu, prixExemplaire, sortesDe } from "../logique/regles";
+import { flotDeLaCrue, PLACES, RETRAIT, SCEAU_APRES } from "./sons";
 import Vue from "./Vue.svelte";
 
 const commandes: CommandesNoyau = { demanderFouille() {}, ouvrirAide() {}, terminer() {} };
@@ -37,6 +44,7 @@ function monter(
   modifs: (etat: EtatDette) => void = () => {},
   mode: "jeu" | "remontee" = "jeu",
   opaques: readonly string[] = [],
+  son: SonStrate = silence,
 ) {
   const etat = $state(etatInitial());
   modifs(etat);
@@ -55,7 +63,7 @@ function monter(
       },
       lisible: (element: string) => !opaques.includes(element),
       mode,
-      son: silence,
+      son,
     },
   });
   flushSync();
@@ -472,6 +480,117 @@ describe("l'opacité (fiche, § 7)", () => {
     expect(tous("[data-test=aide] dd")[0]).toMatch(
       / À 2 crues, le prix tel quel ; à 6 crues, majoré de 20 % ; à 18 crues, de 60 %\.$/,
     );
+  });
+});
+
+describe("le son (fiche, § 6)", () => {
+  /** Une banque qui note ce qu'on lui demande. */
+  function ecoute() {
+    const effets: [string, ReglageEffet | undefined][] = [];
+    const ambiances: [string, ReglageAmbiance][] = [];
+    const son: SonStrate = {
+      jouer: (nom, reglage) => effets.push([nom, reglage]),
+      ambiance: (nom, reglage) => ambiances.push([nom, reglage]),
+      voix() {},
+      note() {},
+    };
+    return { son, effets, ambiances, noms: () => effets.map(([nom]) => nom) };
+  }
+
+  it("se tait à l'arrivée : la fosse à archives n'a pas de fond sonore", () => {
+    const { son, noms, ambiances } = ecoute();
+    monter(() => {}, "jeu", [], son);
+    expect(noms()).toEqual([]);
+    expect(ambiances.every(([, r]) => r.volume === 0)).toBe(true);
+  });
+
+  it("fait écrire au stylet la promesse, puis presser le sceau ; un refus, le stylet bute", () => {
+    const { son, effets, noms } = ecoute();
+    const { etat, appliquer } = monter(() => {}, "jeu", [], son);
+    boutons("[data-sorte=orge]")[0]!.click();
+    expect(noms()).toEqual(["stylet", "sceau"]);
+    expect(effets[1]![1]).toMatchObject({ dans: SCEAU_APRES, panoramique: PLACES.tablette });
+    appliquer();
+    // Trois mesures d'orge : la quatrième, à 26, passerait la confiance.
+    boutons("[data-sorte=orge]")[0]!.click();
+    expect(noms().slice(2)).toEqual(["bute"]);
+    appliquer();
+    expect(etat.livre.at(-1)!.cle).toBe("livre.refus");
+  });
+
+  it("fait écrire au stylet seul l'échéance soldée", () => {
+    const { son, noms } = ecoute();
+    monter(() => {}, "jeu", [], son);
+    boutons("[data-echeance='2']")[0]!.click();
+    expect(noms()).toEqual(["stylet"]);
+  });
+
+  it("fait passer l'eau, doucement, au bord droit, à chaque crue ; pas pour les crues d'une absence", () => {
+    const { son, effets, noms } = ecoute();
+    const { avancer } = monter(() => {}, "jeu", [], son);
+    avancer(CRUE);
+    expect(noms()).toEqual(["flot"]);
+    expect(effets[0]![1]).toEqual(flotDeLaCrue(1));
+    avancer(5 * CRUE);
+    expect(noms()).toEqual(["flot"]);
+  });
+
+  it("fait craquer chaque tablette brisée, à gauche", () => {
+    const { son, effets, noms } = ecoute();
+    const { etat } = monter(() => {}, "jeu", [], son);
+    etat.brisees = 1;
+    flushSync();
+    expect(noms()).toEqual(["brisure"]);
+    expect(effets[0]![1]).toMatchObject({ panoramique: PLACES.tablette, dans: 0 });
+  });
+
+  it("fait monter l'eau pendant la grande crue ; soldée, elle se retire, puis la dernière tablette se brise", () => {
+    const { son, effets, ambiances, noms } = ecoute();
+    const { etat } = monter(
+      (e) => {
+        e.crues = 300;
+        e.temps = 300 * CRUE;
+        e.grandeCrue = 312;
+        e.brisees = 4;
+      },
+      "jeu",
+      [],
+      son,
+    );
+    const eau = () => ambiances.filter(([nom]) => nom === "grande-eau").at(-1)![1];
+    const depart = eau().volume;
+    expect(depart).toBeGreaterThan(0);
+    etat.crues = 306;
+    flushSync();
+    expect(eau().volume).toBeGreaterThan(depart);
+    etat.issue = "soldee";
+    etat.issueA = 312 * CRUE;
+    etat.brisees = 5;
+    flushSync();
+    expect(eau()).toEqual({ volume: 0, fondu: RETRAIT });
+    expect(noms()).toEqual(["reflux", "brisure"]);
+    expect(effets.find(([nom]) => nom === "brisure")![1]).toMatchObject({ dans: RETRAIT });
+  });
+
+  it("se tait d'un coup en défaut : « Échu. », le silence", () => {
+    const { son, ambiances, noms } = ecoute();
+    const { etat } = monter(
+      (e) => {
+        e.crues = 300;
+        e.grandeCrue = 312;
+      },
+      "jeu",
+      [],
+      son,
+    );
+    etat.issue = "defaut";
+    etat.issueA = 312 * CRUE;
+    flushSync();
+    const derniere = ambiances.at(-1)!;
+    expect(derniere[0]).toBe("grande-eau");
+    expect(derniere[1].volume).toBe(0);
+    expect(derniere[1].fondu).toBeLessThanOrEqual(0.1);
+    expect(noms()).toEqual([]);
   });
 });
 

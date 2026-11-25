@@ -13,6 +13,7 @@
   // Les montants s'écrivent en sceaux, petites empreintes rondes dans l'argile, et se disent en mots
   // aux lecteurs d'écran. Le rouge et le noir ne disent rien seuls : « Dû », « Honoré », « Reporté »
   // sont écrits. Tout se fait au clavier.
+  import { untrack } from "svelte";
   import { avanceeFissure } from "../../../noyau/logique/filet";
   import type { ProprietesVue } from "../../../noyau/logique/types";
   import Fissure from "../../../noyau/ui/Fissure.svelte";
@@ -37,6 +38,7 @@
   import {
     caissePrevueAffichee,
     confiance,
+    confianceSuffit,
     couvre,
     CRUE,
     doit,
@@ -55,9 +57,11 @@
   import Brisees from "./Brisees.svelte";
   import Compte from "./Compte.svelte";
   import { couper, morceaux, type Morceau } from "./morceaux";
+  import { flotDeLaCrue, grandeEau, PLACES, RETRAIT, SCEAU_APRES } from "./sons";
   import { VARIABLES } from "./theme";
 
-  let { etat, agir, noyau, o, lisible, mode }: ProprietesVue<EtatDette, ActionDette> = $props();
+  let { etat, agir, noyau, o, lisible, mode, son }: ProprietesVue<EtatDette, ActionDette> =
+    $props();
 
   /**
    * Les lignes du livre que la vue montre, les plus récentes en bas. Chacune garde sa clé, son numéro
@@ -144,13 +148,81 @@
   const dit = (x: number, sens: Sens = "pres") => enLettres(x, sens);
   const joindre = (ms: readonly Morceau[]) => ms.map((m) => m.texte).join("");
 
+  /**
+   * Promettre : le stylet écrit la promesse, puis le sceau fixe son terme. Si la confiance ne suffit
+   * pas, le stylet bute, sans sceau (fiche, § 6). Dans la dernière tablette, la confiance ne compte
+   * plus.
+   */
   function promettre(promesse: IdPromesse, terme: Terme): void {
-    if (actif) agir({ type: "promettre", promesse, terme });
+    if (!actif) return;
+    const du = montantDu(
+      prixExemplaire(promesse, etat.promises[promesse]),
+      derniere ? null : terme,
+    );
+    const suffit = derniere || confianceSuffit(etat, du);
+    agir({ type: "promettre", promesse, terme });
+    if (!suffit) {
+      son.jouer("bute", { volume: 0.55, panoramique: PLACES.tablette });
+      return;
+    }
+    son.jouer("stylet", { volume: 0.6, panoramique: PLACES.tablette });
+    son.jouer("sceau", { volume: 0.7, panoramique: PLACES.tablette, dans: SCEAU_APRES });
   }
 
+  /** Solder : le stylet seul, qui écrit l'échéance honorée avant son terme. */
   function solder(e: Echeance): void {
-    if (actif) agir({ type: "solder", echeance: e.numero });
+    if (!actif) return;
+    agir({ type: "solder", echeance: e.numero });
+    son.jouer("stylet", { volume: 0.5, panoramique: PLACES.echeancier });
   }
+
+  // ——— Le son (fiche, § 6) : presque rien. Les gestes, l'eau à chaque crue, les tablettes qui se
+  // brisent, et l'eau qui monte pendant la grande crue. « Échu. » : le silence.
+
+  // À chaque crue, l'eau, doucement, au bord droit : la même, qu'il y ait des échéances ou non. Les
+  // crues qu'une absence fait passer d'un coup ne sonnent pas, ni celle de l'issue.
+  let crueEntendue = untrack(() => etat.crues);
+  $effect(() => {
+    const crues = etat.crues;
+    const precedente = crueEntendue;
+    crueEntendue = crues;
+    if (crues !== precedente + 1 || etat.issue !== null) return;
+    untrack(() => son.jouer("flot", flotDeLaCrue(crues)));
+  });
+
+  // La grande crue : l'eau monte, crue après crue. Soldée, elle se retire ; en défaut, tout se tait.
+  const eau = $derived(grandeEau(etat.crues, etat.grandeCrue, etat.issue));
+  const volumeEau = $derived(eau.volume);
+  const fonduEau = $derived(eau.fondu);
+  $effect(() => {
+    son.ambiance("grande-eau", { volume: volumeEau, fondu: fonduEau });
+  });
+  let issueEntendue = untrack(() => etat.issue);
+  $effect(() => {
+    const issue = etat.issue;
+    if (issue === issueEntendue) return;
+    issueEntendue = issue;
+    if (issue === "soldee") {
+      untrack(() => son.jouer("reflux", { volume: 0.6 }));
+    }
+  });
+
+  // Une tablette brisée : un craquement sec, à gauche, où s'empilent les morceaux. Soldée, la
+  // dernière se brise quand l'eau de la grande crue s'est retirée.
+  let brisuresEntendues = untrack(() => etat.brisees);
+  $effect(() => {
+    const brisees = etat.brisees;
+    const avant = brisuresEntendues;
+    brisuresEntendues = brisees;
+    if (brisees <= avant) return;
+    untrack(() =>
+      son.jouer("brisure", {
+        volume: 0.7,
+        panoramique: PLACES.tablette,
+        dans: etat.issue === "soldee" ? RETRAIT : 0,
+      }),
+    );
+  });
 
   /** Le modèle d'une ligne de l'échéancier, et ses valeurs, montant écrit ou dit. */
   function modeleDu(

@@ -24,6 +24,7 @@ import {
   arrondir,
   AU_PLUS_JUSTE,
   confiance,
+  confianceSuffit,
   couvre,
   CRUE,
   DOIGT_QUI_MONTRE,
@@ -361,7 +362,7 @@ function promettre(etat: EtatDette, id: IdPromesse, terme: Terme, ctx: ContexteT
   if (!derniere && !TERMES.includes(terme)) return;
   const prix = prixExemplaire(id, n);
   const du = montantDu(prix, derniere ? null : terme);
-  if (!derniere && doit(etat) + du > confiance(etat) * (1 + EPSILON)) {
+  if (!derniere && !confianceSuffit(etat, du)) {
     const promesse = PROMESSES.indexOf(id);
     const derniereLigne = etat.livre.at(-1);
     // Un refus répété ne s'écrit qu'une fois.
