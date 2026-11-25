@@ -156,6 +156,14 @@ export function doit(etat: Readonly<EtatDette>): number {
   return etat.echeances.reduce((s, e) => (tabletteDe(e.promesse) === TABLETTES ? s : s + e.du), 0);
 }
 
+/**
+ * La confiance permet-elle de devoir `du` de plus ? Ce qu'on doit déjà, plus lui, ne la dépasse pas.
+ * C'est la règle d'une promesse (§ 3) : la vue la lit aussi, pour que le stylet bute au clic.
+ */
+export function confianceSuffit(etat: Readonly<EtatDette>, du: number): boolean {
+  return doit(etat) + du <= confiance(etat) * (1 + EPSILON);
+}
+
 /** Tout ce qui reste dû, la dernière tablette comprise : ce que la grande crue fera tomber. */
 export function toutDu(etat: Readonly<EtatDette>): number {
   return etat.echeances.reduce((s, e) => s + e.du, 0);
