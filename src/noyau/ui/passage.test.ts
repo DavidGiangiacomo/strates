@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   creerLogiqueFactice,
+  seuilAtteint,
   type ActionFactice,
   type EtatFactice,
 } from "../../strates/factice/logique";
@@ -146,6 +147,23 @@ describe("le coup de pioche", () => {
       void passage.creuser();
       expect(passage.ecran?.formule, `κ = ${kappa}`).toBe(formule);
     }
+  });
+
+  it("écrit l'issue au-dessus de la valeur, quand la strate en a deux, dans les mots du noyau", async () => {
+    // La dette finit soldée ou en défaut (docs/strates/strate-6.md, § 9).
+    const enDefaut: LogiqueFactice = {
+      ...creerLogiqueFactice(1),
+      seuil: (e) => ({ atteint: seuilAtteint(e), issue: "defaut" }),
+    };
+    const dette = await partie([enDefaut, creerLogiqueFactice(2)]);
+    auSeuil(dette.noyau);
+    void dette.passage.creuser();
+    expect(dette.passage.ecran?.issue).toBe("en défaut");
+
+    const sansIssue = await partie();
+    auSeuil(sansIssue.noyau);
+    void sansIssue.passage.creuser();
+    expect(sansIssue.passage.ecran?.issue).toBeUndefined();
   });
 
   it("ne répond pas pendant la séquence", async () => {

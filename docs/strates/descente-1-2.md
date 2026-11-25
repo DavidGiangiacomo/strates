@@ -298,7 +298,7 @@ Ce que P3 et P4 décrivent pour la surface vaut pour toutes les descentes. Voici
 - **« reboucher »** referme sans rien noter au journal de partie. La strate reprend là où elle était.
 - **« descendre »** engage tout d'un coup, puis sauvegarde (P5).
 - **Variantes :**
-  - la strate 6 affichera son issue, soldée ou en défaut, au-dessus de la valeur ([#64](https://github.com/DavidGiangiacomo/strates/issues/64)) ;
+  - la strate 6 écrit son issue au-dessus de la valeur, dans les mots de la coupe : « soldée » ou « en défaut » ([#88](https://github.com/DavidGiangiacomo/strates/issues/88)) ;
   - la strate 7 n'a pas d'écran : la présélection s'applique seule, et la transition part directement ([#106](https://github.com/DavidGiangiacomo/strates/issues/106)).
 - **Textes** : ce sont des textes du noyau. Ils parlent sa voix, celle d'un inventaire de fouille, que fixe la bible narrative ([`bible.md`](../bible.md), § 10).
 

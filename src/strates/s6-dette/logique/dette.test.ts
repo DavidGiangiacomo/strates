@@ -479,3 +479,21 @@ describe("le graphe et les formules (§ 7)", () => {
     expect(graphe.liens).toContainEqual({ de: "confiance", vers: "promesse" });
   });
 });
+
+describe("le filet (§ 4)", () => {
+  it("tend sa fissure cinq minutes après l'issue, et l'allonge en deux minutes, comme partout", () => {
+    const etat = neuf();
+    etat.caisse = 0;
+    etat.echeances = [echeance(1, "orge", 1, 100)];
+    expect(logique.filet!(etat)).toBe(0);
+    avancer(etat, CRUE);
+    expect(etat.issue).toBe("defaut");
+    // En défaut, le livre ne bouge plus, mais le temps passe.
+    avancer(etat, 5 * 60);
+    expect(logique.filet!(etat)).toBe(0);
+    avancer(etat, 60);
+    expect(logique.filet!(etat)).toBeCloseTo(0.5, 9);
+    avancer(etat, 60);
+    expect(logique.filet!(etat)).toBe(1);
+  });
+});

@@ -23,13 +23,21 @@ const ISSUES: Readonly<Record<string, string>> = {
 };
 
 /**
+ * L'issue d'un seuil, dans les mots du noyau : la coupe l'écrit sur sa couche, l'écran de fouille
+ * au-dessus de la valeur (bible, § 7). Une issue inconnue s'écrit telle quelle.
+ */
+export function texteIssue(issue: string): string {
+  return ISSUES[issue] ?? issue;
+}
+
+/**
  * La ligne d'une couche atteinte : le temps de jeu, l'issue de son seuil, les objets abandonnés sous
  * leurs noms d'en haut, et « stratigraphie perturbée ». « 1 h 15 min · abandonné : La filiale ».
  */
 export function ligneCouche(couche: Extract<CoucheCoupe, { atteinte: true }>): string {
   const morceaux: string[] = [];
   if (couche.tempsDeJeu !== null) morceaux.push(formaterDuree(couche.tempsDeJeu));
-  if (couche.issue) morceaux.push(ISSUES[couche.issue] ?? couche.issue);
+  if (couche.issue) morceaux.push(texteIssue(couche.issue));
   if (couche.abandonnes.length > 0) {
     const noms = couche.abandonnes.map((id) => artefact(id)?.nomDHaut ?? id);
     const mot = noms.length > 1 ? TEXTES_COUPE.abandonnes : TEXTES_COUPE.abandonne;
