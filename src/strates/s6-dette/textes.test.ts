@@ -24,6 +24,7 @@ const LIVRE = [
   "livre.refus",
   "livre.brisee",
   "livre.derniere",
+  "livre.eveil",
   "livre.grandeCrue",
   "livre.soldee",
   "livre.defaut",
@@ -48,7 +49,16 @@ describe("les textes de la dette", () => {
   });
 
   it("ne laissent dans leurs modèles que les nombres que la vue sait écrire", () => {
-    const connus = new Set(["crue", "montant", "n", "secondes", "du", "confiance", "majoration"]);
+    const connus = new Set([
+      "crue",
+      "montant",
+      "n",
+      "secondes",
+      "du",
+      "confiance",
+      "majoration",
+      "objet",
+    ]);
     for (const [cle, texte] of Object.entries(textes)) {
       for (const [, nom] of texte.matchAll(/\{(\w+)\}/g))
         expect(connus, `${cle} : ${nom}`).toContain(nom);

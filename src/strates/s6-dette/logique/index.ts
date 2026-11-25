@@ -5,6 +5,7 @@
 // la dernière toute due à la grande crue, que fixe la dernière promesse du livre (§ 4). L'absence se
 // calcule ici : les échéances tombent à leur crue, sans plafond, et le rapport suit la règle commune,
 // sauf pendant la grande crue, où l'absence compte en entier (§ 10).
+import { CATALOGUE } from "../../../noyau/logique/catalogue";
 import { EFFETS_NEUTRES } from "../../../noyau/logique/effets";
 import { avanceeFissure } from "../../../noyau/logique/filet";
 import type {
@@ -55,30 +56,52 @@ export type { IdPromesse, Terme } from "./regles";
 export type ActionDette =
   { type: "promettre"; promesse: IdPromesse; terme: Terme } | { type: "solder"; echeance: number };
 
-/** Ce qu'une absence a fait tomber, pour le résumé du retour. */
+/**
+ * Ce qu'un passage du temps fait tomber : pour le résumé du retour d'une absence, et pour la caisse
+ * prévue, qui note la caisse juste avant chaque échéance, et avant la grande crue (`null`).
+ */
 interface Compte {
   honorees: number;
   reportees: number;
+  avant?: (numero: number | null, caisse: number) => void;
 }
+
+/**
+ * Les objets d'en haut qui peuvent agir ici : ceux du chœur, puissants, et ceux du réseau, utiles.
+ * Ceux de l'atelier et d'au-dessus n'y sont plus que des ornements ou des cailloux.
+ */
+const D_EN_HAUT = CATALOGUE.filter((a) => a.origine < 6).map((a) => a.id);
+
+/** Les objets du chœur, que la dette nomme : des gages, nommés par ce qu'ils valent (§ 8). */
+const NOMMES = CATALOGUE.filter((a) => a.origine === 5).map((a) => a.id);
 
 /** Une absence commencée à `debut` : le rapport y compte à 80 %, douze heures au plus. */
 interface Absence {
   debut: number;
 }
 
-/** Écrit une ligne au livre, qui ne garde que les dernières. */
-function ecrire(etat: EtatDette, cle: string, valeurs: Record<string, number> = {}): void {
-  etat.livre.push({ cle, valeurs });
+/** Écrit une ligne au livre, qui ne garde que les dernières. Elle peut citer un objet d'en haut. */
+function ecrire(
+  etat: EtatDette,
+  cle: string,
+  valeurs: Record<string, number> = {},
+  objet?: string,
+): void {
+  etat.livre.push(objet === undefined ? { cle, valeurs } : { cle, valeurs, objet });
   etat.ecrites += 1;
   if (etat.livre.length > LIVRE_MAX) etat.livre.splice(0, etat.livre.length - LIVRE_MAX);
 }
 
 /**
- * Les gages (§ 8) : la confiance × m, et la majoration d'un report divisée par √m. Ils s'éveillent
- * quand la première tablette est brisée : la première se joue sans objet, et le choc d'arrivée reste
- * entier. Leurs autres effets, et l'éveil écrit au livre, sont l'affaire de #90.
+ * Les gages (§ 8) : les objets d'en haut qui agissent ici, et leurs multiplicateurs, la confiance × m
+ * et la majoration d'un report divisée par √m. Ils s'éveillent quand la première tablette est
+ * brisée : la première se joue sans objet, et le choc d'arrivée reste entier. Leurs raccourcis
+ * viennent avec l'opacité (#104), leurs effets uniques avec #118.
  */
 function lireEffets(etat: EtatDette, effets: EffetsActifs): void {
+  const objets = D_EN_HAUT.filter((id) => effets.niveau(id) !== null);
+  // Une liste neuve à chaque tick redessinerait le livre pour rien.
+  if (objets.join() !== etat.objets.join()) etat.objets = objets;
   const eveilles = etat.brisees >= 1;
   etat.multiplicateurs.confiance = eveilles ? effets.multiplicateur("confiance") : 1;
   etat.multiplicateurs.report = eveilles ? effets.multiplicateur("report") : 1;
@@ -155,6 +178,13 @@ function briser(etat: EtatDette, ctx: ContexteTick): void {
     etat.brisees = k;
     ecrire(etat, "livre.brisee", { tablette: k });
     ctx.emettre({ type: "trace", cle: "tablette.brisee", valeurs: { tablette: k } });
+    // La première tablette brisée, les gages s'éveillent : le livre les reconnaît, un par ligne.
+    if (k === 1) {
+      for (const objet of etat.objets) {
+        ecrire(etat, "livre.eveil", {}, objet);
+        ctx.emettre({ type: "trace", cle: "gage.eveil", objet });
+      }
+    }
   }
 }
 
@@ -188,10 +218,12 @@ function tomberGrandeCrue(etat: EtatDette, ctx: ContexteTick, compte: Compte | n
  */
 function passerCrue(etat: EtatDette, c: number, ctx: ContexteTick, compte: Compte | null): void {
   if (etat.grandeCrue === c) {
+    compte?.avant?.(null, etat.caisse);
     tomberGrandeCrue(etat, ctx, compte);
     return;
   }
   for (const e of etat.echeances.filter((x) => x.crue === c)) {
+    compte?.avant?.(e.numero, etat.caisse);
     if (couvre(etat.caisse, e.du)) honorer(etat, e, "livre.honore", compte);
     else reporter(etat, e, c, ctx, compte);
     if (etat.issue !== null) return;
@@ -247,6 +279,42 @@ function avancer(
   crediter(etat, etat.temps, fin, absence);
   etat.temps = Math.max(etat.temps, fin);
   etat.crues = Math.max(etat.crues, Math.floor((etat.temps + EPSILON_TEMPS) / CRUE));
+}
+
+/** Pour prévoir sans rien signaler au noyau. */
+const MUET: ContexteTick = { effets: EFFETS_NEUTRES, emettre: () => {} };
+
+/**
+ * La caisse prévue (§ 8) : à chaque échéance, la caisse juste avant qu'elle ne tombe, si rien n'est
+ * promis ni soldé d'ici là. La prévision rejoue les règles du livre sur une copie : la caisse croît
+ * au rapport présent, les échéances se paient dans l'ordre, et celle que la caisse ne couvre pas est
+ * reportée, ce qui pèse sur les suivantes. Par numéro d'échéance, et `null` pour la grande crue une
+ * fois fixée. L'état n'est pas touché ; la prévision s'arrête à l'issue qu'elle prévoit.
+ */
+export function caissesPrevues(etat: Readonly<EtatDette>): Map<number | null, number> {
+  const prevues = new Map<number | null, number>();
+  if (etat.issue !== null) return prevues;
+  const copie: EtatDette = {
+    ...etat,
+    promises: { ...etat.promises },
+    echeances: etat.echeances.map((e) => ({ ...e })),
+    livre: [],
+    objets: [],
+    multiplicateurs: { ...etat.multiplicateurs },
+  };
+  let derniere = copie.grandeCrue ?? -Infinity;
+  for (const e of copie.echeances) if (e.crue !== null) derniere = Math.max(derniere, e.crue);
+  if (!Number.isFinite(derniere)) return prevues;
+  const compte: Compte = {
+    honorees: 0,
+    reportees: 0,
+    // Une échéance reportée retombe plus tard : seule compte la caisse de sa première crue.
+    avant: (numero, caisse) => {
+      if (!prevues.has(numero)) prevues.set(numero, caisse);
+    },
+  };
+  avancer(copie, Math.max(0, derniere * CRUE - copie.temps), MUET, null, compte);
+  return prevues;
 }
 
 /**
@@ -365,8 +433,11 @@ function formules(): Formule[] {
 
 export const logique: LogiqueStrate<EtatDette, ActionDette> = {
   numero: 6,
-  versionEtat: 1,
-  migrations: {},
+  versionEtat: 2,
+  migrations: {
+    // Version 2 (#90) : les objets d'en haut qui agissent ici. Le premier tick les relit.
+    1: (etat) => ({ ...(etat as object), objets: [] }),
+  },
   // Une crue : le pas est coupé à chaque crue.
   pasMax: CRUE,
   // Les gages : la confiance, et la majoration des reports (§ 8).
@@ -420,6 +491,10 @@ export const logique: LogiqueStrate<EtatDette, ActionDette> = {
 
   graphe,
   formules,
+
+  // Les gages que la dette nomme, une fois éveillés : l'inventaire du noyau les montre sous leur nom
+  // d'en bas, et ils le gardent plus bas (descente-1-2.md, § 6). Le noyau ne garde que ceux du joueur.
+  nommes: (etat) => (etat.brisees >= 1 ? NOMMES : []),
 
   /** Pour le journal de session : la caisse, ce qu'on doit, la confiance, les tablettes, les reports. */
   releve(etat) {

@@ -41,6 +41,8 @@ export const textes: Record<string, string> = {
   echeance: "Dû à la {crue} crue : {montant}.",
   "echeance.grandeCrue": "Dû à la grande crue : {montant}.",
   "echeance.reports": "reportée {n} fois",
+  // La caisse prévue, que montrent le gage qui revient et ce qui monte (§ 8).
+  "echeance.prevue": "Caisse prévue : {montant}.",
   solder: "Solder",
   "grandeCrue.attendue": "Tout ce qui reste dû tombe à la grande crue : {montant}.",
   "grandeCrue.fixee": "La grande crue, à la {crue} crue : {montant}.",
@@ -56,6 +58,8 @@ export const textes: Record<string, string> = {
   "livre.refus": "La confiance ne suffit pas.",
   "livre.brisee": "La tablette est brisée.",
   "livre.derniere": "Tout ce qui reste dû tombe à la grande crue.",
+  // L'éveil des gages, à la première tablette brisée : un objet par ligne (§ 8).
+  "livre.eveil": "Les témoins ont reconnu {objet}.",
   "livre.grandeCrue": "La grande crue : à la {crue} crue.",
   // Les deux fins, mot pour mot celles de la bible (§ 7) : même voix, même longueur, même place.
   "livre.soldee": "Honoré. Plus rien n'est dû.",

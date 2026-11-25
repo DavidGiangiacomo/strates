@@ -7,12 +7,22 @@
   // - À droite : les dernières lignes du livre.
   // Les montants s'écrivent en sceaux, et se disent en lettres aux lecteurs d'écran. Le rouge et le
   // noir ne disent rien seuls : « Dû », « Honoré », « Reporté » sont écrits. Tout se fait au clavier.
+  import { artefact } from "../../../noyau/logique/artefacts";
   import { avanceeFissure } from "../../../noyau/logique/filet";
   import type { ProprietesVue } from "../../../noyau/logique/types";
   import Fissure from "../../../noyau/ui/Fissure.svelte";
-  import type { ActionDette, Echeance, EtatDette, IdPromesse, LigneLivre, Terme } from "../logique";
+  import {
+    caissesPrevues,
+    type ActionDette,
+    type Echeance,
+    type EtatDette,
+    type IdPromesse,
+    type LigneLivre,
+    type Terme,
+  } from "../logique";
   import { crueOrdinale, enLettres, formaterSceaux, remplir, type Sens } from "../logique/notation";
   import {
+    caissePrevueAffichee,
     confiance,
     couvre,
     CRUE,
@@ -63,6 +73,16 @@
       .sort((a, b) => (a.crue ?? Infinity) - (b.crue ?? Infinity) || a.numero - b.numero),
   );
   const toutCeQuiTombe = $derived(toutDu(etat));
+  // La caisse prévue (fiche, § 8), une fois les gages éveillés : à chaque échéance avec le gage qui
+  // revient, à la prochaine seulement avec ce qui monte. La grande crue, fixée, ferme la liste.
+  const affichage = $derived(caissePrevueAffichee(etat));
+  const prevues = $derived(affichage === null ? null : caissesPrevues(etat));
+  const prochaine = $derived(lignesDues[0]?.numero ?? null);
+  /** La caisse prévue à une échéance (`null` : la grande crue), si elle s'y écrit. */
+  function prevue(numero: number | null): number | null {
+    if (prevues === null || (affichage === "prochaine" && numero !== prochaine)) return null;
+    return prevues.get(numero) ?? null;
+  }
   const lignesLivre = $derived(etat.livre.slice(-LIGNES));
 
   const t = (cle: string, valeurs: Record<string, string> = {}) => remplir(o(cle), valeurs);
@@ -103,6 +123,8 @@
     if (v.crue !== undefined) valeurs.crue = crueOrdinale(v.crue);
     if (v.montant !== undefined) valeurs.montant = montant(v.montant);
     if (v.majoration !== undefined) valeurs.majoration = String(v.majoration).replace(".", ",");
+    // Un objet d'en haut, sous le nom que lui donnent ceux d'en bas.
+    if (l.objet !== undefined) valeurs.objet = artefact(l.objet)?.nomDEnBas ?? l.objet;
     return t(l.cle, valeurs);
   }
 
@@ -178,11 +200,21 @@
       {/if}
       <ol>
         {#each lignesDues as e (e.numero)}
+          {@const caisse = prevue(e.numero)}
           <li class="echeance" data-echeance={e.numero}>
             <span class="du" aria-label={ligneDue(e, dit)}>{ligneDue(e, ecrit)}</span>
             <span class="promesse">{o(`promesse.${e.promesse}`)}</span>
             {#if e.reports > 0}
               <span class="reports">{t("echeance.reports", { n: String(e.reports) })}</span>
+            {/if}
+            {#if caisse !== null}
+              <span
+                class="prevue"
+                data-test="prevue"
+                aria-label={t("echeance.prevue", { montant: dit(caisse, "bas") })}
+              >
+                {t("echeance.prevue", { montant: ecrit(caisse, "bas") })}
+              </span>
             {/if}
             <button
               type="button"
@@ -203,6 +235,11 @@
                 crue: crueOrdinale(etat.grandeCrue),
                 montant: ecrit(toutCeQuiTombe, "haut"),
               })}
+          {#if etat.grandeCrue !== null && prevue(null) !== null}
+            <span class="prevue" data-test="prevue-grande-crue">
+              {t("echeance.prevue", { montant: ecrit(prevue(null)!, "bas") })}
+            </span>
+          {/if}
         </p>
       {/if}
     </section>
@@ -364,6 +401,13 @@
   }
   .promesse {
     font-style: italic;
+  }
+  /* La caisse prévue, ce qu'on aura : à l'encre noire, même sous la grande crue. */
+  .prevue {
+    color: var(--encre);
+  }
+  .grande-crue .prevue {
+    margin-left: 8px;
   }
   .echeance button {
     margin-left: auto;
