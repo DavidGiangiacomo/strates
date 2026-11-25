@@ -77,9 +77,20 @@ const lire = (texte: string | null | undefined) =>
     .replace(/\u202f/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-const texte = (selecteur: string) => lire(document.querySelector(selecteur)?.textContent);
-const tous = (selecteur: string) =>
-  [...document.querySelectorAll(selecteur)].map((e) => lire(e.textContent));
+/** Le texte d'un élément, sans ce que `cacher` désigne. */
+function sans(element: Element | null | undefined, cacher: string): string {
+  const copie = element?.cloneNode(true) as Element | undefined;
+  if (!copie) return "";
+  for (const e of copie.querySelectorAll(cacher)) e.remove();
+  return lire(copie.textContent);
+}
+/** Ce qui se voit : les montants en sceaux, sans leurs mots, réservés aux lecteurs d'écran. */
+const vu = (element: Element | null | undefined) => sans(element, ".lecteur");
+/** Ce qu'entend un lecteur d'écran : les montants en mots. */
+const entendu = (selecteur: string) =>
+  sans(document.querySelector(selecteur), '[aria-hidden="true"]');
+const texte = (selecteur: string) => vu(document.querySelector(selecteur));
+const tous = (selecteur: string) => [...document.querySelectorAll(selecteur)].map(vu);
 const boutons = (selecteur: string) => [
   ...document.querySelectorAll<HTMLButtonElement>(`${selecteur} button`),
 ];
@@ -96,10 +107,9 @@ describe("le haut du livre", () => {
     monter((etat) => {
       etat.caisse = 125e9;
     });
-    expect(document.querySelector(".caisse .montant")!.getAttribute("aria-label")).toBe(
-      "cent vingt-cinq milliards",
-    );
+    expect(entendu(".caisse .montant")).toBe("cent vingt-cinq milliards");
     expect(texte(".caisse .montant")).toBe("125 ●●●");
+    expect(entendu(".rapport")).toBe("six par crue");
   });
 });
 
@@ -156,11 +166,29 @@ describe("l'échéancier", () => {
     expect(boutons(".echeance").map((b) => b.disabled)).toEqual([false, true]);
   });
 
-  it("dit ce qui est honoré au livre, et l'échéance s'efface", () => {
+  it("passe au noir l'échéance honorée, « Honoré. », puis l'efface à la crue suivante", () => {
     const { avancer } = monter();
     avancer(CRUE);
-    expect(tous(".echeance .du")).toEqual(["Dû à la 2ᵉ crue : 16."]);
     expect(tous(".livre li")).toEqual(["Dû à la 1ʳᵉ crue : 12. Honoré."]);
+    expect(tous(".echeance.honoree")).toEqual(["Dû à la 1ʳᵉ crue : 12. une mesure d'orge Honoré."]);
+    expect(tous(".echeance:not(.honoree) .du")).toEqual(["Dû à la 2ᵉ crue : 16."]);
+    // La même ligne : elle a changé d'encre, sans quitter sa place.
+    expect(document.querySelectorAll(".echeance")).toHaveLength(2);
+    avancer(CRUE);
+    expect(tous(".echeance.honoree .du")).toEqual(["Dû à la 2ᵉ crue : 16."]);
+    avancer(CRUE);
+    expect(document.querySelectorAll(".echeance")).toHaveLength(0);
+  });
+
+  it("passe au noir aussi l'échéance soldée avant son terme, jusqu'à la crue suivante", () => {
+    const { actions, appliquer, avancer } = monter();
+    boutons("[data-echeance='2']")[0]!.click();
+    expect(actions).toEqual([{ type: "solder", echeance: 2 }]);
+    appliquer();
+    expect(tous(".echeance.honoree .du")).toEqual(["Dû à la 2ᵉ crue : 16."]);
+    expect(texte(".echeance.honoree .honore")).toBe("Honoré.");
+    avancer(CRUE);
+    expect(tous(".echeance.honoree .du")).toEqual(["Dû à la 1ʳᵉ crue : 12."]);
   });
 
   it("écrit le refus de la confiance, et le report sous sa crue", () => {
@@ -194,7 +222,7 @@ describe("le livre", () => {
     const apres = [...document.querySelectorAll(".livre li")];
     expect(apres).toHaveLength(10);
     for (let k = 0; k < 9; k++) expect(apres[k]).toBe(avant[k + 1]);
-    expect(lire(apres[9]!.textContent)).toBe("Dû à la 1ʳᵉ crue : 12. Honoré.");
+    expect(vu(apres[9])).toBe("Dû à la 1ʳᵉ crue : 12. Honoré.");
     expect(document.querySelector(".livre ol")!.getAttribute("aria-live")).toBe("polite");
   });
 });
@@ -208,9 +236,7 @@ describe("les gages (fiche, § 8)", () => {
     etat.brisees = 1;
     flushSync();
     expect(tous("[data-test=prevue]")).toEqual(["Caisse prévue : 36.", "Caisse prévue : 30."]);
-    expect(document.querySelector("[data-test=prevue]")!.getAttribute("aria-label")).toBe(
-      "Caisse prévue : trente-six.",
-    );
+    expect(entendu("[data-test=prevue]")).toBe("Caisse prévue : trente-six.");
   });
 
   it("ne l'écrivent qu'à la prochaine échéance avec ce qui monte", () => {
@@ -300,6 +326,96 @@ describe("le livre et son aide (fiche, § 11)", () => {
   });
 });
 
+describe("la direction artistique (fiche, § 6)", () => {
+  it("écrit chaque sceau en empreinte ronde : le caractère reste dans le texte, sans se voir", () => {
+    monter((etat) => {
+      etat.caisse = 125e9;
+    });
+    const sceaux = [...document.querySelectorAll(".caisse .montant .sceau")];
+    expect(sceaux.map((s) => s.textContent)).toEqual(["●", "●", "●"]);
+    expect(texte(".caisse .montant")).toBe("125 ●●●");
+  });
+
+  it("écrit ce qu'on doit à l'encre rouge, et ce qui reste à l'encre noire", () => {
+    monter();
+    expect(texte(".etat-confiance .doit")).toBe("Dû : 28");
+    expect(texte(".etat-confiance")).toBe("Dû : 28 sur 60");
+    expect(entendu(".etat-confiance")).toBe("Dû : vingt-huit sur soixante");
+    const part = document.querySelector<HTMLElement>(".confiance .part")!;
+    expect(Number.parseFloat(part.style.width)).toBeCloseTo((28 / 60) * 100, 6);
+  });
+
+  it("creuse les encoches des exemplaires qui restent, et trace à peine celles des promis", () => {
+    monter();
+    expect(document.querySelectorAll("[data-sorte=orge] .entaille")).toHaveLength(EXEMPLAIRES);
+    expect(document.querySelectorAll("[data-sorte=orge] .entaille.promise")).toHaveLength(2);
+    expect(document.querySelectorAll("[data-sorte=huile] .entaille.promise")).toHaveLength(0);
+  });
+
+  it("empile en morceaux, sous la tablette ouverte, les tablettes brisées", () => {
+    const { etat } = monter();
+    expect(document.querySelector(".tas-brisees")).toBeNull();
+    etat.brisees = 2;
+    flushSync();
+    const tas = [...document.querySelectorAll("[data-test=brisee]")];
+    expect(tas).toHaveLength(2);
+    for (const tablette of tas) expect(tablette.querySelectorAll("path")).toHaveLength(3);
+    expect(texte(".brisees")).toBe("Tablettes brisées : 2");
+  });
+
+  it("dresse au bord droit le compte des crues, qui porte son nom, piqué de rouge aux échéances", () => {
+    const { actions, appliquer } = monter();
+    expect(document.querySelector("[data-test=compte]")!.getAttribute("aria-label")).toBe(
+      "Le compte des crues",
+    );
+    expect(texte(".compte .nom")).toBe("Le compte des crues");
+    expect(document.querySelectorAll("[data-test=a-venir]")).toHaveLength(20);
+    expect(document.querySelectorAll("[data-test=deposee]")).toHaveLength(25);
+    // Les deux mesures d'orge, à la 1ʳᵉ et à la 2ᵉ crue.
+    expect(document.querySelectorAll("[data-test=piqure]")).toHaveLength(2);
+    boutons("[data-sorte=orge]")[1]!.click();
+    expect(actions).toEqual([{ type: "promettre", promesse: "orge", terme: 6 }]);
+    appliquer();
+    expect(document.querySelectorAll("[data-crue='6'] [data-test=piqure]")).toHaveLength(1);
+  });
+
+  it("y dépose une couche à chaque crue : la bande descend d'un cran sous le présent", () => {
+    const { avancer } = monter();
+    const haut = () => document.querySelector("[data-test=deposee]")!.getAttribute("data-crue");
+    const place = (crue: number) =>
+      document.querySelector<SVGElement>(`[data-crue='${crue}']`)!.style.transform;
+    expect(haut()).toBe("0");
+    const avant = place(1);
+    avancer(CRUE);
+    expect(haut()).toBe("1");
+    expect(place(1)).not.toBe(avant);
+    expect(document.querySelectorAll("[data-test=piqure]")).toHaveLength(1);
+  });
+
+  it("y fait de la grande crue, une fois fixée, une couche épaisse", () => {
+    monter((etat) => {
+      etat.grandeCrue = 12;
+    });
+    const grande = document.querySelector(".couche.grande rect")!;
+    expect(grande.getAttribute("height")).toBe("24");
+    expect(document.querySelector(".couche.grande")!.getAttribute("data-crue")).toBe("12");
+  });
+
+  it("y arrête le compte à l'issue : la couche de l'issue reste la dernière déposée", () => {
+    const { etat } = monter((e) => {
+      e.issue = "defaut";
+      e.issueA = 10 * CRUE;
+      e.crues = 10;
+      e.temps = 10 * CRUE;
+    });
+    expect(document.querySelector("[data-test=couche-issue]")).not.toBeNull();
+    etat.crues = 25;
+    etat.temps = 25 * CRUE;
+    flushSync();
+    expect(document.querySelector("[data-test=deposee]")!.getAttribute("data-crue")).toBe("10");
+  });
+});
+
 describe("l'opacité (fiche, § 7)", () => {
   /** Rien que des glyphes de la dette, un par mot : jamais le disque plein, qui est son sceau. */
   const enGlyphes = new RegExp(`^[${strate.glyphes}]( [${strate.glyphes}])*$`, "u");
@@ -375,6 +491,8 @@ describe("la fin", () => {
       etat.issue = "defaut";
     });
     expect(texte(".fin")).toBe("Échu. Le reste demeure dû.");
+    // Le compte des crues s'est arrêté : la crue qui vient ne se compte plus.
+    expect(document.querySelector("[data-test=crue]")).toBeNull();
     expect(boutons(".echeance").every((b) => b.disabled)).toBe(true);
   });
 

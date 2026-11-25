@@ -151,7 +151,7 @@ describe("l'arrivée (§ 3)", () => {
     expect(etat.echeances.map((e) => e.numero)).toEqual([2]);
     expect(derniere(etat)).toEqual({
       cle: "livre.honore",
-      valeurs: { numero: 1, crue: 1, montant: 12 },
+      valeurs: { numero: 1, crue: 1, montant: 12, promesse: 0, quand: 1 },
     });
     // La confiance grandit de ce qui est honoré : 60 + 5 × 12.
     expect(etat.honore).toBe(12);
@@ -309,7 +309,10 @@ describe("la confiance après un report (§ 13, question 12)", () => {
     etat.caisse = 1_000;
     avancer(etat, 2 * CRUE);
     expect(etat.livre.slice(-2)).toEqual([
-      { cle: "livre.honore", valeurs: { numero: 1, crue: 3, montant: 118 } },
+      {
+        cle: "livre.honore",
+        valeurs: { numero: 1, crue: 3, montant: 118, promesse: 0, quand: 3 },
+      },
       // 5 × 100, et non 5 × 118 : le report n'a rien rendu à la confiance.
       { cle: "livre.confiance", valeurs: { montant: 500 } },
     ]);
@@ -360,7 +363,8 @@ describe("solder (§ 3)", () => {
     expect(etat.honore).toBe(16);
     expect(derniere(etat)).toEqual({
       cle: "livre.solde",
-      valeurs: { numero: 2, crue: 2, montant: 16 },
+      // Soldée avant sa crue : la ligne garde la crue où elle l'a été, pour l'échéancier (§ 6).
+      valeurs: { numero: 2, crue: 2, montant: 16, promesse: 0, quand: 0 },
     });
     // La caisse ne couvre plus la première : le geste est ignoré.
     etat.caisse = 10;

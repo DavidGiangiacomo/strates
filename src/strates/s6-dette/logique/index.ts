@@ -113,14 +113,24 @@ function lireEffets(etat: EtatDette, effets: EffetsActifs): void {
   etat.multiplicateurs.report = eveilles ? effets.multiplicateur("report") : 1;
 }
 
-/** L'échéance est honorée en entier : la confiance en grandit, et la valeur convertible. */
+/**
+ * L'échéance est honorée en entier : la confiance en grandit, et la valeur convertible. Sa ligne au
+ * livre garde sa promesse et la crue où elle a été honorée (`quand`) : l'échéancier la montre noire,
+ * « Honoré. », jusqu'à la crue suivante (fiche, § 6).
+ */
 function honorer(etat: EtatDette, e: Echeance, cle: string, compte: Compte | null): void {
   const avant = confiance(etat);
   etat.caisse = Math.max(0, etat.caisse - e.du);
   etat.honore += e.origine;
   etat.valeur += e.prix;
   etat.echeances.splice(etat.echeances.indexOf(e), 1);
-  ecrire(etat, cle, { numero: e.numero, crue: e.crue ?? etat.crues, montant: e.du });
+  ecrire(etat, cle, {
+    numero: e.numero,
+    crue: e.crue ?? etat.crues,
+    montant: e.du,
+    promesse: PROMESSES.indexOf(e.promesse),
+    quand: etat.crues,
+  });
   // Après un report, le livre dit ce que la confiance y gagne : le dû d'avant le report, et rien de
   // ce que le report a coûté (fiche, § 13, question 12).
   if (e.reports > 0) ecrire(etat, "livre.confiance", { montant: confiance(etat) - avant });
