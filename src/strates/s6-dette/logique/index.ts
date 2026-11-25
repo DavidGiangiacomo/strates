@@ -6,6 +6,7 @@
 // calcule ici : les échéances tombent à leur crue, sans plafond, et le rapport suit la règle commune,
 // sauf pendant la grande crue, où l'absence compte en entier (§ 10).
 import { EFFETS_NEUTRES } from "../../../noyau/logique/effets";
+import { avanceeFissure } from "../../../noyau/logique/filet";
 import type {
   ContexteTick,
   EffetsActifs,
@@ -412,6 +413,9 @@ export const logique: LogiqueStrate<EtatDette, ActionDette> = {
   // ne la déclenche pas : le joueur creuse quand il veut (§ 4).
   seuil: (etat) =>
     etat.issue === null ? { atteint: false } : { atteint: true, issue: etat.issue },
+  // Le filet, comme partout : cinq minutes après l'issue, une fissure part de sa ligne vers « creuser »
+  // (§ 4). L'absence compte : une dette tombée pendant deux jours la trouve déjà tracée au retour.
+  filet: (etat) => avanceeFissure(etat.temps, etat.issueA),
   valeurConvertible: (etat) => etat.valeur,
 
   graphe,

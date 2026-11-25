@@ -185,7 +185,7 @@ Le module est `src/strates/s6-dette/`. Il est inscrit au registre en développem
 - **Les gages** : les leviers `confiance` et `report` agissent dès que la première tablette est brisée (§ 8). L'éveil écrit au livre, les affichages, les raccourcis, les effets uniques et les noms d'en bas viendront avec [#90](https://github.com/DavidGiangiacomo/strates/issues/90).
 - **L'absence** saute d'une échéance à la suivante : entre deux, la caisse croît en ligne droite. Deux semaines se calculent d'un coup.
 - **Le livre** garde ses quarante dernières lignes ; la vue, un livre de comptes sobre en attendant [#89](https://github.com/DavidGiangiacomo/strates/issues/89), en montre dix.
-- **Restent à faire** : l'écran de fouille à deux issues et le filet ([#88](https://github.com/DavidGiangiacomo/strates/issues/88)), l'opacité et les actes ([#104](https://github.com/DavidGiangiacomo/strates/issues/104)), les objets ([#90](https://github.com/DavidGiangiacomo/strates/issues/90)), les textes ([#74](https://github.com/DavidGiangiacomo/strates/issues/74)), la direction artistique ([#89](https://github.com/DavidGiangiacomo/strates/issues/89)), le son ([#103](https://github.com/DavidGiangiacomo/strates/issues/103)), l'équilibrage ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)), et le test du prototype (§ 12).
+- **Restent à faire** : l'opacité et les actes ([#104](https://github.com/DavidGiangiacomo/strates/issues/104)), les objets ([#90](https://github.com/DavidGiangiacomo/strates/issues/90)), les textes ([#74](https://github.com/DavidGiangiacomo/strates/issues/74)), la direction artistique ([#89](https://github.com/DavidGiangiacomo/strates/issues/89)), le son ([#103](https://github.com/DavidGiangiacomo/strates/issues/103)), l'équilibrage ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)), et le test du prototype (§ 12).
 
 ## 4. Boucle moyenne et seuil de fouille
 
@@ -235,6 +235,12 @@ Le joueur naturel fait 118 promesses. Avant la dernière tablette, il en fait un
 - **Soldée** : il n'y a plus rien à promettre ni à payer. Le rapport continue, mais plus rien ne s'honore : rester ne rapporte rien (§ 9).
 - **En défaut** : tout s'arrête.
 - **Filet** : comme partout, si le joueur n'a pas creusé 5 minutes après le seuil, une fissure part de la ligne de la grande crue, traverse le livre et monte vers le bouton du bandeau (`src/noyau/logique/filet.ts`).
+- **Dans le code** ([#88](https://github.com/DavidGiangiacomo/strates/issues/88)) :
+  - l'issue va au journal dès qu'elle est connue, même pendant une absence. Le retour la dit, après ce qui est tombé, et le bouton « creuser » cesse de résister ;
+  - l'écran de fouille écrit l'issue au-dessus de la valeur, dans les mots du noyau, ceux de la coupe : « soldée » ou « en défaut » ;
+  - la fissure part de la dernière ligne du livre, celle de l'issue. La direction artistique la fera partir de la grande crue, dans le compte des crues ([#89](https://github.com/DavidGiangiacomo/strates/issues/89)) ;
+  - le délai de la fissure compte le temps de strate, absence comprise, comme partout : une dette tombée pendant l'absence la trouve déjà tracée au retour ;
+  - un test joue la descente jusqu'au lit pour chaque issue, et pour un défaut pendant l'absence (`tests/descente-dette.test.ts`). Le lit y garde les fosses de la dette : brisées si elle est soldée, entières en défaut.
 
 ### En simulation
 

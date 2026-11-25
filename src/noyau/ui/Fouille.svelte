@@ -44,7 +44,8 @@
   const inerte = $derived(occupe || sortie || referme);
 
   // À l'ouverture, le focus va sur la première case (§ 3, « Accessibilité »).
-  const cases: HTMLInputElement[] = [];
+  // Un tableau réactif : Svelte n'accepte `bind:this` que sur un état.
+  const cases: HTMLInputElement[] = $state([]);
   onMount(() => cases[0]?.focus());
 
   function changer(id: string): void {
@@ -69,6 +70,11 @@
 >
   <div class="page">
     <h2 id="fouille-strate" class="texte">{ecran.nom}</h2>
+
+    <!-- L'issue de la strate quittée, quand elle en a deux : au-dessus de la valeur, avec elle. -->
+    {#if ecran.issue}
+      <p class="issue texte" data-test="issue">{ecran.issue}</p>
+    {/if}
 
     <dl class="conversion" role="status">
       <div class="texte">
@@ -164,6 +170,11 @@
     font-size: 1rem;
     font-weight: 600;
     color: #f2f2f2;
+  }
+  .issue {
+    margin: 0 0 0.2rem;
+    color: #f2f2f2;
+    text-align: right;
   }
   .conversion {
     margin: 0 0 2rem;

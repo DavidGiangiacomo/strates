@@ -7,7 +7,9 @@
   // - À droite : les dernières lignes du livre.
   // Les montants s'écrivent en sceaux, et se disent en lettres aux lecteurs d'écran. Le rouge et le
   // noir ne disent rien seuls : « Dû », « Honoré », « Reporté » sont écrits. Tout se fait au clavier.
+  import { avanceeFissure } from "../../../noyau/logique/filet";
   import type { ProprietesVue } from "../../../noyau/logique/types";
+  import Fissure from "../../../noyau/ui/Fissure.svelte";
   import type { ActionDette, Echeance, EtatDette, IdPromesse, LigneLivre, Terme } from "../logique";
   import { crueOrdinale, enLettres, formaterSceaux, remplir, type Sens } from "../logique/notation";
   import {
@@ -37,6 +39,11 @@
 
   // Pendant la remontée, ou la dette finie, le livre se montre, et rien ne s'y fait.
   const actif = $derived(mode === "jeu" && etat.issue === null);
+  // Le filet (fiche, § 4) : si le joueur n'a pas creusé cinq minutes après l'issue, une fissure part de
+  // sa ligne, traverse le livre et monte vers « creuser ». La direction artistique la fera partir de
+  // la grande crue, dans le compte des crues (#89).
+  const fissure = $derived(avanceeFissure(etat.temps, etat.issueA));
+  let ligneIssue: HTMLElement | undefined = $state();
   const derniere = $derived(etat.tablette === TABLETTES);
   const du = $derived(doit(etat));
   const plafond = $derived(confiance(etat));
@@ -211,7 +218,10 @@
   </div>
 
   {#if etat.issue !== null}
-    <p class="fin" role="status">{o(`livre.${etat.issue}`)}</p>
+    <p class="fin" role="status" bind:this={ligneIssue}>{o(`livre.${etat.issue}`)}</p>
+  {/if}
+  {#if fissure > 0}
+    <Fissure depart={ligneIssue} avancee={fissure} />
   {/if}
 </section>
 

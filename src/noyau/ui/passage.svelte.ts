@@ -5,6 +5,7 @@
 import { inventaire, type FouilleOuverte, type ObjetInventaire } from "../logique/artefacts";
 import type { Noyau } from "../logique/noyau";
 import type { ApparenceValeur, NumeroStrate } from "../logique/types";
+import { texteIssue } from "./coupe";
 import { formaterBrut, formuleConversion, NOMS_STRATES, TEXTES_FOUILLE } from "./fouille";
 import type { SonNoyau } from "./sons";
 
@@ -83,6 +84,11 @@ export interface EcranFouille {
   apparence?: ApparenceValeur;
   /** La formule de la conversion, si la Compréhension la montre déjà (κ > 50). */
   formule?: string;
+  /**
+   * L'issue du seuil, quand la strate en a deux, dans les mots du noyau : « soldée » ou « en défaut ».
+   * Elle s'écrit au-dessus de la valeur (docs/strates/strate-6.md, § 9).
+   */
+  issue?: string;
 }
 
 /** Ce que le passage signale : au journal de session des playtests (#26), s'il est tenu. */
@@ -220,6 +226,7 @@ export class Passage {
       formater: strate.formaterValeur ?? formaterBrut,
       apparence: strate.apparenceValeur,
       formule: formuleConversion(this.kappa, libelle) ?? undefined,
+      issue: noyau.seuil.issue === undefined ? undefined : texteIssue(noyau.seuil.issue),
     };
     this.#d.sonner?.("pioche");
     this.#passer("pioche");

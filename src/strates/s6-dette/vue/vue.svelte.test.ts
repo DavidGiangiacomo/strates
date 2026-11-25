@@ -203,6 +203,21 @@ describe("la fin", () => {
     expect(boutons(".echeance").every((b) => b.disabled)).toBe(true);
   });
 
+  it("fait partir une fissure de la ligne de l'issue, cinq minutes après elle, sans texte", () => {
+    const { etat } = monter((e) => {
+      e.issue = "defaut";
+      e.issueA = 1_000;
+      e.temps = 1_000 + 299;
+    });
+    expect(document.querySelector("[data-test=fissure]")).toBeNull();
+    const texteAvant = document.body.textContent;
+    etat.temps = 1_000 + 360;
+    flushSync();
+    const trace = document.querySelector("[data-test=fissure] path");
+    expect(trace?.getAttribute("stroke-dashoffset")).toBe("0.5");
+    expect(document.body.textContent).toBe(texteAvant);
+  });
+
   it("pendant la remontée, se montre sans que rien ne s'y fasse", () => {
     const { actions } = monter(() => {}, "remontee");
     for (const b of boutons(".dette")) {
