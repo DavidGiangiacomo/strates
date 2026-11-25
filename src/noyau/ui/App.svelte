@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy, type Component } from "svelte";
+  import { creerDepart, demandeDepart, sansDepart } from "../../playtest/depart";
   import type { JournalSession } from "../../playtest/journal";
   import Journal from "../../playtest/Journal.svelte";
   import { demarrerGardeJournal, metaNavigateur, ouvrirJournal } from "../../playtest/plateforme";
@@ -156,8 +157,20 @@
       avis = "La dernière sauvegarde était illisible : la précédente a été reprise.";
     }
 
+    // Un départ de recette (#120) : « ?depart=lit-soldee » commence une partie neuve à l'arrivée dans
+    // le lit. Il ne remplace jamais une partie en cours, et l'adresse l'oublie aussitôt : un
+    // rechargement ne le refait pas.
+    const depart = demandeDepart(new URL(location.href));
+    if (depart) history.replaceState(history.state, "", sansDepart(new URL(location.href)));
+    if (depart && chargement.type === "ok") {
+      avis ??= "Une partie est déjà en cours : le lien de départ ne la remplace pas.";
+    }
     const etat =
-      chargement.type === "ok" ? chargement.etat : creerEtatNoyau(graineAleatoire(), maintenant());
+      chargement.type === "ok"
+        ? chargement.etat
+        : depart
+          ? creerDepart(depart, graineAleatoire(), maintenant())
+          : creerEtatNoyau(graineAleatoire(), maintenant());
     const registre = creerRegistre();
     const noyau = new Noyau(registre, etat);
     await noyau.demarrer(maintenant());

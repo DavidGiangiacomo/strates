@@ -1,7 +1,8 @@
-// L'analyse d'un journal : la surface, la fouille et les caves, sur un journal écrit à la main.
+// L'analyse d'un journal : la surface, la fouille et les caves, puis le lit de la recette (#120), sur
+// des journaux écrits à la main.
 // Les gestes sont vérifiés sur les joueurs automatiques dans tests/journal-joueurs.test.ts.
 import { describe, expect, it } from "vitest";
-import { analyser, resumer, tableau } from "./analyse";
+import { analyser, resumer, tableau, tableauLit } from "./analyse";
 import {
   FORMAT_JOURNAL,
   type DonneesJournal,
@@ -183,5 +184,130 @@ describe("l'analyse d'un journal", () => {
     const surface = journal([[0, 1, 0, { type: "debut", rechargement: false }]]);
     expect(analyser(surface).caves).toBeNull();
     expect(resumer(analyser(surface)).at(-1)).toBe("Caves : pas atteintes.");
+  });
+});
+
+describe("le lit, pour sa recette", () => {
+  const MIN = 60_000;
+  /** Le relevé du lit : le bassin, plein ou non. */
+  const lit = (plein: boolean) => ({
+    crues: 10,
+    niveau: 0,
+    depose: 70,
+    levee: null,
+    creuxPleins: 0,
+    plein,
+  });
+  // Une partie de recette : l'arrivée, une levée, un départ de deux heures, le retour, une heure de
+  // présence, puis une nuit pendant laquelle le bassin se remplit, et la descente au retour.
+  const PARTIE_LIT = journal([
+    [0, 7, 0, { type: "debut", rechargement: false }],
+    [0, 7, 0, { type: "trace", cle: "phrase.arrivee" }],
+    [60_000, 7, 60, { type: "action", action: { type: "fermer" }, n: 1, releve: lit(false) }],
+    [90_000, 7, 90, { type: "aide" }],
+    // Il part après 20 minutes, revient deux heures plus tard : un rechargement, puis l'absence.
+    [140 * MIN, 7, 140 * 60, { type: "debut", rechargement: true }],
+    [
+      140 * MIN,
+      7,
+      140 * 60,
+      {
+        type: "absence",
+        duree: 120 * 60,
+        comptee: 120 * 60,
+        politique: "propre",
+        releve: lit(false),
+      },
+    ],
+    [140 * MIN, 7, 140 * 60, { type: "trace", cle: "phrase.retour" }],
+    // Un onglet caché deux minutes : ce n'est pas un départ.
+    [
+      150 * MIN,
+      7,
+      150 * 60,
+      { type: "absence", duree: 120, comptee: 120, politique: "propre", releve: lit(false) },
+    ],
+    [
+      150 * MIN,
+      7,
+      150 * 60,
+      { type: "action", action: { type: "fermer" }, n: 2, releve: lit(false) },
+    ],
+    // La nuit : le bassin se remplit pendant l'absence ; au retour, la descente vient une crue après.
+    [800 * MIN, 7, 800 * 60, { type: "debut", rechargement: true }],
+    [800 * MIN, 7, 800 * 60, { type: "trace", cle: "bassin.plein" }],
+    [
+      800 * MIN,
+      7,
+      800 * 60,
+      {
+        type: "absence",
+        duree: 600 * 60,
+        comptee: 600 * 60,
+        politique: "propre",
+        releve: lit(true),
+      },
+    ],
+    [800 * MIN + 30_000, 7, 800 * 60 + 30, { type: "seuil" }],
+  ]);
+  const a = analyser(PARTIE_LIT);
+
+  it("compte les séances, les départs et la présence devant le lit", () => {
+    expect(a.lit).toMatchObject({
+      seances: 3,
+      departs: [120, 600],
+      avantPremierDepart: 20,
+      // 800,5 minutes du lit, moins 722 minutes d'absence.
+      presence: 78.5,
+      duree: 800.5,
+    });
+  });
+
+  it("compte les levées, l'aide, et les phrases du jeu dites", () => {
+    expect(a.lit).toMatchObject({
+      levees: 3,
+      aide: 1,
+      phrases: ["phrase.arrivee", "phrase.retour"],
+    });
+  });
+
+  it("dit si le bassin s'est rempli en présence ou pendant une absence, et quand vient le seuil", () => {
+    expect(a.lit).toMatchObject({ plein: 800, pleinEnPresence: false, seuil: 800.5 });
+    const presence = analyser(
+      journal([
+        [0, 7, 0, { type: "debut", rechargement: false }],
+        [5 * MIN, 7, 300, { type: "releve", releve: lit(false) }],
+        [130 * MIN, 7, 130 * 60, { type: "trace", cle: "bassin.plein" }],
+        [130 * MIN, 7, 130 * 60, { type: "releve", releve: lit(true) }],
+      ]),
+    );
+    expect(presence.lit).toMatchObject({
+      plein: 130,
+      pleinEnPresence: true,
+      seuil: null,
+      departs: [],
+    });
+    expect(presence.lit!.avantPremierDepart).toBeNull();
+  });
+
+  it("résume pour la fiche du testeur, sans la surface ni les caves, et fait un tableau", () => {
+    expect(resumer(a)).toEqual([
+      "Testeur T1 · Strates 0.0.0 · abc1234",
+      "Lit : 3 séance(s), 2 départ(s) (120 min, 600 min), le premier après 20 min ; 78.5 min devant le lit sur 800.5 min",
+      "Levées : 3 · aide ouverte 1 fois · phrases : phrase.arrivee, phrase.retour",
+      "Bassin plein : à 800 min, pendant une absence · seuil : à 800.5 min",
+    ]);
+    const lignes = tableauLit([
+      a,
+      analyser(journal([[0, 1, 0, { type: "debut", rechargement: false }]])),
+    ]).split("\n");
+    // Le journal sans lit n'a pas de ligne.
+    expect(lignes).toHaveLength(3);
+    expect(lignes[2]).toContain("| T1 | 3 | 2 | 20 min |");
+    expect(lignes[2]).toContain("| oui |");
+  });
+
+  it("n'existe pas dans un journal qui n'atteint pas le lit", () => {
+    expect(analyser(journal([[0, 1, 0, { type: "debut", rechargement: false }]])).lit).toBeNull();
   });
 });
