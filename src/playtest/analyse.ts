@@ -1,6 +1,8 @@
 // L'analyse d'un journal de session (docs/playtest-mvp.md, § 5 et § 9) : les gestes du protocole, la
 // compréhension dans les actes, et les temps de la descente. Elle ne remplit pas la fiche seule :
 // l'observateur y ajoute ce qui ne se lit pas dans le journal (les mots, la note, les signes).
+// Pour la recette du lit (docs/strates/strate-7-recette.md, § 5) : l'attente, les départs et les
+// retours, les gestes, les phrases du jeu et le bassin plein.
 // Ce module n'importe que des types : Node peut l'exécuter tel quel (analyser.mjs).
 import type { EvenementJournal, JournalExporte } from "./journal";
 import type { Releve } from "../noyau/logique/types";
@@ -58,7 +60,37 @@ export interface AnalyseSession {
     /** Les ouvertures de l'aide des caves. */
     aide: number;
   } | null;
+  lit: AnalyseLit | null;
 }
+
+/** Ce que le journal dit du lit (docs/strates/strate-7-recette.md, § 5). */
+export interface AnalyseLit {
+  /** Les ouvertures du jeu dans le lit, la première comprise. */
+  seances: number;
+  /** Les départs : les absences d'au moins cinq minutes, chacune en minutes, dans l'ordre. */
+  departs: number[];
+  /** Le temps passé devant le lit avant le premier départ, en minutes ; null s'il n'est jamais parti. */
+  avantPremierDepart: number | null;
+  /** Le temps passé devant le lit, en minutes : le temps du lit, moins les absences. */
+  presence: number;
+  /** Le temps du lit, absences comprises, en minutes. */
+  duree: number;
+  /** Les levées bâties ou déplacées. */
+  levees: number;
+  /** Les ouvertures de l'aide du lit. */
+  aide: number;
+  /** Les phrases du jeu dites, par leur clé, dans l'ordre. */
+  phrases: string[];
+  /** Le bassin plein, en minutes du lit ; null s'il ne l'est pas. */
+  plein: number | null;
+  /** Le joueur était-il là quand le bassin s'est rempli ? null s'il ne l'est pas. */
+  pleinEnPresence: boolean | null;
+  /** Le seuil : la descente qui vient seule, une crue après le bassin plein ou après le retour. */
+  seuil: number | null;
+}
+
+/** Une absence d'au moins cinq minutes : le joueur est parti, puis revenu. */
+const DEPART = 5 * 60;
 
 const MINUTE = 60;
 const achats = (r: Releve | null) =>
@@ -176,6 +208,36 @@ function analyserCaves(evenements: EvenementJournal[]): AnalyseSession["caves"] 
   };
 }
 
+function analyserLit(evenements: EvenementJournal[]): AnalyseLit | null {
+  const lit = evenements.filter((e) => e.s === 7);
+  if (lit.length === 0) return null;
+  const absences = lit.flatMap((e) => (e.type === "absence" ? [e] : []));
+  const departs = absences.filter((e) => e.duree >= DEPART);
+  const premier = departs[0];
+  const duree = Math.max(...lit.map((e) => e.j));
+  const absent = absences.reduce((s, e) => s + e.duree, 0);
+  // Le bassin plein se lit dans les relevés : le premier qui le dit plein vient-il d'un retour ?
+  const premierPlein = lit.find((e) => releveDe(e)?.plein === true);
+  const plein = lit.find((e) => e.type === "trace" && e.cle === "bassin.plein");
+  const seuil = lit.find((e) => e.type === "seuil");
+  const enMinutes = (s: number) => Math.round((s / MINUTE) * 10) / 10;
+  return {
+    seances: lit.filter((e) => e.type === "debut").length,
+    departs: departs.map((e) => enMinutes(e.duree)),
+    avantPremierDepart: premier ? enMinutes(Math.max(0, premier.j - premier.duree)) : null,
+    presence: enMinutes(Math.max(0, duree - absent)),
+    duree: enMinutes(duree),
+    levees: lit
+      .filter((e) => e.type === "action" && e.action.type === "fermer")
+      .reduce((n, e) => n + (e.type === "action" ? e.n : 0), 0),
+    aide: lit.filter((e) => e.type === "aide").length,
+    phrases: lit.flatMap((e) => (e.type === "trace" && e.cle.startsWith("phrase.") ? [e.cle] : [])),
+    plein: plein ? enMinutes(plein.j) : null,
+    pleinEnPresence: premierPlein ? premierPlein.type !== "absence" : null,
+    seuil: seuil ? enMinutes(seuil.j) : null,
+  };
+}
+
 /** Analyse un journal exporté. */
 export function analyser(journal: JournalExporte): AnalyseSession {
   const { meta, evenements } = journal;
@@ -185,6 +247,7 @@ export function analyser(journal: JournalExporte): AnalyseSession {
     surface: analyserSurface(evenements),
     fouille: analyserFouille(evenements),
     caves: analyserCaves(evenements),
+    lit: analyserLit(evenements),
   };
 }
 
@@ -199,9 +262,27 @@ const minutes = (s: number | null) =>
     ? "—"
     : `${Math.floor(s / MINUTE)} min ${String(Math.round(s % MINUTE)).padStart(2, "0")} s`;
 
+/** Les lignes du lit : ce que le journal en dit, pour la fiche du testeur (strate-7-recette.md, § 8). */
+function resumerLit(l: AnalyseLit): string[] {
+  const departs =
+    l.departs.length === 0
+      ? "aucun départ"
+      : `${l.departs.length} départ(s) (${l.departs.map((m) => `${m} min`).join(", ")}), le premier après ${l.avantPremierDepart} min`;
+  return [
+    `Lit : ${l.seances} séance(s), ${departs} ; ${l.presence} min devant le lit sur ${l.duree} min`,
+    `Levées : ${l.levees} · aide ouverte ${l.aide} fois · phrases : ${l.phrases.join(", ") || "aucune"}`,
+    `Bassin plein : ${l.plein === null ? "non" : `à ${l.plein} min, ${l.pleinEnPresence ? "en présence" : "pendant une absence"}`}` +
+      ` · seuil : ${l.seuil === null ? "non atteint" : `à ${l.seuil} min`}`,
+  ];
+}
+
 /** Les lignes « Depuis le journal » de la fiche d'observation (docs/playtest-mvp.md, § 8). */
 export function resumer(a: AnalyseSession): string[] {
   const lignes = [`Testeur ${a.testeur} · Strates ${a.version}`];
+  // Un journal de la recette du lit commence dans le lit : la surface et les caves n'y sont pas.
+  if (a.lit && a.surface.seuil === null && !a.fouille && !a.caves) {
+    return [...lignes, ...resumerLit(a.lit)];
+  }
   const s = a.surface;
   lignes.push(
     `Surface : seuil ${s.seuil === null ? "non atteint" : `à ${s.seuil} min`}` +
@@ -228,6 +309,7 @@ export function resumer(a: AnalyseSession): string[] {
   } else {
     lignes.push("Caves : pas atteintes.");
   }
+  if (a.lit) lignes.push(...resumerLit(a.lit));
   return lignes;
 }
 
@@ -263,6 +345,47 @@ export function tableau(analyses: AnalyseSession[]): string {
     a.caves ? minutes(a.caves.premierBilan) : "—",
     `${a.surface.aide} / ${a.caves ? a.caves.aide : "—"}`,
   ]);
+  return [
+    `| ${entetes.join(" | ")} |`,
+    `|${entetes.map(() => "---").join("|")}|`,
+    ...lignes.map((l) => `| ${l.join(" | ")} |`),
+  ].join("\n");
+}
+
+/** Une ligne par testeur du lit, en Markdown : pour le compte rendu de sa recette (strate-7-recette.md, § 9). */
+export function tableauLit(analyses: AnalyseSession[]): string {
+  const entetes = [
+    "Testeur",
+    "Séances",
+    "Départs",
+    "Premier départ",
+    "Présence",
+    "Durée",
+    "Levées",
+    "Aide",
+    "Retour dit",
+    "Bassin plein",
+    "Seuil",
+  ];
+  const lignes = analyses.flatMap((a) => {
+    const l = a.lit;
+    if (!l) return [];
+    return [
+      [
+        a.testeur,
+        String(l.seances),
+        String(l.departs.length),
+        l.avantPremierDepart === null ? "—" : `${l.avantPremierDepart} min`,
+        `${l.presence} min`,
+        `${l.duree} min`,
+        String(l.levees),
+        String(l.aide),
+        ouiNon(l.phrases.includes("phrase.retour")),
+        l.plein === null ? "—" : `${l.plein} min, ${l.pleinEnPresence ? "présent" : "absent"}`,
+        l.seuil === null ? "—" : `${l.seuil} min`,
+      ],
+    ];
+  });
   return [
     `| ${entetes.join(" | ")} |`,
     `|${entetes.map(() => "---").join("|")}|`,

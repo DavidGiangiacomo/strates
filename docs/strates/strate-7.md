@@ -455,6 +455,8 @@ Ce qui le fait tenir :
 
 **Recommandation** : à la recette ([#120](https://github.com/DavidGiangiacomo/strates/issues/120)), observer si les joueurs partent et reviennent, et ce qu'ils disent de l'attente. Le lit ne se juge pas sur une session continue de deux heures, mais sur le retour.
 
+**Le protocole est écrit** ([`strate-7-recette.md`](strate-7-recette.md)) : quatre testeurs, chez eux, arrivés dans le lit par un lien de départ, puis un entretien. Ses critères sont fixés d'avance : le retour, le repos, le geste et les traces de la dette.
+
 ## 13. Questions ouvertes
 
 1. **Le critère R5** (§ 12) : un jeu d'attente tient-il comme strate ? À juger au retour, pas à la session.

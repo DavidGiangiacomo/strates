@@ -1,0 +1,235 @@
+{
+  "format": 4,
+  "versionJeu": "0.0.0",
+  "partieCreeeLe": 1795553100000,
+  "reference": 1795602000000,
+  "noyau": {
+    "profondeur": 7,
+    "artefacts": [
+      "s1-equipe",
+      "s1-double-ecran",
+      "s1-serveur",
+      "s1-filiale",
+      "s1-turbine",
+      "s2-faucille",
+      "s2-calendrier",
+      "s2-registre",
+      "s2-meule",
+      "s3-loupe",
+      "s3-compte-tours",
+      "s3-etau",
+      "s3-volant",
+      "s4-carnet",
+      "s4-jauge",
+      "s4-vanne",
+      "s4-conduite",
+      "s5-souffle",
+      "s5-echo",
+      "s5-stalle",
+      "s5-silence",
+      "s6-stylet",
+      "s6-sceau",
+      "s6-poids",
+      "s6-bulle"
+    ],
+    "kappa": 60,
+    "meta": {
+      "journal": {
+        "strates": [
+          {
+            "strate": 1,
+            "arrivee": 1795553100000,
+            "tempsDeJeu": 4500,
+            "tempsHorsLigne": 0,
+            "aideConsultee": false,
+            "actes": [],
+            "leves": [],
+            "nommes": [],
+            "seuil": { "le": 1795557600000 },
+            "fouille": {
+              "points": 12,
+              "emportes": [
+                "s1-equipe",
+                "s1-double-ecran",
+                "s1-serveur",
+                "s1-filiale",
+                "s1-turbine"
+              ],
+              "abandonnes": []
+            },
+            "perturbations": []
+          },
+          {
+            "strate": 2,
+            "arrivee": 1795557600000,
+            "tempsDeJeu": 7200,
+            "tempsHorsLigne": 0,
+            "aideConsultee": false,
+            "actes": [],
+            "leves": [],
+            "nommes": ["s1-equipe", "s1-double-ecran", "s1-serveur", "s1-filiale", "s1-turbine"],
+            "seuil": { "le": 1795564800000 },
+            "fouille": {
+              "points": 8,
+              "emportes": ["s2-faucille", "s2-calendrier", "s2-registre", "s2-meule"],
+              "abandonnes": []
+            },
+            "perturbations": []
+          },
+          {
+            "strate": 3,
+            "arrivee": 1795564800000,
+            "tempsDeJeu": 9000,
+            "tempsHorsLigne": 0,
+            "aideConsultee": false,
+            "actes": [],
+            "leves": [],
+            "nommes": ["s2-faucille", "s2-calendrier", "s2-registre", "s2-meule"],
+            "seuil": { "le": 1795573800000 },
+            "fouille": {
+              "points": 16,
+              "emportes": ["s3-loupe", "s3-compte-tours", "s3-etau", "s3-volant"],
+              "abandonnes": []
+            },
+            "perturbations": []
+          },
+          {
+            "strate": 4,
+            "arrivee": 1795573800000,
+            "tempsDeJeu": 9000,
+            "tempsHorsLigne": 0,
+            "aideConsultee": false,
+            "actes": [],
+            "leves": [],
+            "nommes": ["s3-loupe", "s3-compte-tours", "s3-etau", "s3-volant"],
+            "seuil": { "le": 1795582800000 },
+            "fouille": {
+              "points": 21,
+              "emportes": ["s4-carnet", "s4-jauge", "s4-vanne", "s4-conduite"],
+              "abandonnes": []
+            },
+            "perturbations": []
+          },
+          {
+            "strate": 5,
+            "arrivee": 1795582800000,
+            "tempsDeJeu": 7200,
+            "tempsHorsLigne": 0,
+            "aideConsultee": false,
+            "actes": [],
+            "leves": [],
+            "nommes": ["s4-carnet", "s4-jauge", "s4-vanne", "s4-conduite"],
+            "seuil": { "le": 1795590000000 },
+            "fouille": {
+              "points": 14,
+              "emportes": ["s5-souffle", "s5-echo", "s5-stalle", "s5-silence"],
+              "abandonnes": []
+            },
+            "perturbations": []
+          },
+          {
+            "strate": 6,
+            "arrivee": 1795590000000,
+            "tempsDeJeu": 10800,
+            "tempsHorsLigne": 0,
+            "aideConsultee": false,
+            "actes": [],
+            "leves": [],
+            "nommes": ["s5-souffle", "s5-echo", "s5-stalle", "s5-silence"],
+            "seuil": { "le": 1795600800000, "issue": "soldee" },
+            "fouille": {
+              "points": 28,
+              "emportes": ["s6-stylet", "s6-sceau", "s6-poids", "s6-bulle"],
+              "abandonnes": []
+            },
+            "perturbations": []
+          },
+          {
+            "strate": 7,
+            "arrivee": 1795600800000,
+            "tempsDeJeu": 0,
+            "tempsHorsLigne": 1200,
+            "aideConsultee": false,
+            "actes": [],
+            "leves": ["crue", "couche", "mesures"],
+            "nommes": [],
+            "perturbations": []
+          }
+        ]
+      }
+    },
+    "graine": 20261125
+  },
+  "strates": {
+    "7": {
+      "version": 3,
+      "etat": {
+        "temps": 1200,
+        "crues": 40,
+        "niveau": 218.75,
+        "creux": [233.33333333333334, 0, 0, 0],
+        "levee": null,
+        "avantLEau": false,
+        "depose": 452.08333333333337,
+        "couches": [
+          { "crue": 1, "ou": 0, "epaisseur": 16.40625, "retenue": true },
+          { "crue": 2, "ou": 0, "epaisseur": 16.40625, "retenue": true },
+          { "crue": 3, "ou": 0, "epaisseur": 16.40625, "retenue": true },
+          { "crue": 4, "ou": 0, "epaisseur": 16.40625, "retenue": true },
+          { "crue": 5, "ou": 0, "epaisseur": 16.40625, "retenue": true },
+          { "crue": 6, "ou": 0, "epaisseur": 16.40625, "retenue": true },
+          { "crue": 7, "ou": 0, "epaisseur": 16.40625, "retenue": true },
+          { "crue": 8, "ou": 0, "epaisseur": 16.40625, "retenue": true },
+          { "crue": 9, "ou": 0, "epaisseur": 16.40625, "retenue": true },
+          { "crue": 10, "ou": 0, "epaisseur": 16.40625, "retenue": true },
+          { "crue": 11, "ou": 0, "epaisseur": 16.40625, "retenue": true },
+          { "crue": 12, "ou": 0, "epaisseur": 16.40625, "retenue": true },
+          { "crue": 13, "ou": 0, "epaisseur": 16.40625, "retenue": true },
+          { "crue": 14, "ou": 0, "epaisseur": 16.40625, "retenue": true },
+          { "crue": 15, "ou": 0, "epaisseur": 3.645833333333343, "retenue": true },
+          { "crue": 16, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 17, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 18, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 19, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 20, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 21, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 22, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 23, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 24, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 25, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 26, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 27, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 28, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 29, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 30, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 31, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 32, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 33, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 34, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 35, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 36, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 37, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 38, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 39, "ou": "bassin", "epaisseur": 8.75, "retenue": false },
+          { "crue": 40, "ou": "bassin", "epaisseur": 8.75, "retenue": false }
+        ],
+        "pleinA": null,
+        "descenteA": null,
+        "deplacements": 0,
+        "dites": [{ "cle": "phrase.arrivee", "a": 0 }],
+        "dette": "soldee",
+        "multiplicateurs": { "depot": 1.40625, "patience": 1.25 },
+        "objets": [
+          "s5-souffle",
+          "s5-echo",
+          "s5-stalle",
+          "s5-silence",
+          "s6-stylet",
+          "s6-sceau",
+          "s6-poids",
+          "s6-bulle"
+        ]
+      }
+    }
+  }
+}
