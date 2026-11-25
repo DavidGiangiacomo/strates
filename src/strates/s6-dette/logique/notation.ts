@@ -4,6 +4,9 @@
 // comptent en crues : « à la 42ᵉ crue ». Aucune autre strate n'écrit en sceaux ni ne date en crues
 // (I1). Pour les lecteurs d'écran, un montant se dit en entier, « cent vingt-cinq milliards » (§ 6).
 
+import { artefact } from "../../../noyau/logique/artefacts";
+import type { LigneLivre } from "./etat";
+
 /** Le sceau : un groupe de trois zéros, à la fin d'un montant. */
 export const SCEAU = "●";
 /** L'espace fine insécable, entre les groupes de chiffres et avant les sceaux. */
@@ -69,6 +72,24 @@ export function crueOrdinale(n: number): string {
 /** Remplit les `{cle}` d'un texte avec des valeurs déjà écrites. */
 export function remplir(texte: string, valeurs: Readonly<Record<string, string>>): string {
   return texte.replace(/\{(\w+)\}/g, (tout, cle: string) => valeurs[cle] ?? tout);
+}
+
+/**
+ * Une ligne du livre, écrite d'après son modèle : ses crues en ordinaux, ses montants par `montant`
+ * (en sceaux, ou en lettres pour les lecteurs d'écran), et l'objet qu'elle cite sous son nom d'en bas.
+ */
+export function ecrireLigne(
+  ligne: LigneLivre,
+  modele: string,
+  montant: (x: number) => string,
+): string {
+  const v = ligne.valeurs;
+  const valeurs: Record<string, string> = {};
+  if (v.crue !== undefined) valeurs.crue = crueOrdinale(v.crue);
+  if (v.montant !== undefined) valeurs.montant = montant(v.montant);
+  if (v.majoration !== undefined) valeurs.majoration = String(v.majoration).replace(".", ",");
+  if (ligne.objet !== undefined) valeurs.objet = artefact(ligne.objet)?.nomDEnBas ?? ligne.objet;
+  return remplir(modele, valeurs);
 }
 
 // ——— En lettres, pour les lecteurs d'écran. L'orthographe est la traditionnelle : des traits d'union

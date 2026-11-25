@@ -7,7 +7,6 @@
   // - À droite : les dernières lignes du livre.
   // Les montants s'écrivent en sceaux, et se disent en lettres aux lecteurs d'écran. Le rouge et le
   // noir ne disent rien seuls : « Dû », « Honoré », « Reporté » sont écrits. Tout se fait au clavier.
-  import { artefact } from "../../../noyau/logique/artefacts";
   import { avanceeFissure } from "../../../noyau/logique/filet";
   import type { ProprietesVue } from "../../../noyau/logique/types";
   import Fissure from "../../../noyau/ui/Fissure.svelte";
@@ -20,7 +19,14 @@
     type LigneLivre,
     type Terme,
   } from "../logique";
-  import { crueOrdinale, enLettres, formaterSceaux, remplir, type Sens } from "../logique/notation";
+  import {
+    crueOrdinale,
+    ecrireLigne,
+    enLettres,
+    formaterSceaux,
+    remplir,
+    type Sens,
+  } from "../logique/notation";
   import {
     caissePrevueAffichee,
     confiance,
@@ -39,7 +45,7 @@
     toutDu,
   } from "../logique/regles";
 
-  let { etat, agir, o, mode }: ProprietesVue<EtatDette, ActionDette> = $props();
+  let { etat, agir, noyau, o, mode }: ProprietesVue<EtatDette, ActionDette> = $props();
 
   /**
    * Les lignes du livre que la vue montre, les plus récentes en bas. Chacune garde sa clé, son numéro
@@ -116,32 +122,49 @@
         });
   }
 
-  /** Une ligne du livre, ses nombres écrits ou dits. */
-  function ligneLivre(l: LigneLivre, montant: (x: number) => string): string {
-    const v = l.valeurs;
-    const valeurs: Record<string, string> = {};
-    if (v.crue !== undefined) valeurs.crue = crueOrdinale(v.crue);
-    if (v.montant !== undefined) valeurs.montant = montant(v.montant);
-    if (v.majoration !== undefined) valeurs.majoration = String(v.majoration).replace(".", ",");
-    // Un objet d'en haut, sous le nom que lui donnent ceux d'en bas.
-    if (l.objet !== undefined) valeurs.objet = artefact(l.objet)?.nomDEnBas ?? l.objet;
-    return t(l.cle, valeurs);
-  }
+  /** Une ligne du livre, ses nombres écrits ou dits, et l'objet qu'elle cite sous son nom d'en bas. */
+  const ligneLivre = (l: LigneLivre, montant: (x: number) => string) =>
+    ecrireLigne(l, o(l.cle), montant);
 
   /** Ce qui s'écrit à l'encre rouge : ce qui est dû, reporté ou échu. */
   const rouge = (l: LigneLivre) => /reporte|echu|defaut|refus/.test(l.cle);
+
+  // L'aide (fiche, § 11) : les usages du livre, une page courte. L'ouvrir est noté, pour l'acte
+  // « sans aide » ; à l'ouverture, le focus va à la page, et Échap la referme.
+  const USAGES = ["promesse", "echeance", "report", "confiance", "tablettes", "sceaux"] as const;
+  let aideOuverte = $state(false);
+  let lienAide: HTMLButtonElement | undefined = $state();
+  let pageAide: HTMLElement | undefined = $state();
+  function ouvrirAide(): void {
+    aideOuverte = true;
+    noyau.ouvrirAide();
+  }
+  function refermerAide(): void {
+    aideOuverte = false;
+    lienAide?.focus();
+  }
+  $effect(() => {
+    if (aideOuverte) pageAide?.focus();
+  });
+  function touche(e: KeyboardEvent): void {
+    if (e.key === "Escape" && aideOuverte) refermerAide();
+  }
 </script>
+
+<svelte:window onkeydown={touche} />
 
 <section class="dette" aria-label={o("livre")}>
   <header class="haut">
     <p class="caisse">
-      <span class="libelle">{o("caisse")}</span>
+      <span class="libelle" title={o("infobulle.caisse")}>{o("caisse")}</span>
       <strong class="montant" aria-label={dit(etat.caisse, "bas")}
         >{ecrit(etat.caisse, "bas")}</strong
       >
-      <span class="rapport">{t("rapport", { montant: ecrit(parCrue) })}</span>
+      <span class="rapport" title={o("infobulle.rapport")}
+        >{t("rapport", { montant: ecrit(parCrue) })}</span
+      >
     </p>
-    <div class="confiance">
+    <div class="confiance" title={o("infobulle.confiance")}>
       <span class="libelle">{o("confiance")}</span>
       <span class="barre" aria-hidden="true">
         <span class="part" style:width="{Math.min(100, (du / plafond) * 100)}%"></span>
@@ -156,6 +179,16 @@
     <p class="crue" data-test="crue">
       {t("crue.prochaine", { crue: crueOrdinale(etat.crues + 1), secondes: String(secondes) })}
     </p>
+    <button
+      type="button"
+      class="lien-aide"
+      bind:this={lienAide}
+      disabled={mode !== "jeu"}
+      aria-expanded={aideOuverte}
+      aria-controls="aide-dette"
+      onclick={() => (aideOuverte ? refermerAide() : ouvrirAide())}
+      data-test="lien-aide">{o("aide")}</button
+    >
   </header>
 
   <div class="pages">
@@ -178,6 +211,7 @@
                 <button
                   type="button"
                   disabled={!actif}
+                  title={o("infobulle.terme")}
                   aria-label={`${o(`promesse.${s.id}`)}, ${bouton(prix, terme, dit)}`}
                   onclick={() => promettre(s.id, terme ?? 2)}
                 >
@@ -219,6 +253,7 @@
             <button
               type="button"
               disabled={!actif || !couvre(etat.caisse, e.du)}
+              title={o("infobulle.solder")}
               aria-label={`${o("solder")} : ${ligneDue(e, dit)}`}
               onclick={() => solder(e)}
             >
@@ -246,6 +281,8 @@
 
     <section class="livre" aria-labelledby="dette-livre">
       <h2 id="dette-livre">{o("livre")}</h2>
+      <!-- L'en-tête du livre, écrit dès l'arrivée et toujours lisible : la règle de l'absence. -->
+      <p class="entete" data-test="entree">{o("livre.entree")}</p>
       <ol aria-live="polite">
         {#each lignesLivre as l, i (etat.ecrites - lignesLivre.length + i)}
           <li class:rouge={rouge(l)} aria-label={ligneLivre(l, dit)}>{ligneLivre(l, ecrit)}</li>
@@ -259,6 +296,26 @@
   {/if}
   {#if fissure > 0}
     <Fissure depart={ligneIssue} avancee={fissure} />
+  {/if}
+  {#if aideOuverte}
+    <div
+      class="aide"
+      id="aide-dette"
+      bind:this={pageAide}
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="aide-titre"
+      data-test="aide"
+    >
+      <h2 id="aide-titre">{o("aide.titre")}</h2>
+      <dl>
+        {#each USAGES as usage (usage)}
+          <dt>{o(`aide.${usage}.titre`)}</dt>
+          <dd>{o(`aide.${usage}`)}</dd>
+        {/each}
+      </dl>
+      <button type="button" class="refermer" onclick={refermerAide}>{o("aide.fermer")}</button>
+    </div>
   {/if}
 </section>
 
@@ -426,5 +483,47 @@
   .fin {
     font-size: 22px;
     text-align: center;
+  }
+  /* L'en-tête du livre : une formule de première page, à l'encre noire, au-dessus des lignes. */
+  .entete {
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--trait);
+    font-style: italic;
+  }
+  /* L'aide : un lien discret au bout du haut du livre, puis une page posée sur le livre. */
+  .lien-aide {
+    margin-left: auto;
+    padding: 2px 4px;
+    border: none;
+    background: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .aide {
+    position: fixed;
+    inset: 48px 16px auto;
+    z-index: 6;
+    max-width: 40rem;
+    max-height: calc(100vh - 72px);
+    margin: 0 auto;
+    padding: 20px 24px;
+    overflow: auto;
+    border: 1px solid var(--encre);
+    background-color: var(--argile);
+    box-shadow: 0 6px 24px rgb(0 0 0 / 0.25);
+  }
+  .aide:focus {
+    outline: none;
+  }
+  .aide dl {
+    margin: 0 0 16px;
+  }
+  .aide dt {
+    margin-top: 10px;
+    font-weight: bold;
+  }
+  .aide dd {
+    margin: 2px 0 0;
   }
 </style>

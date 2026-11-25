@@ -449,6 +449,23 @@ Ce sont des **gages** (bible, § 6) : on les nomme par ce qu'ils valent ou ce qu
 - **Les noms d'en bas** : des gages (§ 8).
 - **Les traces pour le fond** (bible, § 5) : la ligne de l'issue, et le compte de ce qui a été honoré, en sceaux : « Honoré : 384 ●●●●●● ». Trois lignes au plus.
 
+### Dans le code ([#74](https://github.com/DavidGiangiacomo/strates/issues/74))
+
+*Choix tranchés le 25 novembre 2026, avec les textes :*
+- *les noms des promesses sont ceux du § 3, de « une mesure d'orge » à « toutes les crues » ;*
+- *l'aide constate les règles, et ce qu'elles permettent : elle montre la sortie d'un report sans la conseiller ;*
+- *la confiance s'écrit au livre après un report seulement ;*
+- *l'annonce de l'absence est l'en-tête du livre, toujours lisible.*
+
+Les textes sont dans `src/strates/s6-dette/textes.fr.ts`.
+- **L'en-tête du livre**, au-dessus de ses lignes, dès l'arrivée et à chaque retour : « Les échéances tombent à leur crue, qu'on soit là ou non. » Le livre commence vide.
+- **La confiance après un report** : sous l'échéance reportée, une fois honorée, « La confiance y gagne 500, sur le dû d'avant le report. » La règle se lit là où elle surprend.
+- **L'aide**, un lien discret au bout du haut du livre, ouvre « Usages du livre » : la promesse, l'échéance, le report, la confiance, les tablettes, les sceaux. Elle constate qu'une promesse rapporte avant de se payer, qu'une échéance se solde avant sa crue, et qu'un report se solde comme toute échéance : la sortie d'un report s'y lit sans conseil. L'ouvrir est noté pour l'acte « sans aide ».
+- **Les infobulles** disent ce que sont la caisse, le rapport, la confiance, un terme et « Solder », sans dire quoi en faire.
+- **Le rappel de reprise** (bible, § 10) : la dernière ligne du livre, puis la tablette ouverte (« Tablette 3 sur 5. »), la grande crue dès que la dernière tablette s'ouvre, ou la fin.
+- **Les traces** pour le fond : « Honoré. Plus rien n'est dû. » ou « Échu. Le reste demeure dû. », et « Honoré : {montant}. » Elles comptent dans le budget du fond.
+- **Le budget** : 509 mots écrits sur 850, hors formules et traces.
+
 ## 12. Critère R5
 
 Pourquoi la dette tient comme jeu autonome de deux heures :
@@ -470,12 +487,12 @@ Pourquoi la dette tient comme jeu autonome de deux heures :
 1. **L'attente de la grande crue** : un quart d'heure avec 23 promesses faites et rien à décider. Si c'est trop long, la dernière tablette peut revenir plus vite (8 crues → 6) ou être moins majorée.
 2. **La marge d'I5** : le joueur hésitant solde en 3 h 05, à dix minutes de la limite. Un vrai joueur, plus lent, pourrait la dépasser. C'est la première mesure de l'équilibrage ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)).
 3. **Le prix d'un défaut à la grande crue** : 24 points, ou 23, quand D-003 annonçait qu'un défaut en fin de strate ne coûterait que 3 points. Le poids de la dernière tablette se règle si le catalogue le demande.
-4. **Le piège du naïf** (§ 4) : arrêter de promettre après un report mène au défaut. L'aide doit dire comment sortir d'un report : promettre à terme long, solder dès que la caisse le permet. À défaut, les reports pourraient être plus doux dans les premières tablettes.
+4. **Le piège du naïf** (§ 4) : arrêter de promettre après un report mène au défaut. L'aide doit dire comment sortir d'un report : promettre à terme long, solder dès que la caisse le permet. À défaut, les reports pourraient être plus doux dans les premières tablettes. *Tranché le 25 novembre 2026 : l'aide constate les règles qui montrent la sortie, sans la conseiller (§ 11). Le test du prototype dira si cela suffit.*
 5. **L'absence pendant la grande crue** (§ 10) : l'exception proposée, à trancher. *Tranché le 25 novembre 2026 : l'absence compte en entier jusqu'à la grande crue.*
 6. **La précision des sceaux** : trois chiffres significatifs suffisent-ils pour comparer une caisse et une échéance presque égales ? L'affichage de la caisse prévue (§ 8) le règle pour qui a l'objet ; κ pourrait le donner aussi. *Réponse de la boucle ([#73](https://github.com/DavidGiangiacomo/strates/issues/73)) : la caisse s'écrit arrondie vers le bas, ce qu'on doit vers le haut. Une caisse qui s'écrit au-dessus d'une échéance la couvre toujours ; l'inverse peut tromper d'un chiffre, du côté prudent.*
 7. **Les termes** : le joueur naturel prend le terme long six fois sur dix. Faut-il le majorer davantage (× 1,8) pour équilibrer le choix ?
 8. **La dernière tablette, 24 promesses d'un coup** : un geste pour toutes les faire, sauf la dernière ?
-9. **Les noms des promesses** (§ 3) : à trancher avec les textes ([#74](https://github.com/DavidGiangiacomo/strates/issues/74)).
+9. **Les noms des promesses** (§ 3) : à trancher avec les textes ([#74](https://github.com/DavidGiangiacomo/strates/issues/74)). *Tranché le 25 novembre 2026 : ceux du § 3.*
 10. **La réception des objets** (§ 8) : fixée par le catalogue ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)), à coder par [#90](https://github.com/DavidGiangiacomo/strates/issues/90).
 11. **Le compte des crues et le lit** : les mêmes couches, vues d'en haut puis d'en bas. La fiche du lit ([#75](https://github.com/DavidGiangiacomo/strates/issues/75)) dira comment elles se répondent, et où la grande crue s'y voit. *Réponse de la [fiche du lit](strate-7.md), § 3 et § 6 : dans le lit, une crue toutes les trente secondes dépose une couche. La rive est faite de vieilles couches fines, avec une couche épaisse parmi elles, et la dette y a creusé ses fosses. À la 150ᵉ crue, la grande crue du lit en dépose une pareille.*
-12. **La confiance et les reports** (§ 3) : une échéance reportée, une fois honorée, rend sa confiance d'origine, mais rien de ce que ses reports ont coûté. Le livre doit le montrer, sans quoi la règle paraîtra arbitraire : peut-être en écrivant, sous « Honoré. », ce que la confiance y gagne.
+12. **La confiance et les reports** (§ 3) : une échéance reportée, une fois honorée, rend sa confiance d'origine, mais rien de ce que ses reports ont coûté. Le livre doit le montrer, sans quoi la règle paraîtra arbitraire : peut-être en écrivant, sous « Honoré. », ce que la confiance y gagne. *Tranché le 25 novembre 2026 : après un report seulement, sous l'échéance honorée (§ 11).*

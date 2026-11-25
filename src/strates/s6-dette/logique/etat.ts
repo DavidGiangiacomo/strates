@@ -109,9 +109,9 @@ export function etatInitial(): EtatDette {
     issue: null,
     issueA: null,
     reportees: 0,
-    // La première page du livre annonce la règle de l'absence (§ 10).
-    livre: [{ cle: "livre.entree", valeurs: {} }],
-    ecrites: 1,
+    // Le livre commence vide : son en-tête, toujours lisible, dit la règle de l'absence (§ 10).
+    livre: [],
+    ecrites: 0,
     multiplicateurs: { confiance: 1, report: 1 },
     objets: [],
   };

@@ -5,9 +5,10 @@ import { describe, expect, it } from "vitest";
 import { textes as surface } from "./s1-surface/textes.fr";
 import { textes as caves } from "./s2-caves/textes.fr";
 import { textes as atelier } from "./s3-atelier/textes.fr";
+import { textes as dette } from "./s6-dette/textes.fr";
 
 const mots = (texte: string) => texte.split(/\s+/).filter((m) => /\p{L}/u.test(m)).length;
-const rappels = [surface, caves, atelier].flatMap((textes) =>
+const rappels = [surface, caves, atelier, dette].flatMap((textes) =>
   Object.entries(textes).filter(([cle]) => cle.startsWith("rappel.")),
 );
 
