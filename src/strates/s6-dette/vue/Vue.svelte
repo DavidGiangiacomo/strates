@@ -45,7 +45,7 @@
     toutDu,
   } from "../logique/regles";
 
-  let { etat, agir, noyau, o, mode }: ProprietesVue<EtatDette, ActionDette> = $props();
+  let { etat, agir, noyau, o, lisible, mode }: ProprietesVue<EtatDette, ActionDette> = $props();
 
   /**
    * Les lignes du livre que la vue montre, les plus récentes en bas. Chacune garde sa clé, son numéro
@@ -123,8 +123,11 @@
   }
 
   /** Une ligne du livre, ses nombres écrits ou dits, et l'objet qu'elle cite sous son nom d'en bas. */
+  // Tant que le report est opaque, sa ligne dit « Reporté. », sans sa crue ni sa majoration (§ 7).
   const ligneLivre = (l: LigneLivre, montant: (x: number) => string) =>
-    ecrireLigne(l, o(l.cle), montant);
+    l.cle.startsWith("livre.reporte") && !lisible("report")
+      ? o("livre.reporte.opaque")
+      : ecrireLigne(l, o(l.cle), montant);
 
   /** Ce qui s'écrit à l'encre rouge : ce qui est dû, reporté ou échu. */
   const rouge = (l: LigneLivre) => /reporte|echu|defaut|refus/.test(l.cle);
@@ -169,12 +172,15 @@
       <span class="barre" aria-hidden="true">
         <span class="part" style:width="{Math.min(100, (du / plafond) * 100)}%"></span>
       </span>
-      <span
-        class="etat-confiance"
-        aria-label={t("confiance.etat", { du: dit(du, "haut"), confiance: dit(plafond, "bas") })}
-      >
-        {t("confiance.etat", { du: ecrit(du, "haut"), confiance: ecrit(plafond, "bas") })}
-      </span>
+      <!-- Tant qu'elle est opaque, la confiance est une barre sans échelle : sa valeur se tait (§ 7). -->
+      {#if lisible("confiance")}
+        <span
+          class="etat-confiance"
+          aria-label={t("confiance.etat", { du: dit(du, "haut"), confiance: dit(plafond, "bas") })}
+        >
+          {t("confiance.etat", { du: ecrit(du, "haut"), confiance: ecrit(plafond, "bas") })}
+        </span>
+      {/if}
     </div>
     <p class="crue" data-test="crue">
       {t("crue.prochaine", { crue: crueOrdinale(etat.crues + 1), secondes: String(secondes) })}
@@ -311,7 +317,10 @@
       <dl>
         {#each USAGES as usage (usage)}
           <dt>{o(`aide.${usage}.titre`)}</dt>
-          <dd>{o(`aide.${usage}`)}</dd>
+          <dd>
+            {o(`aide.${usage}`)}
+            {#if usage === "promesse"}{o("aide.majorations")}{/if}
+          </dd>
         {/each}
       </dl>
       <button type="button" class="refermer" onclick={refermerAide}>{o("aide.fermer")}</button>

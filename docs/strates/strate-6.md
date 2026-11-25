@@ -321,9 +321,9 @@ Le joueur arrive avec κ = 70 au mieux, et plutôt de 55 à 65 pour un jeu corre
 
 | Élément opaque | À l'arrivée | Levé par l'usage | Par un objet | Délai |
 |---|---|---|---|---|
-| les noms des promesses | des glyphes ; le prix et le rapport restent lisibles | la première promesse de chaque sorte | raccourci | oui |
-| la confiance | une barre sans échelle : on voit qu'elle se remplit, pas sa valeur | la première promesse refusée, ou la première tablette brisée | affichage | oui |
-| le report | « Reporté. », sans sa crue ni sa majoration | le premier report | raccourci | oui |
+| les noms des promesses | des glyphes ; le prix et le rapport restent lisibles | la première promesse de chaque sorte | raccourci : le doigt qui montre, le gage qui souffle | oui |
+| la confiance | une barre sans échelle : on voit qu'elle se remplit, pas sa valeur | la première promesse refusée, ou la première tablette brisée | raccourci : le gage qui souffle | oui |
+| le report | « Reporté. », sans sa crue ni sa majoration | la première échéance reportée qui retombe, deux crues plus tard | — | oui |
 | les majorations des termes | le montant dû est écrit, pas la majoration | la première promesse à 6 ou à 18 crues | — | oui |
 
 **Les actes de compréhension propres**, 9 points sur les 15 du barème ([`comprehension.md`](../comprehension.md), § 2) :
@@ -347,6 +347,31 @@ Le joueur arrive avec κ = 70 au mieux, et plutôt de 55 à 65 pour un jeu corre
 5. le report : ce qui reste × 1,25, deux crues plus tard ;
 6. la grande crue : la dernière promesse + 12 crues ; tout ce qui reste dû, d'un coup ;
 7. la valeur convertible : la somme des prix des promesses honorées.
+
+### Dans le code ([#104](https://github.com/DavidGiangiacomo/strates/issues/104))
+
+*Choix tranché le 25 novembre 2026 : les raccourcis agissent dès l'arrivée, comme le dit le catalogue, sans attendre l'éveil des gages à la première tablette brisée.*
+
+- **Dix-huit éléments opaques** : le nom de chacune des quinze sortes, la confiance, le report et les majorations.
+  - Les noms deviennent des glyphes partout où ils s'écrivent : la tablette, ses boutons et l'échéancier.
+  - La confiance garde sa barre, et tait « Dû : 28 sur 60 », comme ce qu'elle gagne après un report.
+  - Le report s'écrit « Reporté. » au livre, et l'aide le tait. Les majorations se taisent dans l'aide.
+  - Au graphe, la confiance, le report et le terme restent en glyphes, et leurs formules attendent qu'ils se lèvent.
+- **Le report se lève quand une échéance reportée retombe**, deux crues plus tard, et non au premier report : levé à l'instant où il s'écrit, il ne serait jamais opaque. Entre-temps, l'échéancier montre sa crue et son montant, comme pour toute échéance.
+- **Le tableau suit le catalogue** ([`artefacts.md`](../artefacts.md), § 8) : la confiance se lève par un raccourci, le gage qui souffle, et aucun objet ne lève le report.
+- **Les glyphes de la dette** sont ceux du noyau, sans le disque plein, qui est son sceau : un nom caché ne se lit pas comme un montant.
+- **Les actes se constatent à la grande crue honorée** :
+  - soldée, toujours ;
+  - sans un report, si aucune échéance de la strate n'a été reportée ;
+  - au plus juste, si la dernière promesse a fixé la grande crue avec moins de deux crues de rapport d'avance. L'avance se compte au rapport d'après cette promesse : c'est la caisse prévue à la grande crue, moins tout ce qui y tombe.
+  - Une dette en défaut n'a pas d'acte propre.
+- **Le délai** vaut 6 min 24 s à κ = 60. Le rappel de reprise ne vient qu'après une demi-heure d'absence, qui compte en entier : quand il écrit la dernière ligne du livre, tout est levé.
+- **Mesuré par les joueurs automatiques**, comme la fiche le prévoyait :
+  - le joueur naturel accomplit les trois actes ; « apprend » manque « sans un report » ; le réflexe, en défaut, n'en a aucun ;
+  - le joueur naturel gagne dans la dette 15 points sur 15 sans objet, et 12 avec ceux d'un jeu correct ;
+  - arrivé au mieux avec κ = 70, il descend au lit avec 85 s'il a laissé ses objets en haut, et 82 sinon. Comme ailleurs, ces chiffres sont un plafond : ces joueurs n'ouvrent jamais l'aide.
+- **Les textes** : « Reporté. », et les majorations des termes écrites à part dans l'aide, pour s'y taire seules. La dette écrit 513 mots sur 850.
+- **L'état passe en version 3** : la grande crue au plus juste. Une grande crue déjà fixée ne la vaut pas.
 
 ## 8. Artefacts reçus
 
@@ -404,7 +429,8 @@ Ce sont des **gages** (bible, § 6) : on les nomme par ce qu'ils valent ou ce qu
   - sur le tableau ci-dessus, la confiance seule, le joueur naturel est retrouvé à deux minutes près ;
   - le joueur réflexe ne tombe pas plus tôt avec plus de confiance : de 0 h 56 à 0 h 59, au lieu de 0 h 40 à 0 h 43. L'écart vient de son modèle de jeu, non de l'éveil ; l'équilibrage le reprendra ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)) ;
   - avec le report × 1,875 d'un jeu correct, le réflexe tient jusqu'à 1 h 22 et emporte 19 points, toujours en défaut : les gages ne rendent pas le crédit rentable.
-- **Restent ailleurs**, comme pour le lit : les raccourcis, avec l'opacité ([#104](https://github.com/DavidGiangiacomo/strates/issues/104)), et les effets uniques du gage qui chante et du battement sec ([#118](https://github.com/DavidGiangiacomo/strates/issues/118)).
+- **Les raccourcis** sont venus avec l'opacité ([#104](https://github.com/DavidGiangiacomo/strates/issues/104), § 7) : le doigt qui montre lève les noms des promesses dès l'arrivée, le gage qui souffle les noms et la confiance.
+- **Restent ailleurs**, comme pour le lit : les effets uniques du gage qui chante et du battement sec ([#118](https://github.com/DavidGiangiacomo/strates/issues/118)).
 
 ## 9. Valeur convertible
 
@@ -464,7 +490,7 @@ Les textes sont dans `src/strates/s6-dette/textes.fr.ts`.
 - **Les infobulles** disent ce que sont la caisse, le rapport, la confiance, un terme et « Solder », sans dire quoi en faire.
 - **Le rappel de reprise** (bible, § 10) : la dernière ligne du livre, puis la tablette ouverte (« Tablette 3 sur 5. »), la grande crue dès que la dernière tablette s'ouvre, ou la fin.
 - **Les traces** pour le fond : « Honoré. Plus rien n'est dû. » ou « Échu. Le reste demeure dû. », et « Honoré : {montant}. » Elles comptent dans le budget du fond.
-- **Le budget** : 509 mots écrits sur 850, hors formules et traces.
+- **Le budget** : 509 mots écrits sur 850, hors formules et traces. L'opacité en ajoute quatre ([#104](https://github.com/DavidGiangiacomo/strates/issues/104), § 7) : 513.
 
 ## 12. Critère R5
 

@@ -11,4 +11,6 @@ export const strate: DefinitionStrate<EtatDette, ActionDette> = {
   textes,
   // Ce qui a été honoré, en sceaux : « 384 ●●●●●● » (fiche, § 9).
   formaterValeur: (valeur) => formaterSceaux(valeur),
+  // Les glyphes des textes opaques : ceux du noyau, sans le disque plein, qui est le sceau de la dette.
+  glyphes: "◇◆○△▽□■◁▷",
 };

@@ -11,6 +11,7 @@ import { avanceeFissure } from "../../../noyau/logique/filet";
 import type {
   ContexteTick,
   EffetsActifs,
+  ElementOpaque,
   Formule,
   GrapheDependances,
   LogiqueStrate,
@@ -19,19 +20,24 @@ import { textes } from "../textes.fr";
 import { etatInitial, type Echeance, type EtatDette } from "./etat";
 import { crueOrdinale, ecrireLigne, formaterSceaux, remplir } from "./notation";
 import {
+  ACTES,
   arrondir,
+  AU_PLUS_JUSTE,
   confiance,
   couvre,
   CRUE,
+  DOIGT_QUI_MONTRE,
   doit,
   EPSILON,
   EPSILON_TEMPS,
   EXEMPLAIRES,
+  GAGE_QUI_SOUFFLE,
   GRANDE_CRUE_DANS,
   LIVRE_MAX,
   majorationReport,
   MAJORATION_REPORT,
   montantDu,
+  OPAQUES,
   PLAFOND_ABSENCE,
   prixExemplaire,
   promisesFaites,
@@ -95,8 +101,8 @@ function ecrire(
 /**
  * Les gages (§ 8) : les objets d'en haut qui agissent ici, et leurs multiplicateurs, la confiance × m
  * et la majoration d'un report divisée par √m. Ils s'éveillent quand la première tablette est
- * brisée : la première se joue sans objet, et le choc d'arrivée reste entier. Leurs raccourcis
- * viennent avec l'opacité (#104), leurs effets uniques avec #118.
+ * brisée : la première se joue sans objet, et le choc d'arrivée reste entier. Leurs raccourcis, eux,
+ * agissent dès l'arrivée, par l'opacité (`OPACITE`) ; leurs effets uniques viendront avec #118.
  */
 function lireEffets(etat: EtatDette, effets: EffetsActifs): void {
   const objets = D_EN_HAUT.filter((id) => effets.niveau(id) !== null);
@@ -182,8 +188,10 @@ function briser(etat: EtatDette, ctx: ContexteTick): void {
     etat.brisees = k;
     ecrire(etat, "livre.brisee", { tablette: k });
     ctx.emettre({ type: "trace", cle: "tablette.brisee", valeurs: { tablette: k } });
-    // La première tablette brisée, les gages s'éveillent : le livre les reconnaît, un par ligne.
+    // La première tablette brisée, les gages s'éveillent : le livre les reconnaît, un par ligne. La
+    // confiance, elle, se comprend : sa valeur se lève (§ 7).
     if (k === 1) {
+      ctx.emettre({ type: "levee", element: OPAQUES.confiance });
       for (const objet of etat.objets) {
         ecrire(etat, "livre.eveil", {}, objet);
         ctx.emettre({ type: "trace", cle: "gage.eveil", objet });
@@ -214,6 +222,11 @@ function tomberGrandeCrue(etat: EtatDette, ctx: ContexteTick, compte: Compte | n
   etat.issueA = etat.temps;
   ecrire(etat, "livre.soldee", { crue: etat.crues, montant: total });
   ctx.emettre({ type: "trace", cle: "dette.soldee", valeurs: { crue: etat.crues } });
+  // Les actes propres (§ 7) : soldée ; sans une échéance reportée de toute la strate ; et la grande
+  // crue fixée au plus juste, puis honorée.
+  ctx.emettre({ type: "acte", acte: ACTES.soldee });
+  if (etat.reportees === 0) ctx.emettre({ type: "acte", acte: ACTES.sansUnReport });
+  if (etat.auPlusJuste) ctx.emettre({ type: "acte", acte: ACTES.auPlusJuste });
 }
 
 /**
@@ -228,6 +241,8 @@ function passerCrue(etat: EtatDette, c: number, ctx: ContexteTick, compte: Compt
   }
   for (const e of etat.echeances.filter((x) => x.crue === c)) {
     compte?.avant?.(e.numero, etat.caisse);
+    // Une échéance reportée retombe : le report a été vu jusqu'au bout, et se lève (§ 7).
+    if (e.reports > 0) ctx.emettre({ type: "levee", element: OPAQUES.report });
     if (couvre(etat.caisse, e.du)) honorer(etat, e, "livre.honore", compte);
     else reporter(etat, e, c, ctx, compte);
     if (etat.issue !== null) return;
@@ -344,9 +359,14 @@ function promettre(etat: EtatDette, id: IdPromesse, terme: Terme, ctx: ContexteT
       ecrire(etat, "livre.refus", { promesse });
     }
     ctx.emettre({ type: "trace", cle: "promesse.refusee", valeurs: { promesse } });
+    // Le premier refus fait comprendre ce que vaut la confiance (§ 7).
+    ctx.emettre({ type: "levee", element: OPAQUES.confiance });
     return;
   }
   etat.promises[id] = n + 1;
+  // La première promesse d'une sorte lève son nom ; la première à 6 ou 18 crues, les majorations.
+  ctx.emettre({ type: "levee", element: OPAQUES.nom(id) });
+  if (!derniere && terme !== 2) ctx.emettre({ type: "levee", element: OPAQUES.majorations });
   etat.echeances.push({
     numero: promisesFaites(etat),
     promesse: id,
@@ -365,6 +385,12 @@ function promettre(etat: EtatDette, id: IdPromesse, terme: Terme, ctx: ContexteT
   // La grande crue : tout ce qui reste dû y tombe, même ce qui était dû plus tard.
   const grandeCrue = etat.crues + GRANDE_CRUE_DANS;
   etat.grandeCrue = grandeCrue;
+  // Au plus juste : la caisse prévue couvre la grande crue avec moins de deux crues de rapport
+  // d'avance (§ 7). Plus tôt, elle ne la couvre pas ; plus tard, le joueur a attendu pour rien.
+  const parCrue = rapport(etat);
+  const avance =
+    (etat.caisse + parCrue * (grandeCrue - etat.temps / CRUE) - toutDu(etat)) / parCrue;
+  etat.auPlusJuste = avance >= 0 && avance < AU_PLUS_JUSTE;
   for (const e of etat.echeances) e.crue = Math.min(e.crue ?? grandeCrue, grandeCrue);
   ecrire(etat, "livre.grandeCrue", { crue: grandeCrue });
   ctx.emettre({ type: "trace", cle: "grandeCrue.fixee", valeurs: { crue: grandeCrue } });
@@ -393,7 +419,8 @@ function ligneSeuil(etat: EtatDette): string {
 
 /**
  * Le rappel de reprise (bible, § 10) : la dernière ligne du livre, puis où en est le seuil, sauf si
- * cette ligne vient de le dire. Rien que le joueur n'ait déjà lu.
+ * cette ligne vient de le dire. Rien que le joueur n'ait déjà lu. Il l'écrit sans l'opacité : il ne
+ * vient qu'après une demi-heure d'absence, comptée en entier, et le délai de levée a tout levé.
  */
 function rappel(etat: EtatDette): string[] {
   const derniere = etat.livre.at(-1);
@@ -455,6 +482,29 @@ function graphe(): GrapheDependances {
   };
 }
 
+/**
+ * L'opacité (§ 7) : les noms des promesses, sorte par sorte ; la valeur de la confiance, montrée en
+ * barre sans échelle ; le report, écrit « Reporté. » sans sa crue ni sa majoration ; et les
+ * majorations des termes, quand le montant dû, lui, est toujours écrit. Le doigt qui montre lève les
+ * noms dès l'arrivée, le gage qui souffle les noms et la confiance. Le délai L(κ) les lève tous. La
+ * vue demande la confiance et le report (`lisible`) pour ce qu'elle tait ; les autres textes couverts
+ * deviennent des glyphes.
+ */
+const OPACITE: readonly ElementOpaque[] = [
+  ...PROMESSES.map((id) => ({
+    id: OPAQUES.nom(id),
+    cles: [`promesse.${id}`],
+    objets: [DOIGT_QUI_MONTRE, GAGE_QUI_SOUFFLE],
+  })),
+  {
+    id: OPAQUES.confiance,
+    cles: ["livre.confiance", "noeud.confiance"],
+    objets: [GAGE_QUI_SOUFFLE],
+  },
+  { id: OPAQUES.report, cles: ["aide.report", "noeud.report"] },
+  { id: OPAQUES.majorations, cles: ["aide.majorations", "noeud.terme"] },
+];
+
 /** Les formules réelles (§ 7), de la plus simple à la plus profonde. */
 function formules(): Formule[] {
   return ["promesse", "rapport", "terme", "confiance", "report", "grandeCrue", "honore"].map(
@@ -464,10 +514,12 @@ function formules(): Formule[] {
 
 export const logique: LogiqueStrate<EtatDette, ActionDette> = {
   numero: 6,
-  versionEtat: 2,
+  versionEtat: 3,
   migrations: {
     // Version 2 (#90) : les objets d'en haut qui agissent ici. Le premier tick les relit.
     1: (etat) => ({ ...(etat as object), objets: [] }),
+    // Version 3 (#104) : la grande crue au plus juste. Une grande crue déjà fixée ne la vaudra pas.
+    2: (etat) => ({ ...(etat as object), auPlusJuste: false }),
   },
   // Une crue : le pas est coupé à chaque crue.
   pasMax: CRUE,
@@ -522,6 +574,7 @@ export const logique: LogiqueStrate<EtatDette, ActionDette> = {
 
   graphe,
   formules,
+  opacite: OPACITE,
 
   // Les gages que la dette nomme, une fois éveillés : l'inventaire du noyau les montre sous leur nom
   // d'en bas, et ils le gardent plus bas (descente-1-2.md, § 6). Le noyau ne garde que ceux du joueur.

@@ -23,7 +23,7 @@ export type Bareme = Readonly<Record<NumeroStrate, Readonly<Record<string, numbe
 /**
  * Le barème de docs/comprehension.md, § 2. Les actes génériques sont constatés par le noyau ; les
  * autres, la strate les signale par un événement `{ type: "acte" }`. Les actes propres des strates 4
- * à 6 viendront avec leur code.
+ * et 5 viendront avec leur code.
  */
 export const BAREME: Bareme = {
   1: { [SANS_AIDE]: 3, [CREUSER_AVANT_FISSURE]: 5 },
@@ -42,7 +42,13 @@ export const BAREME: Bareme = {
   },
   4: { [SANS_AIDE]: 4, [SANS_ARTEFACT]: 3 },
   5: { [SANS_AIDE]: 4, [SANS_ARTEFACT]: 3 },
-  6: { [SANS_AIDE]: 3, [SANS_ARTEFACT]: 3 },
+  6: {
+    [SANS_AIDE]: 3,
+    [SANS_ARTEFACT]: 3,
+    soldee: 4,
+    "sans-un-report": 3,
+    "grande-crue-au-plus-juste": 2,
+  },
   7: {
     [SANS_AIDE]: 2,
     [SANS_ARTEFACT]: 3,

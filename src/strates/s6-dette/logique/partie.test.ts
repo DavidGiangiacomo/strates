@@ -1,7 +1,8 @@
 // La dette jouée à travers le noyau par les joueurs automatiques de la fiche (docs/strates/strate-6.md,
 // § 4) : le joueur naturel solde, le joueur réflexe tombe en défaut, celui qui apprend solde après
-// quelques reports. L'issue va au journal, et la descente devient possible sans partir d'elle-même.
-// Puis les absences de la fiche (§ 10), rattrapées par le noyau.
+// quelques reports. L'issue va au journal, avec les actes de compréhension (§ 7), et la descente
+// devient possible sans partir d'elle-même. Puis les absences de la fiche (§ 10), rattrapées par le
+// noyau.
 import { describe, expect, it } from "vitest";
 import {
   APPREND,
@@ -11,11 +12,12 @@ import {
   type ProfilDette,
 } from "../../../../sim/joueurs/dette";
 import { pointsDeFouille, preselection } from "../../../noyau/logique/artefacts";
+import { SANS_AIDE } from "../../../noyau/logique/comprehension";
 import { creerEtatNoyau } from "../../../noyau/logique/etat";
 import { Noyau } from "../../../noyau/logique/noyau";
 import { Registre, type StrateQuelconque } from "../../../noyau/logique/registre";
 import { logique, type EtatDette } from ".";
-import { LIVRE_ENTIER } from "./regles";
+import { ACTES, LIVRE_ENTIER } from "./regles";
 
 const MINUTE = 60;
 const HEURE = 3600;
@@ -75,6 +77,8 @@ describe("une partie de la dette", () => {
     expect(journal.seuil).toMatchObject({ issue: "soldee" });
     expect(noyau.seuil).toEqual({ atteint: true, issue: "soldee" });
     expect(noyau.demanderFouille()).toBe(true);
+    // Les trois actes propres, puis « sans aide », que le noyau constate au seuil.
+    expect(journal.actes).toEqual([ACTES.soldee, ACTES.sansUnReport, ACTES.auPlusJuste, SANS_AIDE]);
   });
 
   it("tombe en défaut vers 50 minutes pour le joueur réflexe, avec 12 points, après des dizaines de reports", async () => {
@@ -89,14 +93,18 @@ describe("une partie de la dette", () => {
     expect(journal.seuil).toMatchObject({ issue: "defaut" });
     expect(noyau.seuil.automatique).toBeUndefined();
     expect(noyau.demanderFouille()).toBe(true);
+    // Aucun acte propre : le défaut n'en vaut pas.
+    expect(journal.actes).toEqual([SANS_AIDE]);
   });
 
   it("se solde aussi pour celui qui apprend : ses promesses faites à l'aveugle se paient encore un moment", async () => {
-    const { etat } = await jouer(APPREND);
+    const { etat, journal } = await jouer(APPREND);
     expect(etat.issue).toBe("soldee");
     expect(etat.issueA!).toBeLessThan(I5);
     expect(etat.reportees).toBeGreaterThan(0);
     expect(etat.reportees).toBeLessThanOrEqual(10);
+    // Il manque « sans un report », et seulement lui.
+    expect(journal.actes).toEqual([ACTES.soldee, ACTES.auPlusJuste, SANS_AIDE]);
   });
 });
 

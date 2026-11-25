@@ -67,6 +67,8 @@ export const textes: Record<string, string> = {
   // d'avant le report (fiche, § 13, question 12).
   "livre.confiance": "La confiance y gagne {montant}, sur le dû d'avant le report.",
   "livre.reporte": "Reporté à la {crue} crue, majoré d'un quart : {montant}.",
+  // Tant que le report est opaque, sans sa crue ni sa majoration (§ 7).
+  "livre.reporte.opaque": "Reporté.",
   "livre.reporteAdouci": "Reporté à la {crue} crue, majoré de {majoration} % : {montant}.",
   "livre.echu": "Dû à la {crue} crue : {montant}. Échu.",
   "livre.refus": "La confiance ne suffit pas.",
@@ -98,7 +100,10 @@ export const textes: Record<string, string> = {
   "aide.fermer": "Refermer",
   "aide.promesse.titre": "La promesse",
   "aide.promesse":
-    "Une promesse rapporte à chaque crue, dès qu'elle est faite. Son prix tombe plus tard, à son terme : à 2 crues tel quel, à 6 crues majoré de 20 %, à 18 crues de 60 %. Chaque exemplaire coûte plus que le précédent.",
+    "Une promesse rapporte à chaque crue, dès qu'elle est faite. Son prix tombe plus tard, à son terme, et chaque exemplaire coûte plus que le précédent.",
+  // Les majorations, opaques jusqu'à la première promesse à 6 ou 18 crues (§ 7).
+  "aide.majorations":
+    "À 2 crues, le prix tel quel ; à 6 crues, majoré de 20 % ; à 18 crues, de 60 %.",
   "aide.echeance.titre": "L'échéance",
   "aide.echeance":
     "À sa crue, l'échéance se paie sur la caisse : « Honoré. » Avant sa crue, elle se solde au plein montant, si la caisse la couvre.",

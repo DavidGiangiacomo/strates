@@ -1,7 +1,7 @@
 // La dette avant sa dernière promesse (#73), pour les tests et les outils de développement : les quatre
 // premières tablettes promises, honorées et brisées, et la dernière toute promise sauf une, comme le
 // joueur naturel après deux heures et demie (docs/strates/strate-6.md, § 4). La caisse ne couvre pas
-// encore la grande crue : il faut attendre deux crues avant que la dernière promesse la couvre.
+// encore la grande crue : il faut attendre trois crues avant que la dernière promesse la couvre.
 import { etatInitial, type EtatDette } from "../strates/s6-dette/logique/etat";
 import {
   CRUE,

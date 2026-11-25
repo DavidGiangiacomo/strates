@@ -176,6 +176,33 @@ export function majorationReport(etat: Readonly<EtatDette>): number {
   return MAJORATION_REPORT / Math.sqrt(etat.multiplicateurs.report);
 }
 
+/** Le doigt qui montre : un raccourci, les noms des promesses levés dès l'arrivée (§ 8). */
+export const DOIGT_QUI_MONTRE = "s4-carnet";
+/** Le gage qui souffle : un raccourci, les noms des promesses et la valeur de la confiance (§ 8). */
+export const GAGE_QUI_SOUFFLE = "s5-souffle";
+
+/**
+ * Les éléments opaques à l'arrivée (§ 7) : le nom de chaque sorte de promesse, la valeur de la
+ * confiance, le report, et les majorations des termes. Rien de ce dont dépend le seuil n'est caché :
+ * les échéances, leurs crues et leurs montants, la caisse, le rapport, et le refus d'une promesse.
+ */
+export const OPAQUES = {
+  nom: (id: IdPromesse) => `nom.${id}`,
+  confiance: "confiance",
+  report: "report",
+  majorations: "majorations",
+} as const;
+
+/** Les actes de compréhension propres (§ 7), que le barème du noyau connaît. */
+export const ACTES = {
+  soldee: "soldee",
+  sansUnReport: "sans-un-report",
+  auPlusJuste: "grande-crue-au-plus-juste",
+} as const;
+
+/** La grande crue au plus juste : fixée avec moins de deux crues de rapport d'avance (§ 7). */
+export const AU_PLUS_JUSTE = 2;
+
 /** Le gage qui revient : la caisse prévue à chacune des prochaines échéances (§ 8). */
 export const GAGE_QUI_REVIENT = "s5-echo";
 /** Ce qui monte : la caisse prévue à la prochaine échéance seulement (§ 8). */
