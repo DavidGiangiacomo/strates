@@ -21,6 +21,7 @@
   import {
     atelierAvantLeSeuil,
     copierEtat,
+    detteAvantLaDernierePromesse,
     entreeCourante,
     lireArtefacts,
     modifierEtat,
@@ -297,6 +298,15 @@
               data-test="atelier-avant-le-seuil">atelier-avant-le-seuil</button
             >
             <small>la dernière pièce sur l'établi</small>
+          </li>
+        {/if}
+        {#if profondeurs.includes(6)}
+          <li>
+            <button
+              onclick={() => executer(() => remplacer(detteAvantLaDernierePromesse(copie())))}
+              data-test="dette-avant-la-derniere-promesse">dette-avant-la-derniere-promesse</button
+            >
+            <small>la grande crue à fixer</small>
           </li>
         {/if}
       </ul>

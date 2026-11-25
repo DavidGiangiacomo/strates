@@ -4,7 +4,9 @@ import type { EtatNoyau } from "../noyau/logique/etat";
 import { ecrireSauvegarde, lireSauvegarde } from "../noyau/logique/sauvegarde";
 import type { EntreeJournal, NumeroStrate } from "../noyau/logique/types";
 import { logique as logiqueAtelier } from "../strates/s3-atelier/logique";
+import { logique as logiqueDette } from "../strates/s6-dette/logique";
 import { atelierDernierePiece } from "./atelier";
+import { detteDernierePromesse } from "./dette";
 
 /** Une copie indépendante de l'état, passée par le format de sauvegarde : exactement ce qui s'écrirait. */
 export function copierEtat(etat: EtatNoyau, versionJeu: string): EtatNoyau {
@@ -37,6 +39,17 @@ export function sauterA(etat: EtatNoyau, n: NumeroStrate): EtatNoyau {
 export function atelierAvantLeSeuil(etat: EtatNoyau): EtatNoyau {
   sauterA(etat, 3);
   etat.strates[3] = { version: logiqueAtelier.versionEtat, etat: atelierDernierePiece() };
+  return etat;
+}
+
+/**
+ * Saute à la dette avant sa dernière promesse (modifie `etat`) : les quatre premières tablettes
+ * brisées, la dernière toute promise sauf une. La grande crue se joue en quelques minutes, au lieu de
+ * deux heures et demie de jeu.
+ */
+export function detteAvantLaDernierePromesse(etat: EtatNoyau): EtatNoyau {
+  sauterA(etat, 6);
+  etat.strates[6] = { version: logiqueDette.versionEtat, etat: detteDernierePromesse() };
   return etat;
 }
 
