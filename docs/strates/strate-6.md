@@ -1,6 +1,6 @@
 # Strate 6 — La dette
 
-*Fiche de design, issue [#64](https://github.com/DavidGiangiacomo/strates/issues/64). Écrite après la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)) et le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)). Les chiffres viennent d'une simulation grossière de onze profils de joueur (§ 4). La boucle est codée ([#73](https://github.com/DavidGiangiacomo/strates/issues/73), `src/strates/s6-dette/`), en développement seulement : ses joueurs automatiques retrouvent ces chiffres à deux minutes près. L'équilibrage les a repris avec le simulateur headless ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)) : les onze profils sont des joueurs automatiques, et leurs mesures sont dans [`strate-6-mesures.md`](strate-6-mesures.md).*
+*Fiche de design, issue [#64](https://github.com/DavidGiangiacomo/strates/issues/64). Écrite après la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)) et le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)). Les chiffres viennent d'une simulation grossière de onze profils de joueur (§ 4). La boucle est codée ([#73](https://github.com/DavidGiangiacomo/strates/issues/73), `src/strates/s6-dette/`), et publiée pour sa recette ([#113](https://github.com/DavidGiangiacomo/strates/issues/113)), où seul un lien de départ mène : ses joueurs automatiques retrouvent ces chiffres à deux minutes près. L'équilibrage les a repris avec le simulateur headless ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)) : les onze profils sont des joueurs automatiques, et leurs mesures sont dans [`strate-6-mesures.md`](strate-6-mesures.md).*
 
 *Choix tranchés le 17 octobre 2026 :*
 - *une promesse s'achète à terme : on l'obtient tout de suite, elle rapporte dès qu'elle est faite, et on la paie à la crue fixée. Plus le terme est loin, plus elle coûte ;*
@@ -175,7 +175,7 @@ type ActionDette =
 
 ### Dans le code ([#73](https://github.com/DavidGiangiacomo/strates/issues/73))
 
-Le module est `src/strates/s6-dette/`. Il est inscrit au registre en développement seulement, comme l'atelier : la version publiée ne change pas pendant la recette du lit. Les outils de développement y sautent, ou juste avant la dernière promesse (`dette-avant-la-derniere-promesse`).
+Le module est `src/strates/s6-dette/`. Il était d'abord inscrit au registre en développement seulement, comme l'atelier. Il est publié pour sa recette ([#113](https://github.com/DavidGiangiacomo/strates/issues/113)) : sans les strates 3 à 5, seul le lien de départ y mène (`?depart=dette`). Les outils de développement y sautent, ou juste avant la dernière promesse (`dette-avant-la-derniere-promesse`).
 - **Les montants** s'arrondissent à trois chiffres significatifs dès qu'ils s'écrivent au livre : le prix d'un exemplaire, ce qui est dû, calculé sur ce prix arrondi, et chaque report. Seule la caisse, qui croît au fil des secondes, ne l'est pas.
 - **L'affichage arrondit ce qu'on a vers le bas, et ce qu'on doit vers le haut** : une caisse qui s'écrit au-dessus d'une échéance la couvre toujours (§ 13, question 6).
 - **Une échéance échue** garde sa crue, et ce qui en reste dû, sans majoration : le report n'a pas lieu.
@@ -570,7 +570,7 @@ Pourquoi la dette tient comme jeu autonome de deux heures :
 3. Le quart d'heure avant la dernière promesse est-il tendu, ou vide ?
 4. Le défaut est-il vécu comme une issue acceptable ?
 
-*Le prototype est codé ([#73](https://github.com/DavidGiangiacomo/strates/issues/73)), en développement seulement. Le test se préparera quand la recette du lit le permettra : un lien de départ et un protocole court. L'issue reste ouverte jusque-là.*
+*Le prototype est codé ([#73](https://github.com/DavidGiangiacomo/strates/issues/73)). Le test se fait avec la recette de la dette ([#113](https://github.com/DavidGiangiacomo/strates/issues/113), [`strate-6-recette.md`](strate-6-recette.md)) : la dette est publiée, un lien de départ y mène, et ces quatre questions sont les siennes (§ 1). L'issue reste ouverte jusqu'à son compte rendu.*
 
 ## 13. Questions ouvertes
 
