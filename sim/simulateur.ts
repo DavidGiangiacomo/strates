@@ -6,10 +6,12 @@
 import type { NumeroStrate } from "../src/noyau/logique/types";
 import * as joueursAtelier from "./joueurs/atelier";
 import * as joueursCaves from "./joueurs/caves";
+import * as joueursDette from "./joueurs/dette";
 import * as joueursLit from "./joueurs/lit";
 import * as joueursSurface from "./joueurs/surface";
 import { mesurerAtelier } from "./mesures/atelier";
 import { mesurerCaves } from "./mesures/caves";
+import { mesurerDette } from "./mesures/dette";
 import { mesurerLit } from "./mesures/lit";
 import { mesurerSurface } from "./mesures/surface";
 
@@ -35,6 +37,22 @@ export const OBJETS_JEU_CORRECT_ATELIER = [
   "s2-calendrier",
   "s2-registre",
   "s2-meule",
+];
+
+/**
+ * Les objets d'un jeu correct qui agissent dans la dette : la présélection de 21 points dans le réseau,
+ * puis celle de 14 dans le chœur (docs/artefacts.md, § 8). Ceux d'avant n'y sont plus que des
+ * ornements ou des cailloux.
+ */
+export const OBJETS_JEU_CORRECT_DETTE = [
+  "s4-carnet",
+  "s4-jauge",
+  "s4-vanne",
+  "s4-conduite",
+  "s5-souffle",
+  "s5-echo",
+  "s5-stalle",
+  "s5-silence",
 ];
 
 /**
@@ -78,7 +96,7 @@ interface StrateSimulee {
   /** Ce qu'emporte un jeu correct jusqu'à elle. */
   jeuCorrect?: readonly string[];
   joueurs: Record<string, Joueur>;
-  /** Le joueur qui joue quand on n'en nomme aucun : « correct », sauf dans l'atelier et le lit. */
+  /** Le joueur qui joue quand on n'en nomme aucun : « correct », sauf dans l'atelier, la dette et le lit. */
   parDefaut?: string;
   jouer(joueur: string, options: { objets: string[]; limite: number }): Promise<Partie>;
 }
@@ -110,6 +128,8 @@ const JOUEURS_ATELIER = {
   desordonne: joueursAtelier.DESORDONNE,
   reflexe: joueursAtelier.REFLEXE,
 };
+
+const JOUEURS_DETTE = joueursDette.JOUEURS;
 
 const JOUEURS_LIT = {
   prevoyant: joueursLit.PREVOYANT,
@@ -198,6 +218,31 @@ export const STRATES: Record<string, StrateSimulee> = {
       return { seuil: m.seuil, valeur: m.cumul, points: m.points.auSeuil, details };
     },
   },
+  // Le seuil de la dette est son issue : soldée, ou en défaut. L'un comme l'autre rend la descente
+  // possible.
+  dette: {
+    numero: 6,
+    nom: "La dette",
+    unite: "honoré",
+    recoitDesObjets: true,
+    jeuCorrect: OBJETS_JEU_CORRECT_DETTE,
+    joueurs: JOUEURS_DETTE,
+    parDefaut: "naturel",
+    async jouer(joueur, { objets, limite }) {
+      const m = await mesurerDette(JOUEURS_DETTE[joueur]!, { limite, artefacts: objets });
+      const issue = { soldee: "soldée", defaut: "en défaut" } as const;
+      const details: [string, string][] = [
+        ["Issue", m.issue === null ? "aucune" : issue[m.issue]],
+        ["Tablette", `${m.tablette} sur 5`],
+        ["Promesses", String(m.promesses)],
+        ["Termes à 2, 6 et 18 crues", `${m.termes[2]}, ${m.termes[6]}, ${m.termes[18]}`],
+        ["Reports", String(m.reports)],
+        ["Compréhension gagnée", `${m.kappa} sur 15`],
+      ];
+      if (objets.length > 0) details.push(["Plafond × 4 atteint", m.plafonne ? "oui" : "non"]);
+      return { seuil: m.issueA, valeur: m.valeur, points: m.points, details };
+    },
+  },
   // Le lit n'a pas de seuil à franchir : la descente vient seule, une crue après le bassin plein.
   lit: {
     numero: 7,
@@ -224,7 +269,13 @@ export const STRATES: Record<string, StrateSimulee> = {
 };
 
 /** Les noms qu'on peut donner à une strate : son nom ou sa profondeur. */
-const ALIAS: Record<string, string> = { "1": "surface", "2": "caves", "3": "atelier", "7": "lit" };
+const ALIAS: Record<string, string> = {
+  "1": "surface",
+  "2": "caves",
+  "3": "atelier",
+  "6": "dette",
+  "7": "lit",
+};
 
 export interface Demande {
   strate: string;
@@ -240,8 +291,9 @@ export interface Demande {
 
 export const USAGE = `Usage : npm run simuler -- <strate> [joueur… | tous] [options]
 
-  strate        surface (ou 1), caves (ou 2), atelier (ou 3), lit (ou 7)
-  joueur        correct par défaut (naturel dans l'atelier, attentif dans le lit) ;
+  strate        surface (ou 1), caves (ou 2), atelier (ou 3), dette (ou 6), lit (ou 7)
+  joueur        correct par défaut (naturel dans l'atelier et la dette, attentif
+                dans le lit) ;
                 « tous » les joue tous
   --objets=…    les objets emportés d'en haut : jeu-correct, ou une liste
                 d'identifiants séparés par des virgules (s1-equipe,s1-turbine)
@@ -253,6 +305,7 @@ export const USAGE = `Usage : npm run simuler -- <strate> [joueur… | tous] [op
 Joueurs de la surface : ${Object.keys(JOUEURS_SURFACE).join(", ")}
 Joueurs des caves : ${Object.keys(JOUEURS_CAVES).join(", ")}
 Joueurs de l'atelier : ${Object.keys(JOUEURS_ATELIER).join(", ")}
+Joueurs de la dette : ${Object.keys(JOUEURS_DETTE).join(", ")}
 Joueurs du lit : ${Object.keys(JOUEURS_LIT).join(", ")}`;
 
 /** Lit la ligne de commande ; lève une erreur qui dit quoi corriger. */

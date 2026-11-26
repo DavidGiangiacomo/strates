@@ -10,7 +10,12 @@ Fait tourner la logique d'une strate sans rendu, sous Node ([#23](https://github
 - `mesures/atelier.ts` : les mesures d'une partie de l'atelier, avec ou sans artefacts (seuil, points, agrandissements du plan, dernier achat, attentes entre deux achats, achats par tranche de 10 minutes, gestes de la dernière ajustée, et les actes de compréhension avec le κ qu'ils rapportent). Elles alimentent `tests/equilibrage-atelier.test.ts` et le rapport [`docs/strates/strate-3-mesures.md`](../docs/strates/strate-3-mesures.md).
 - `joueurs/lit.ts` : des joueurs automatiques pour le lit ([#91](https://github.com/DavidGiangiacomo/strates/issues/91)) : le prévoyant, l'attentif, le distrait, et celui qui ne fait rien. À chaque passage, ils ferment le premier creux qui n'est pas plein, quand ils le voient sous l'eau, ou d'avance s'ils prévoient.
 - `mesures/lit.ts` : les mesures d'une partie du lit, jouée à l'horloge, avec ou sans artefacts, en continu ou avec des absences ([#116](https://github.com/DavidGiangiacomo/strates/issues/116)) : bassin plein, descente, temps de présence, levées, couches d'eau retenue, limon et points. Elles alimentent `tests/equilibrage-lit.test.ts` et le rapport [`docs/strates/strate-7-mesures.md`](../docs/strates/strate-7-mesures.md).
-- `joueurs/dette.ts` : des joueurs automatiques pour la dette ([#73](https://github.com/DavidGiangiacomo/strates/issues/73)). Le naturel promet ce que la caisse paiera, au terme le plus court qui tient ; le réflexe promet la moins chère dès que la confiance le permet ; celui qui apprend est réflexe jusqu'à son premier report. Ils servent aux tests de la boucle et au test des graphes, et retrouvent la fiche à deux minutes près : le naturel solde en 2 h 52, le réflexe tombe en défaut à 49 minutes. L'équilibrage les reprendra ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)).
+- `joueurs/dette.ts` : les onze joueurs automatiques de la dette ([#73](https://github.com/DavidGiangiacomo/strates/issues/73), [#105](https://github.com/DavidGiangiacomo/strates/issues/105)), ceux de la fiche :
+  - le naturel promet ce que la caisse paiera, au terme le plus court qui tient ; le parfait, le distrait et l'hésitant jouent comme lui ;
+  - l'optimiste et le téméraire comptent sur un rapport qui croît ;
+  - le réflexe promet la moins chère dès que la confiance le permet ; le naïf aussi, mais s'arrête tant qu'une échéance est reportée ; celui qui apprend est réflexe jusqu'à son premier report ;
+  - le gourmand prend toujours le terme long ; le prudent ne promet que ce que sa caisse couvre déjà.
+- `mesures/dette.ts` : les mesures d'une partie de la dette, jouée à l'horloge, avec ou sans artefacts, en continu ou avec des absences ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)). Elles comptent l'issue, l'ouverture des tablettes, la dernière promesse, les termes, les reports, la plus grande caisse, les points, et les actes de compréhension avec le κ qu'ils rapportent. Elles alimentent `tests/equilibrage-dette.test.ts` et le rapport [`docs/strates/strate-6-mesures.md`](../docs/strates/strate-6-mesures.md).
 
 ## La commande
 
@@ -23,12 +28,13 @@ npm run simuler -- caves correct --comparer     # sans objet, puis avec ceux d'u
 npm run simuler -- 2 reflexe --objets=s1-turbine,s1-equipe --limite=6
 npm run simuler -- caves tous --json            # les résultats en JSON
 npm run simuler -- atelier --comparer           # le joueur naturel, sans objet puis avec, et I5
+npm run simuler -- dette tous --comparer --limite=6  # les onze joueurs de la dette, sans objet puis avec
 npm run simuler -- lit tous --comparer          # les quatre joueurs du lit, sans objet puis avec
 ```
 
-- **La strate** se nomme par son nom ou par sa profondeur : `surface` ou `1`, `caves` ou `2`, `atelier` ou `3`, `lit` ou `7`.
-- **Le joueur** est le correct quand on n'en nomme aucun ; dans l'atelier, c'est le naturel, et dans le lit, l'attentif. Le lit n'a pas de seuil à franchir : le simulateur donne le moment de sa descente, une crue après le bassin plein.
-- **`--objets`** emporte des objets d'en haut : `jeu-correct`, ou une liste d'identifiants. Le jeu correct, c'est la présélection de 12 points à la surface : l'équipe, le double écran, le serveur, la filiale, la turbine. L'atelier y ajoute celle de 9 points dans les caves : la faucille, le calendrier, le registre, la meule. Dans le lit, ce sont les objets qui y agissent : la présélection de 14 points dans le chœur et celle de 28 dans la dette. La surface n'en reçoit aucun.
+- **La strate** se nomme par son nom ou par sa profondeur : `surface` ou `1`, `caves` ou `2`, `atelier` ou `3`, `dette` ou `6`, `lit` ou `7`.
+- **Le joueur** est le correct quand on n'en nomme aucun ; dans l'atelier et la dette, c'est le naturel, et dans le lit, l'attentif. Le seuil de la dette est son issue, soldée ou en défaut. Le lit n'a pas de seuil à franchir : le simulateur donne le moment de sa descente, une crue après le bassin plein.
+- **`--objets`** emporte des objets d'en haut : `jeu-correct`, ou une liste d'identifiants. Le jeu correct, c'est la présélection de 12 points à la surface : l'équipe, le double écran, le serveur, la filiale, la turbine. L'atelier y ajoute celle de 9 points dans les caves : la faucille, le calendrier, le registre, la meule. Dans la dette et dans le lit, ce sont les objets qui y agissent : pour la dette, la présélection de 21 points dans le réseau et celle de 14 dans le chœur ; pour le lit, celle de 14 points dans le chœur et celle de 28 dans la dette. La surface n'en reçoit aucun.
 - **`--comparer`** joue chaque partie deux fois, sans objet puis avec, et dit si I5 est tenu : le seuil en moins de 3 h 15 sans aucun artefact.
 - **`--limite`** borne la partie, en heures de jeu (4 par défaut) ; **`--json`** rend les résultats en JSON.
 - `sim/simulateur.ts` fait le travail, et `sim/simuler.mjs` le lance sous Node : Vite (`runnerImport`) charge le TypeScript et la logique des strates, sans rendu ni navigateur.

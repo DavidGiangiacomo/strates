@@ -29,6 +29,7 @@ Réglage unique du dépôt, déjà nécessaire au premier déploiement : *Settin
 | [`docs/strates/strate-5.md`](docs/strates/strate-5.md) | Fiche de design de la strate 5, le chœur |
 | [`docs/strates/strate-6.md`](docs/strates/strate-6.md) | Fiche de design de la strate 6, la dette |
 | [`docs/strates/strate-7.md`](docs/strates/strate-7.md) | Fiche de design de la strate 7, le lit |
+| [`docs/strates/strate-6-mesures.md`](docs/strates/strate-6-mesures.md) | Mesures d'équilibrage de la dette, générées par la CI |
 | [`docs/strates/strate-7-mesures.md`](docs/strates/strate-7-mesures.md) | Mesures d'équilibrage du lit, générées par la CI |
 | [`docs/strates/strate-7-recette.md`](docs/strates/strate-7-recette.md) | Protocole et critères de la recette R5 du lit, écrits avant la recette ; puis son compte rendu |
 | [`docs/strates/descente-1-2.md`](docs/strates/descente-1-2.md) | Storyboard du passage de la surface aux caves : fouille, choix des objets, descente, arrivée |

@@ -9,6 +9,7 @@ import {
   lireArguments,
   OBJETS_JEU_CORRECT,
   OBJETS_JEU_CORRECT_ATELIER,
+  OBJETS_JEU_CORRECT_DETTE,
   rediger,
   simuler,
   verdictI5,
@@ -49,6 +50,9 @@ describe("les arguments du simulateur", () => {
       "distrait",
       "sans-un-geste",
     ]);
+    // La dette joue le naturel quand on n'en nomme aucun, et a les onze joueurs de sa fiche.
+    expect(lireArguments(["6"])).toMatchObject({ strate: "dette", joueurs: ["naturel"] });
+    expect(lireArguments(["dette", "tous"]).joueurs).toHaveLength(11);
   });
 
   it("emportent les objets d'un jeu correct, ou ceux qu'on nomme", () => {
@@ -69,6 +73,9 @@ describe("les arguments du simulateur", () => {
       objets: OBJETS_JEU_CORRECT_ATELIER,
     });
     expect(OBJETS_JEU_CORRECT_ATELIER).toEqual([...OBJETS_JEU_CORRECT, ...preselection(9, 2)]);
+    // La dette reçoit ceux du réseau et du chœur.
+    expect(lireArguments(["dette", "--comparer"]).objets).toEqual(OBJETS_JEU_CORRECT_DETTE);
+    expect(OBJETS_JEU_CORRECT_DETTE).toEqual([...preselection(21, 4), ...preselection(14, 5)]);
   });
 
   it("jouent la surface une seule fois : aucun objet n'y arrive", () => {
@@ -139,6 +146,15 @@ describe("les parties simulées", () => {
     // une vallée plus grande, et deux fois plus de grain.
     expect(avec!.points).toBeGreaterThanOrEqual(sans.points);
     expect(avec!.valeur).toBeGreaterThan(2 * sans.valeur);
+  });
+
+  it("mesurent la dette : le naturel solde sous I5, plus vite avec les objets d'un jeu correct", async () => {
+    const [resultat] = await jouer(lireArguments(["dette", "--comparer"]));
+    const { sans, avec } = resultat!;
+    expect(sans.seuil!).toBeLessThan(LIMITE_I5);
+    expect(avec!.seuil!).toBeLessThan(sans.seuil!);
+    expect(sans.points).toBe(28);
+    expect(sans.details).toContainEqual(["Issue", "soldée"]);
   });
 
   it("jouent aussi le joueur naïf, qui achète toujours le moins cher", async () => {

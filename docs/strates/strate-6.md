@@ -1,6 +1,6 @@
 # Strate 6 — La dette
 
-*Fiche de design, issue [#64](https://github.com/DavidGiangiacomo/strates/issues/64). Écrite après la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)) et le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)). Les chiffres viennent d'une simulation grossière de onze profils de joueur (§ 4). La boucle est codée ([#73](https://github.com/DavidGiangiacomo/strates/issues/73), `src/strates/s6-dette/`), en développement seulement : ses joueurs automatiques retrouvent ces chiffres à deux minutes près. L'équilibrage les reprendra avec le simulateur headless ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)).*
+*Fiche de design, issue [#64](https://github.com/DavidGiangiacomo/strates/issues/64). Écrite après la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)) et le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)). Les chiffres viennent d'une simulation grossière de onze profils de joueur (§ 4). La boucle est codée ([#73](https://github.com/DavidGiangiacomo/strates/issues/73), `src/strates/s6-dette/`), en développement seulement : ses joueurs automatiques retrouvent ces chiffres à deux minutes près. L'équilibrage les a repris avec le simulateur headless ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)) : les onze profils sont des joueurs automatiques, et leurs mesures sont dans [`strate-6-mesures.md`](strate-6-mesures.md).*
 
 *Choix tranchés le 17 octobre 2026 :*
 - *une promesse s'achète à terme : on l'obtient tout de suite, elle rapporte dès qu'elle est faite, et on la paie à la crue fixée. Plus le terme est loin, plus elle coûte ;*
@@ -185,7 +185,7 @@ Le module est `src/strates/s6-dette/`. Il est inscrit au registre en développem
 - **Les gages** : les leviers `confiance` et `report` agissent dès que la première tablette est brisée (§ 8). Le reste de leurs effets est venu avec [#90](https://github.com/DavidGiangiacomo/strates/issues/90) (§ 8, « Dans le code »).
 - **L'absence** saute d'une échéance à la suivante : entre deux, la caisse croît en ligne droite. Deux semaines se calculent d'un coup.
 - **Le livre** garde ses quarante dernières lignes ; la vue, un livre de comptes sobre en attendant [#89](https://github.com/DavidGiangiacomo/strates/issues/89), en montre dix.
-- **Restent à faire** : l'opacité et les actes ([#104](https://github.com/DavidGiangiacomo/strates/issues/104)), les textes ([#74](https://github.com/DavidGiangiacomo/strates/issues/74)), la direction artistique ([#89](https://github.com/DavidGiangiacomo/strates/issues/89)), le son ([#103](https://github.com/DavidGiangiacomo/strates/issues/103)), l'équilibrage ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)), et le test du prototype (§ 12).
+- **Restaient à faire** : l'opacité et les actes ([#104](https://github.com/DavidGiangiacomo/strates/issues/104)), les textes ([#74](https://github.com/DavidGiangiacomo/strates/issues/74)), la direction artistique ([#89](https://github.com/DavidGiangiacomo/strates/issues/89)), le son ([#103](https://github.com/DavidGiangiacomo/strates/issues/103)) et l'équilibrage ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)), tous faits depuis ; reste le test du prototype (§ 12).
 
 ## 4. Boucle moyenne et seuil de fouille
 
@@ -270,6 +270,14 @@ Onze joueurs automatiques, sans aucun artefact. Le script est un brouillon en Py
   - le naturel solde en 2 h 52, avec 118 promesses et sans un report. Il ouvre la deuxième tablette à 19 minutes, la troisième à 52, la quatrième à 1 h 37 et la dernière à 2 h 31 ;
   - le réflexe tombe en défaut à 49 minutes, avec 12 points, après 55 reports ;
   - celui qui apprend solde en 2 h 54, après 6 reports.
+- **Avec l'équilibrage** ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)), les onze profils du brouillon sont des joueurs automatiques (`sim/joueurs/dette.ts`). Le rapport [`strate-6-mesures.md`](strate-6-mesures.md), tenu à jour par la CI, donne leurs parties, sans objet, avec ceux d'un jeu correct, et avec des absences :
+  - ceux qui regardent leurs échéances soldent : le parfait et le naturel en 2 h 52, l'hésitant en 2 h 58, le distrait en 3 h 00, celui qui apprend en 2 h 54. I5 tient, avec un quart d'heure de marge ;
+  - les autres tombent en défaut : le naïf à 46 minutes, le réflexe à 49, le téméraire à 2 h 14 dans la quatrième tablette ; l'optimiste et le gourmand à la grande crue, à 2 h 34 et 3 h 28, avec 23 points ;
+  - le prudent solde en 5 h 51 : deux fois plus long (I4) ;
+  - les montants montent à 6 × 10²⁰ dans la caisse, et le livre entier vaut 3,84 × 10²⁰ ;
+  - avec les objets d'un jeu correct, la confiance × 1,5 et le report × 1,875, sans le plafond (I2), le naturel solde en 2 h 34 ;
+  - parti une heure, une nuit, douze heures ou deux jours, le joueur qui regarde ses échéances revient sans défaut, puis solde.
+- **Rien n'a été changé aux règles** : les cibles tiennent. Les deux réglages que la fiche laissait ouverts sont mesurés au § 13 (questions 1, 2 et 7).
 
 ## 5. Le choc d'arrivée
 
@@ -466,7 +474,7 @@ Ce sont des **gages** (bible, § 6) : on les nomme par ce qu'ils valent ou ce qu
 | Seuil du joueur naturel | 2 h 54 | 2 h 51 | 2 h 46 | 2 h 36 | 2 h 28 | 2 h 10 |
 | Défaut du joueur réflexe | 0 h 51 | 0 h 43 | 0 h 41 | 0 h 40 | 0 h 58 | 0 h 48 |
 
-- **Un gage est un cadeau à double tranchant.** Plus de confiance, c'est plus de corde : le joueur réflexe tombe plus tôt avec × 1,5 qu'avec rien, à 40 minutes au lieu de 51.
+- **Un gage donne plus de corde.** Le brouillon de simulation faisait tomber le joueur réflexe plus tôt avec × 1,5 qu'avec rien, à 40 minutes au lieu de 51 : un cadeau à double tranchant. Le jeu codé fait l'inverse. Avec les objets d'un jeu correct, le réflexe tient jusqu'à 1 h 22 et emporte 19 points au lieu de 12, mais il tombe encore en défaut. *Tranché le 26 novembre 2026 ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)) : les gages aident tous les joueurs, sans rendre le crédit rentable.*
 - **Les gages ne rendent pas le crédit rentable.** Un joueur qui promet tout ce que la confiance permet, sans regarder ses échéances, puis joue la dernière tablette avec prudence, n'arrive jamais jusqu'à elle : à toutes les valeurs du tableau, il tombe comme le réflexe. C'est la règle de la confiance qui l'en empêche (§ 3). Un jeu plus hardi gagne un peu : le joueur qui compte sur un rapport qui croît de 8 % par crue, puis joue la dernière tablette avec prudence, solde en 2 h 13 avec × 1,5 sur la confiance et sur le report, 23 minutes avant le joueur naturel. Sans gage, il tombe dans la troisième tablette.
 - **Le levier `report`** ne sert qu'à qui reporte. Il ne raccourcit pas la strate du joueur naturel, qui ne reporte jamais ; il aide à se relever d'une erreur : au plafond, le joueur naïf tient jusqu'à 2 h 30, au lieu de 46 minutes. Il divise la majoration par √m, et non par m : à 6 %, au plafond, promettre à crédit redevenait rentable, et le joueur qui promet tout sans regarder soldait en 2 h 14.
 - **Durée** : avec les objets d'un jeu correct, une confiance entre × 1,25 et × 1,5, la strate dure de 2 h 36 à 2 h 46. Le catalogue donne × 1,5 : le grave qui dure et la caution de bois.
@@ -483,7 +491,7 @@ Ce sont des **gages** (bible, § 6) : on les nomme par ce qu'ils valent ou ce qu
 - **Mesures**, avec les joueurs automatiques :
   - avec les objets d'un jeu correct (la confiance × 1,5, le report × 1,875), le joueur naturel solde en 2 h 34 : la fiche annonçait 2 h 36 ;
   - sur le tableau ci-dessus, la confiance seule, le joueur naturel est retrouvé à deux minutes près ;
-  - le joueur réflexe ne tombe pas plus tôt avec plus de confiance : de 0 h 56 à 0 h 59, au lieu de 0 h 40 à 0 h 43. L'écart vient de son modèle de jeu, non de l'éveil ; l'équilibrage le reprendra ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)) ;
+  - le joueur réflexe ne tombe pas plus tôt avec plus de confiance : de 0 h 56 à 0 h 59, au lieu de 0 h 40 à 0 h 43. L'écart vient de son modèle de jeu, non de l'éveil ; l'équilibrage l'a mesuré, et accepté ([#105](https://github.com/DavidGiangiacomo/strates/issues/105), § 4) ;
   - avec le report × 1,875 d'un jeu correct, le réflexe tient jusqu'à 1 h 22 et emporte 19 points, toujours en défaut : les gages ne rendent pas le crédit rentable.
 - **Les raccourcis** sont venus avec l'opacité ([#104](https://github.com/DavidGiangiacomo/strates/issues/104), § 7) : le doigt qui montre lève les noms des promesses dès l'arrivée, le gage qui souffle les noms et la confiance.
 - **Restent ailleurs**, comme pour le lit : les effets uniques du gage qui chante et du battement sec ([#118](https://github.com/DavidGiangiacomo/strates/issues/118)).
@@ -566,13 +574,13 @@ Pourquoi la dette tient comme jeu autonome de deux heures :
 
 ## 13. Questions ouvertes
 
-1. **L'attente de la grande crue** : un quart d'heure avec 23 promesses faites et rien à décider. Si c'est trop long, la dernière tablette peut revenir plus vite (8 crues → 6) ou être moins majorée.
-2. **La marge d'I5** : le joueur hésitant solde en 3 h 05, à dix minutes de la limite. Un vrai joueur, plus lent, pourrait la dépasser. C'est la première mesure de l'équilibrage ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)).
+1. **L'attente de la grande crue** : un quart d'heure avec 23 promesses faites et rien à décider. Si c'est trop long, la dernière tablette peut revenir plus vite (8 crues → 6) ou être moins majorée. *Mesuré par l'équilibrage ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)) : revenir en 6 crues ramènerait l'attente à 10 minutes, et la strate à 2 h 47. Tranché le 26 novembre 2026 : on garde 8 crues et un quart d'heure, le moment où se joue « au plus juste ». Le playtest dira si l'attente pèse (§ 12, question 3).*
+2. **La marge d'I5** : le joueur hésitant solde en 3 h 05, à dix minutes de la limite. Un vrai joueur, plus lent, pourrait la dépasser. C'est la première mesure de l'équilibrage ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)). *Mesuré : avec la boucle codée, l'hésitant solde en 2 h 58 et le distrait, le plus lent, en 3 h 00. La marge est d'un quart d'heure.*
 3. **Le prix d'un défaut à la grande crue** : 24 points, ou 23, quand D-003 annonçait qu'un défaut en fin de strate ne coûterait que 3 points. Le poids de la dernière tablette se règle si le catalogue le demande.
 4. **Le piège du naïf** (§ 4) : arrêter de promettre après un report mène au défaut. L'aide doit dire comment sortir d'un report : promettre à terme long, solder dès que la caisse le permet. À défaut, les reports pourraient être plus doux dans les premières tablettes. *Tranché le 25 novembre 2026 : l'aide constate les règles qui montrent la sortie, sans la conseiller (§ 11). Le test du prototype dira si cela suffit.*
 5. **L'absence pendant la grande crue** (§ 10) : l'exception proposée, à trancher. *Tranché le 25 novembre 2026 : l'absence compte en entier jusqu'à la grande crue.*
 6. **La précision des sceaux** : trois chiffres significatifs suffisent-ils pour comparer une caisse et une échéance presque égales ? L'affichage de la caisse prévue (§ 8) le règle pour qui a l'objet ; κ pourrait le donner aussi. *Réponse de la boucle ([#73](https://github.com/DavidGiangiacomo/strates/issues/73)) : la caisse s'écrit arrondie vers le bas, ce qu'on doit vers le haut. Une caisse qui s'écrit au-dessus d'une échéance la couvre toujours ; l'inverse peut tromper d'un chiffre, du côté prudent.*
-7. **Les termes** : le joueur naturel prend le terme long six fois sur dix. Faut-il le majorer davantage (× 1,8) pour équilibrer le choix ?
+7. **Les termes** : le joueur naturel prend le terme long six fois sur dix. Faut-il le majorer davantage (× 1,8) pour équilibrer le choix ? *Mesuré par l'équilibrage ([#105](https://github.com/DavidGiangiacomo/strates/issues/105)) : à × 1,8, il le prend encore six fois sur dix, mais la strate s'allonge d'une vingtaine de minutes, et le distrait passe 3 h 15. Le terme long reste à × 1,6.*
 8. **La dernière tablette, 24 promesses d'un coup** : un geste pour toutes les faire, sauf la dernière ?
 9. **Les noms des promesses** (§ 3) : à trancher avec les textes ([#74](https://github.com/DavidGiangiacomo/strates/issues/74)). *Tranché le 25 novembre 2026 : ceux du § 3.*
 10. **La réception des objets** (§ 8) : fixée par le catalogue ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)), à coder par [#90](https://github.com/DavidGiangiacomo/strates/issues/90).
