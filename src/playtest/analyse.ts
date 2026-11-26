@@ -2,7 +2,9 @@
 // compréhension dans les actes, et les temps de la descente. Elle ne remplit pas la fiche seule :
 // l'observateur y ajoute ce qui ne se lit pas dans le journal (les mots, la note, les signes).
 // Pour la recette du lit (docs/strates/strate-7-recette.md, § 5) : l'attente, les départs et les
-// retours, les gestes, les phrases du jeu et le bassin plein.
+// retours, les gestes, les phrases du jeu et le bassin plein. Pour celle de la dette
+// (docs/strates/strate-6-recette.md, § 5) : les séances, les promesses et les refus, les reports, les
+// tablettes brisées, la grande crue et l'issue.
 // Ce module n'importe que des types : Node peut l'exécuter tel quel (analyser.mjs).
 import type { EvenementJournal, JournalExporte } from "./journal";
 import type { Releve } from "../noyau/logique/types";
@@ -60,7 +62,43 @@ export interface AnalyseSession {
     /** Les ouvertures de l'aide des caves. */
     aide: number;
   } | null;
+  dette: AnalyseDette | null;
   lit: AnalyseLit | null;
+}
+
+/** Ce que le journal dit de la dette (docs/strates/strate-6-recette.md, § 5). */
+export interface AnalyseDette {
+  /** Les ouvertures du jeu dans la dette, la première comprise. */
+  seances: number;
+  /** Les départs : les absences d'au moins cinq minutes, chacune en minutes, dans l'ordre. */
+  departs: number[];
+  /** Le temps passé devant la dette avant le premier départ, en minutes ; null s'il n'est jamais parti. */
+  avantPremierDepart: number | null;
+  /** Le temps passé devant la dette, en minutes : le temps de la dette, moins les absences. */
+  presence: number;
+  /** Le temps de la dette, absences comprises, en minutes. */
+  duree: number;
+  /** Les promesses tentées, refus compris, et les refus : « La confiance ne suffit pas. » */
+  promesses: number;
+  refus: number;
+  /** Les échéances soldées avant leur terme. */
+  soldes: number;
+  /** Les reports de toute la strate, et le premier, en minutes de la dette. */
+  reports: number;
+  premierReport: number | null;
+  /** Les tablettes brisées, chacune en minutes de la dette, dans l'ordre. */
+  tablettes: number[];
+  /** La dernière promesse, qui fixe la grande crue, en minutes ; null si elle n'est pas venue. */
+  grandeCrue: number | null;
+  /** L'issue, soldée ou en défaut, et quand, en minutes ; null si elle n'est pas venue. */
+  issue: "soldee" | "defaut" | null;
+  issueA: number | null;
+  /** Le joueur était-il là quand l'issue est venue ? null si elle n'est pas venue. */
+  issueEnPresence: boolean | null;
+  /** Les ouvertures de l'aide de la dette. */
+  aide: number;
+  /** A-t-il creusé après l'issue, au-delà de la recette ? */
+  creuse: boolean;
 }
 
 /** Ce que le journal dit du lit (docs/strates/strate-7-recette.md, § 5). */
@@ -208,6 +246,51 @@ function analyserCaves(evenements: EvenementJournal[]): AnalyseSession["caves"] 
   };
 }
 
+/** Un temps de jeu en minutes, au dixième. */
+const enMinutes = (s: number) => Math.round((s / MINUTE) * 10) / 10;
+
+function analyserDette(evenements: EvenementJournal[]): AnalyseDette | null {
+  const dette = evenements.filter((e) => e.s === 6);
+  if (dette.length === 0) return null;
+  const absences = dette.flatMap((e) => (e.type === "absence" ? [e] : []));
+  const departs = absences.filter((e) => e.duree >= DEPART);
+  const premier = departs[0];
+  const duree = Math.max(...dette.map((e) => e.j));
+  const absent = absences.reduce((s, e) => s + e.duree, 0);
+  const traces = (cle: string) => dette.filter((e) => e.type === "trace" && e.cle === cle);
+  const gestes = (type: string) =>
+    dette.reduce((n, e) => n + (e.type === "action" && e.action.type === type ? e.n : 0), 0);
+  const reports = traces("echeance.reportee");
+  const grandeCrue = traces("grandeCrue.fixee")[0];
+  const fin = dette.find(
+    (e) => e.type === "trace" && (e.cle === "dette.soldee" || e.cle === "dette.defaut"),
+  );
+  // L'issue se lit aussi dans les relevés : le premier qui la dit vient-il d'un retour ?
+  const premiereIssue = dette.find((e) => {
+    const issue = releveDe(e)?.issue;
+    return issue === "soldee" || issue === "defaut";
+  });
+  return {
+    seances: dette.filter((e) => e.type === "debut").length,
+    departs: departs.map((e) => enMinutes(e.duree)),
+    avantPremierDepart: premier ? enMinutes(Math.max(0, premier.j - premier.duree)) : null,
+    presence: enMinutes(Math.max(0, duree - absent)),
+    duree: enMinutes(duree),
+    promesses: gestes("promettre"),
+    refus: traces("promesse.refusee").length,
+    soldes: gestes("solder"),
+    reports: reports.length,
+    premierReport: reports[0] ? enMinutes(reports[0].j) : null,
+    tablettes: traces("tablette.brisee").map((e) => enMinutes(e.j)),
+    grandeCrue: grandeCrue ? enMinutes(grandeCrue.j) : null,
+    issue: fin?.type === "trace" ? (fin.cle === "dette.soldee" ? "soldee" : "defaut") : null,
+    issueA: fin ? enMinutes(fin.j) : null,
+    issueEnPresence: premiereIssue ? premiereIssue.type !== "absence" : null,
+    aide: dette.filter((e) => e.type === "aide").length,
+    creuse: dette.some((e) => e.type === "creuser" && e.reponse === "fouille"),
+  };
+}
+
 function analyserLit(evenements: EvenementJournal[]): AnalyseLit | null {
   const lit = evenements.filter((e) => e.s === 7);
   if (lit.length === 0) return null;
@@ -220,7 +303,6 @@ function analyserLit(evenements: EvenementJournal[]): AnalyseLit | null {
   const premierPlein = lit.find((e) => releveDe(e)?.plein === true);
   const plein = lit.find((e) => e.type === "trace" && e.cle === "bassin.plein");
   const seuil = lit.find((e) => e.type === "seuil");
-  const enMinutes = (s: number) => Math.round((s / MINUTE) * 10) / 10;
   return {
     seances: lit.filter((e) => e.type === "debut").length,
     departs: departs.map((e) => enMinutes(e.duree)),
@@ -247,6 +329,7 @@ export function analyser(journal: JournalExporte): AnalyseSession {
     surface: analyserSurface(evenements),
     fouille: analyserFouille(evenements),
     caves: analyserCaves(evenements),
+    dette: analyserDette(evenements),
     lit: analyserLit(evenements),
   };
 }
@@ -262,12 +345,29 @@ const minutes = (s: number | null) =>
     ? "—"
     : `${Math.floor(s / MINUTE)} min ${String(Math.round(s % MINUTE)).padStart(2, "0")} s`;
 
+/** Les départs d'une strate, et le premier : « 2 départ(s) (120 min, 600 min), le premier après 20 min ». */
+const departsEnMots = (departs: number[], avantPremier: number | null) =>
+  departs.length === 0
+    ? "aucun départ"
+    : `${departs.length} départ(s) (${departs.map((m) => `${m} min`).join(", ")}), le premier après ${avantPremier} min`;
+
+/** Les lignes de la dette : ce que le journal en dit, pour la fiche du testeur (strate-6-recette.md, § 8). */
+function resumerDette(d: AnalyseDette): string[] {
+  const issue =
+    d.issue === null
+      ? "pas d'issue"
+      : `${d.issue === "soldee" ? "soldée" : "en défaut"} à ${d.issueA} min, ${d.issueEnPresence ? "en présence" : "pendant une absence"}`;
+  return [
+    `Dette : ${d.seances} séance(s), ${departsEnMots(d.departs, d.avantPremierDepart)} ; ${d.presence} min devant la dette sur ${d.duree} min`,
+    `Promesses : ${d.promesses}, dont ${d.refus} refusée(s) · soldées avant terme : ${d.soldes} · aide ouverte ${d.aide} fois`,
+    `Reports : ${d.reports}${d.premierReport === null ? "" : `, le premier à ${d.premierReport} min`} · tablettes brisées : ${d.tablettes.length === 0 ? "aucune" : d.tablettes.map((m) => `${m} min`).join(", ")}`,
+    `Grande crue fixée : ${d.grandeCrue === null ? "non" : `à ${d.grandeCrue} min`} · issue : ${issue} · a creusé ensuite : ${ouiNon(d.creuse)}`,
+  ];
+}
+
 /** Les lignes du lit : ce que le journal en dit, pour la fiche du testeur (strate-7-recette.md, § 8). */
 function resumerLit(l: AnalyseLit): string[] {
-  const departs =
-    l.departs.length === 0
-      ? "aucun départ"
-      : `${l.departs.length} départ(s) (${l.departs.map((m) => `${m} min`).join(", ")}), le premier après ${l.avantPremierDepart} min`;
+  const departs = departsEnMots(l.departs, l.avantPremierDepart);
   return [
     `Lit : ${l.seances} séance(s), ${departs} ; ${l.presence} min devant le lit sur ${l.duree} min`,
     `Levées : ${l.levees} · aide ouverte ${l.aide} fois · phrases : ${l.phrases.join(", ") || "aucune"}`,
@@ -276,12 +376,23 @@ function resumerLit(l: AnalyseLit): string[] {
   ];
 }
 
+/**
+ * Un journal de recette commence dans une strate profonde, par un lien de départ : la surface et les
+ * caves n'y sont pas, et la dette ou le lit y sont.
+ */
+export function estRecette(a: AnalyseSession): boolean {
+  return a.surface.seuil === null && !a.caves && (a.dette !== null || a.lit !== null);
+}
+
 /** Les lignes « Depuis le journal » de la fiche d'observation (docs/playtest-mvp.md, § 8). */
 export function resumer(a: AnalyseSession): string[] {
   const lignes = [`Testeur ${a.testeur} · Strates ${a.version}`];
-  // Un journal de la recette du lit commence dans le lit : la surface et les caves n'y sont pas.
-  if (a.lit && a.surface.seuil === null && !a.fouille && !a.caves) {
-    return [...lignes, ...resumerLit(a.lit)];
+  if (estRecette(a)) {
+    return [
+      ...lignes,
+      ...(a.dette ? resumerDette(a.dette) : []),
+      ...(a.lit ? resumerLit(a.lit) : []),
+    ];
   }
   const s = a.surface;
   lignes.push(
@@ -345,6 +456,55 @@ export function tableau(analyses: AnalyseSession[]): string {
     a.caves ? minutes(a.caves.premierBilan) : "—",
     `${a.surface.aide} / ${a.caves ? a.caves.aide : "—"}`,
   ]);
+  return [
+    `| ${entetes.join(" | ")} |`,
+    `|${entetes.map(() => "---").join("|")}|`,
+    ...lignes.map((l) => `| ${l.join(" | ")} |`),
+  ].join("\n");
+}
+
+/** Une ligne par testeur de la dette, en Markdown : pour le compte rendu de sa recette (strate-6-recette.md, § 10). */
+export function tableauDette(analyses: AnalyseSession[]): string {
+  const entetes = [
+    "Testeur",
+    "Séances",
+    "Départs",
+    "Présence",
+    "Durée",
+    "Promesses",
+    "Refus",
+    "Soldées",
+    "Reports",
+    "Premier report",
+    "Tablettes brisées",
+    "Grande crue",
+    "Issue",
+    "Aide",
+  ];
+  const lignes = analyses.flatMap((a) => {
+    const d = a.dette;
+    if (!d) return [];
+    return [
+      [
+        a.testeur,
+        String(d.seances),
+        String(d.departs.length),
+        `${d.presence} min`,
+        `${d.duree} min`,
+        String(d.promesses),
+        String(d.refus),
+        String(d.soldes),
+        String(d.reports),
+        d.premierReport === null ? "—" : `${d.premierReport} min`,
+        String(d.tablettes.length),
+        d.grandeCrue === null ? "—" : `${d.grandeCrue} min`,
+        d.issue === null
+          ? "—"
+          : `${d.issue === "soldee" ? "soldée" : "en défaut"}, ${d.issueA} min${d.issueEnPresence ? "" : ", absent"}`,
+        String(d.aide),
+      ],
+    ];
+  });
   return [
     `| ${entetes.join(" | ")} |`,
     `|${entetes.map(() => "---").join("|")}|`,

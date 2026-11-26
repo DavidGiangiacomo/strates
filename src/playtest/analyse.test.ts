@@ -1,8 +1,8 @@
-// L'analyse d'un journal : la surface, la fouille et les caves, puis le lit de la recette (#120), sur
-// des journaux écrits à la main.
+// L'analyse d'un journal : la surface, la fouille et les caves, puis la dette et le lit de leurs
+// recettes (#113, #120), sur des journaux écrits à la main.
 // Les gestes sont vérifiés sur les joueurs automatiques dans tests/journal-joueurs.test.ts.
 import { describe, expect, it } from "vitest";
-import { analyser, resumer, tableau, tableauLit } from "./analyse";
+import { analyser, estRecette, resumer, tableau, tableauDette, tableauLit } from "./analyse";
 import {
   FORMAT_JOURNAL,
   type DonneesJournal,
@@ -184,6 +184,132 @@ describe("l'analyse d'un journal", () => {
     const surface = journal([[0, 1, 0, { type: "debut", rechargement: false }]]);
     expect(analyser(surface).caves).toBeNull();
     expect(resumer(analyser(surface)).at(-1)).toBe("Caves : pas atteintes.");
+  });
+});
+
+describe("la dette, pour sa recette", () => {
+  const MIN = 60_000;
+  /** Le relevé de la dette : son issue, ou rien encore. */
+  const dette = (issue: "soldee" | "defaut" | null) => ({ crues: 10, caisse: 30, issue });
+  const promettre = { type: "promettre", promesse: "orge", terme: 2 };
+  const solder = { type: "solder", echeance: 2 };
+  // Une partie de recette : des promesses, un refus, un solde, deux reports, la première tablette
+  // brisée, l'aide ; un départ de deux heures ; la grande crue fixée ; puis une nuit pendant laquelle
+  // la grande crue tombe, soldée, et le joueur qui creuse au retour.
+  const PARTIE_DETTE = journal([
+    [0, 6, 0, { type: "debut", rechargement: false }],
+    [10_000, 6, 10, { type: "action", action: promettre, n: 1, releve: dette(null) }],
+    [20_000, 6, 20, { type: "trace", cle: "promesse.refusee", valeurs: { promesse: 0 } }],
+    [30_000, 6, 30, { type: "action", action: promettre, n: 2, releve: dette(null) }],
+    [40_000, 6, 40, { type: "action", action: solder, n: 1, releve: dette(null) }],
+    [9 * MIN, 6, 540, { type: "trace", cle: "echeance.reportee" }],
+    [10 * MIN, 6, 600, { type: "trace", cle: "echeance.reportee" }],
+    [28 * MIN, 6, 1680, { type: "trace", cle: "tablette.brisee", valeurs: { tablette: 1 } }],
+    [30 * MIN, 6, 1800, { type: "aide" }],
+    // Il part après 40 minutes, revient deux heures plus tard.
+    [160 * MIN, 6, 160 * 60, { type: "debut", rechargement: true }],
+    [
+      160 * MIN,
+      6,
+      160 * 60,
+      {
+        type: "absence",
+        duree: 120 * 60,
+        comptee: 120 * 60,
+        politique: "propre",
+        releve: dette(null),
+      },
+    ],
+    [170 * MIN, 6, 170 * 60, { type: "trace", cle: "grandeCrue.fixee" }],
+    // La nuit : la grande crue tombe pendant l'absence, soldée ; au retour, il creuse.
+    [600 * MIN, 6, 600 * 60, { type: "debut", rechargement: true }],
+    [600 * MIN, 6, 600 * 60, { type: "trace", cle: "dette.soldee" }],
+    [
+      600 * MIN,
+      6,
+      600 * 60,
+      {
+        type: "absence",
+        duree: 420 * 60,
+        comptee: 420 * 60,
+        politique: "propre",
+        releve: dette("soldee"),
+      },
+    ],
+    [600 * MIN + 10_000, 6, 600 * 60 + 10, { type: "creuser", reponse: "fouille" }],
+  ]);
+  const a = analyser(PARTIE_DETTE);
+
+  it("compte les séances, les départs et la présence devant la dette", () => {
+    expect(a.dette).toMatchObject({
+      seances: 3,
+      departs: [120, 420],
+      avantPremierDepart: 40,
+      // 600,2 minutes de la dette, moins 540 minutes d'absence.
+      presence: 60.2,
+      duree: 600.2,
+    });
+  });
+
+  it("compte les promesses et les refus, les soldes, les reports, l'aide et les tablettes brisées", () => {
+    expect(a.dette).toMatchObject({
+      promesses: 3,
+      refus: 1,
+      soldes: 1,
+      reports: 2,
+      premierReport: 9,
+      tablettes: [28],
+      aide: 1,
+    });
+  });
+
+  it("dit la grande crue, l'issue, si elle est venue en présence, et s'il a creusé ensuite", () => {
+    expect(a.dette).toMatchObject({
+      grandeCrue: 170,
+      issue: "soldee",
+      issueA: 600,
+      issueEnPresence: false,
+      creuse: true,
+    });
+    const enDefaut = analyser(
+      journal([
+        [0, 6, 0, { type: "debut", rechargement: false }],
+        [49 * MIN, 6, 49 * 60, { type: "trace", cle: "dette.defaut" }],
+        [49 * MIN, 6, 49 * 60, { type: "releve", releve: dette("defaut") }],
+      ]),
+    );
+    expect(enDefaut.dette).toMatchObject({
+      issue: "defaut",
+      issueA: 49,
+      issueEnPresence: true,
+      grandeCrue: null,
+      creuse: false,
+    });
+  });
+
+  it("résume pour la fiche du testeur, sans la surface ni les caves, et fait un tableau", () => {
+    expect(estRecette(a)).toBe(true);
+    expect(resumer(a)).toEqual([
+      "Testeur T1 · Strates 0.0.0 · abc1234",
+      "Dette : 3 séance(s), 2 départ(s) (120 min, 420 min), le premier après 40 min ; 60.2 min devant la dette sur 600.2 min",
+      "Promesses : 3, dont 1 refusée(s) · soldées avant terme : 1 · aide ouverte 1 fois",
+      "Reports : 2, le premier à 9 min · tablettes brisées : 28 min",
+      "Grande crue fixée : à 170 min · issue : soldée à 600 min, pendant une absence · a creusé ensuite : oui",
+    ]);
+    const lignes = tableauDette([
+      a,
+      analyser(journal([[0, 1, 0, { type: "debut", rechargement: false }]])),
+    ]).split("\n");
+    // Le journal sans dette n'a pas de ligne.
+    expect(lignes).toHaveLength(3);
+    expect(lignes[2]).toContain("| T1 | 3 | 2 | 60.2 min | 600.2 min | 3 | 1 | 1 | 2 | 9 min |");
+    expect(lignes[2]).toContain("| soldée, 600 min, absent |");
+  });
+
+  it("n'existe pas dans un journal qui n'atteint pas la dette", () => {
+    const surface = analyser(journal([[0, 1, 0, { type: "debut", rechargement: false }]]));
+    expect(surface.dette).toBeNull();
+    expect(estRecette(surface)).toBe(false);
   });
 });
 

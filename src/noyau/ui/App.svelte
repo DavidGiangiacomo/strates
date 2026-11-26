@@ -157,9 +157,9 @@
       avis = "La dernière sauvegarde était illisible : la précédente a été reprise.";
     }
 
-    // Un départ de recette (#120) : « ?depart=lit-soldee » commence une partie neuve à l'arrivée dans
-    // le lit. Il ne remplace jamais une partie en cours, et l'adresse l'oublie aussitôt : un
-    // rechargement ne le refait pas.
+    // Un départ de recette (#113, #120) : « ?depart=dette » commence une partie neuve à l'arrivée dans
+    // la dette, « ?depart=lit-soldee » dans le lit. Il ne remplace jamais une partie en cours, et
+    // l'adresse l'oublie aussitôt : un rechargement ne le refait pas.
     const depart = demandeDepart(new URL(location.href));
     if (depart) history.replaceState(history.state, "", sansDepart(new URL(location.href)));
     if (depart && chargement.type === "ok") {

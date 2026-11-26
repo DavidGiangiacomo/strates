@@ -4,7 +4,7 @@
 // Node exécute analyse.ts tel quel (Node 22.18 ou plus : les types sont effacés au chargement).
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
-import { analyser, resumer, tableau, tableauLit } from "./analyse.ts";
+import { analyser, estRecette, resumer, tableau, tableauDette, tableauLit } from "./analyse.ts";
 
 const fichiers = process.argv.slice(2);
 if (fichiers.length === 0) {
@@ -23,8 +23,10 @@ for (const fichier of fichiers) {
     process.exitCode = 1;
   }
 }
-// Les journaux du MVP, puis ceux de la recette du lit, qui commencent dans le lit.
-const mvp = analyses.filter((a) => a.surface.seuil !== null || a.fouille || a.caves || !a.lit);
-const lit = analyses.filter((a) => a.lit);
+// Les journaux du MVP, puis ceux des recettes, qui commencent dans la dette ou dans le lit.
+const mvp = analyses.filter((a) => !estRecette(a));
+const dette = analyses.filter((a) => estRecette(a) && a.dette);
+const lit = analyses.filter((a) => estRecette(a) && a.lit);
 if (mvp.length > 0) console.log(`## Tous\n\n${tableau(mvp)}`);
+if (dette.length > 0) console.log(`## La dette\n\n${tableauDette(dette)}`);
 if (lit.length > 0) console.log(`## Le lit\n\n${tableauLit(lit)}`);
