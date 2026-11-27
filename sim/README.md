@@ -10,6 +10,13 @@ Fait tourner la logique d'une strate sans rendu, sous Node ([#23](https://github
 - `mesures/atelier.ts` : les mesures d'une partie de l'atelier, avec ou sans artefacts (seuil, points, agrandissements du plan, dernier achat, attentes entre deux achats, achats par tranche de 10 minutes, gestes de la dernière ajustée, et les actes de compréhension avec le κ qu'ils rapportent). Elles alimentent `tests/equilibrage-atelier.test.ts` et le rapport [`docs/strates/strate-3-mesures.md`](../docs/strates/strate-3-mesures.md).
 - `joueurs/lit.ts` : des joueurs automatiques pour le lit ([#91](https://github.com/DavidGiangiacomo/strates/issues/91)) : le prévoyant, l'attentif, le distrait, et celui qui ne fait rien. À chaque passage, ils ferment le premier creux qui n'est pas plein, quand ils le voient sous l'eau, ou d'avance s'ils prévoient.
 - `mesures/lit.ts` : les mesures d'une partie du lit, jouée à l'horloge, avec ou sans artefacts, en continu ou avec des absences ([#116](https://github.com/DavidGiangiacomo/strates/issues/116)) : bassin plein, descente, temps de présence, levées, couches d'eau retenue, limon et points. Elles alimentent `tests/equilibrage-lit.test.ts` et le rapport [`docs/strates/strate-7-mesures.md`](../docs/strates/strate-7-mesures.md).
+- `joueurs/reseau.ts` : les neuf joueurs automatiques du réseau ([#69](https://github.com/DavidGiangiacomo/strates/issues/69)), ceux de la fiche :
+  - le naturel répare d'abord ce qui monte le plus près de la ville : il élargit une conduite pleine dont l'aval suit, ou relie une sortie neuve, et ferme d'un quart la vanne qui alimente trop un bassin qui ne peut plus rien élargir. Le parfait, le distrait, le prudent et celui qui ne touche jamais une vanne jouent comme lui ;
+  - le prévoyant relie la route d'un bassin jusqu'à la ville avant la source qui s'y jette ;
+  - le réflexe relie dès qu'il peut, et élargit ce qui entre dans un bassin qui monte ; celui qui apprend joue ainsi dix minutes, puis comme le naturel ;
+  - le joueur « moins cher » fait l'achat le moins cher, quel qu'il soit.
+
+  Ils servent aux tests de partie du réseau et au test des graphes ; l'équilibrage les reprendra ([#99](https://github.com/DavidGiangiacomo/strates/issues/99)).
 - `joueurs/dette.ts` : les onze joueurs automatiques de la dette ([#73](https://github.com/DavidGiangiacomo/strates/issues/73), [#105](https://github.com/DavidGiangiacomo/strates/issues/105)), ceux de la fiche :
   - le naturel promet ce que la caisse paiera, au terme le plus court qui tient ; le parfait, le distrait et l'hésitant jouent comme lui ;
   - l'optimiste et le téméraire comptent sur un rapport qui croît ;

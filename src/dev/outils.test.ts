@@ -4,6 +4,7 @@ import type { EntreeJournal, NumeroStrate } from "../noyau/logique/types";
 import { logique as logiqueAtelier } from "../strates/s3-atelier/logique";
 import { assemblageAcheve } from "../strates/s3-atelier/logique/regles";
 import type { EtatAtelier } from "../strates/s3-atelier/logique/etat";
+import { goulots, logique as logiqueReseau, type EtatReseau } from "../strates/s4-reseau/logique";
 import { logique as logiqueDette, type EtatDette } from "../strates/s6-dette/logique";
 import { CRUE, toutDu } from "../strates/s6-dette/logique/regles";
 import { CASE_DERNIERE } from "./atelier";
@@ -15,6 +16,7 @@ import {
   lireArtefacts,
   modifierEtat,
   recaler,
+  reseauAvantLaDerniereSource,
   sauterA,
   simulerAbsence,
   simulerRecul,
@@ -167,5 +169,30 @@ describe("la dette avant la dernière promesse", () => {
     logiqueDette.tick(patient, 12 * CRUE, ctx);
     expect(patient.issue).toBe("soldee");
     expect(total).toBeGreaterThan(0);
+  });
+});
+
+describe("le réseau avant la dernière source", () => {
+  const ctx = { effets: { multiplicateur: () => 1, niveau: () => null }, emettre: () => {} };
+
+  it("saute au réseau, les cinq premières sources à plein, sans un goulot", () => {
+    const etat = reseauAvantLaDerniereSource(partie());
+    expect(etat.profondeur).toBe(4);
+    expect(etat.meta.journal.strates.map((e) => e.strate)).toEqual([1, 2]);
+    expect(etat.strates[4]!.version).toBe(logiqueReseau.versionEtat);
+    const reseau = structuredClone(etat.strates[4]!.etat) as EtatReseau;
+    for (let s = 0; s < 120; s++) logiqueReseau.tick(reseau, 1, ctx);
+    expect(goulots(reseau)).toEqual([]);
+    expect(reseau.recoit).toBeCloseTo(10 + 4_000 + 1_600_000 + 640_000_000 + 256_000_000_000, -3);
+  });
+
+  it("relie la source 6 avec sa provision, et trouve la citerne", () => {
+    const reseau = structuredClone(
+      reseauAvantLaDerniereSource(partie()).strates[4]!.etat,
+    ) as EtatReseau;
+    logiqueReseau.agir(reseau, { type: "relier", trace: 11 }, ctx);
+    expect(reseau.reliees[6]).toBe(reseau.temps);
+    expect(reseau.citerne).toBe(true);
+    expect(reseau.carnet.map((l) => l.cle).slice(-2)).toEqual(["carnet.reliee", "carnet.voutee"]);
   });
 });

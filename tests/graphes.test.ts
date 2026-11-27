@@ -7,6 +7,7 @@ import { creerJoueur as joueurAtelier, NATUREL as NATUREL_ATELIER } from "../sim
 import { CORRECT as CORRECT_CAVES, creerJoueur as joueurCaves } from "../sim/joueurs/caves";
 import { creerJoueur as joueurDette, NATUREL as NATUREL_DETTE } from "../sim/joueurs/dette";
 import { ATTENTIF as ATTENTIF_LIT, creerJoueur as joueurLit } from "../sim/joueurs/lit";
+import { creerJoueur as joueurReseau, NATUREL as NATUREL_RESEAU } from "../sim/joueurs/reseau";
 import { CORRECT as CORRECT_SURFACE, creerJoueur as joueurSurface } from "../sim/joueurs/surface";
 import { formulesAccessibles } from "../src/noyau/logique/comprehension";
 import { creerEtatNoyau } from "../src/noyau/logique/etat";
@@ -46,6 +47,8 @@ const JOUEURS: Partial<Record<NumeroStrate, (noyau: Noyau) => { seconde(t: numbe
       },
     };
   },
+  // Le réseau se joue par passages, toutes les cinq secondes : six sources, deux heures et demie.
+  4: (noyau) => joueurReseau(noyau, NATUREL_RESEAU),
   // La dette se joue par passages, toutes les cinq secondes : près de trois heures de crues.
   6: (noyau) => joueurDette(noyau, NATUREL_DETTE),
   // Le lit se joue par passages, toutes les cinq minutes : deux heures de crues.

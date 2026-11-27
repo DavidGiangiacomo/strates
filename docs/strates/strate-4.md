@@ -1,6 +1,6 @@
 # Strate 4 — Le réseau
 
-*Fiche de design, issue [#62](https://github.com/DavidGiangiacomo/strates/issues/62). Écrite après la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)), le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)) et le catalogue des objets ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)), qui avait déjà nommé ceux du réseau. Les chiffres viennent d'une simulation grossière de neuf profils de joueur (§ 4), à refaire avec le simulateur headless quand la boucle sera codée ([#69](https://github.com/DavidGiangiacomo/strates/issues/69), [#99](https://github.com/DavidGiangiacomo/strates/issues/99)).*
+*Fiche de design, issue [#62](https://github.com/DavidGiangiacomo/strates/issues/62). Écrite après la bible narrative ([#43](https://github.com/DavidGiangiacomo/strates/issues/43)), le design de la Compréhension ([#44](https://github.com/DavidGiangiacomo/strates/issues/44)) et le catalogue des objets ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)), qui avait déjà nommé ceux du réseau. Les chiffres viennent des joueurs automatiques de la boucle codée ([#69](https://github.com/DavidGiangiacomo/strates/issues/69)), neuf profils de joueur (§ 4), qui ont repris une première simulation grossière ; l'équilibrage les reprendra ([#99](https://github.com/DavidGiangiacomo/strates/issues/99)).*
 
 *Choix tranchés le 27 novembre 2026 :*
 - *capter, puis réparer. Sur un plan fixe, six sources se relient une à une, chacune des centaines de fois plus forte que la précédente. Chacune crée des goulots en aval, qu'on répare en élargissant une conduite ou en reliant une autre route ;*
@@ -25,9 +25,9 @@ Le réseau est la strate où rien ne produit seul (§5). Une source qui coule ne
 |---|---|
 | Verbe | relier |
 | Ressource | Flux : l'eau menée jusqu'à la ville |
-| Unité et notation | **Le pouce de fontainier.** C'est une unité de débit : « Source 2 : 4.000 pouces ». Un pouce vaut cent quarante-quatre lignes, et sous dix pouces, le débit s'écrit aussi en lignes : « 3 pouces 130 lignes ». **Le volume se compte en muids** : un pouce verse un muid par minute. La caisse, les prix et le compteur de la ville s'écrivent en muids. Tous les nombres sont **entiers et écrits en entier**, sans suffixe, sans décimale ni puissance de dix, les milliers séparés d'un point : « 150.000.000.000.000 pouces ». Le temps se compte en minutes, celles du relevé. Aucune autre strate ne compte en pouces ni en muids, ni ne sépare ses milliers d'un point (I1). |
+| Unité et notation | **Le pouce de fontainier.** C'est une unité de débit : « Source 2 : 4.000 pouces ». Un pouce vaut cent quarante-quatre lignes, et sous dix pouces, le débit s'écrit aussi en lignes : « 3 pouces 130 lignes ». **Le volume se compte en muids** : un pouce verse un muid par minute. La provision, ce qu'on a à dépenser, les prix et le compteur de la ville s'écrivent en muids. Tous les nombres sont **entiers et écrits en entier**, sans suffixe, sans décimale ni puissance de dix, les milliers séparés d'un point : « 150.000.000.000.000 pouces ». Le temps se compte en minutes, celles du relevé. Aucune autre strate ne compte en pouces ni en muids, ni ne sépare ses milliers d'un point (I1). |
 | Ordre de grandeur final | ≈ 10¹⁵ muids reçus par la ville : 2,05 × 10¹⁵ au seuil pour le joueur naturel sans aucun objet, soit « 2.050.000.000.000.000 muids ». Il vient après les 10¹² pièces de l'atelier, et avant le chœur, qui ne montre aucun nombre (I3). À plein, le réseau porte 1,5 × 10¹⁴ pouces. |
-| Durée cible | 2 h 30. En simulation, le joueur naturel finit en 2 h 29 sans aucun artefact, et en 2 h 13 avec les objets d'un jeu correct (§ 4, § 8). |
+| Durée cible | 2 h 30. En simulation, le joueur naturel finit en 2 h 29 sans aucun artefact, et en 2 h 10 avec les objets d'un jeu correct (§ 4, § 8). |
 | κ à l'entrée → à la sortie | 38 → 55, au mieux |
 
 *Les nombres de cette fiche sont écrits pour l'équipe, avec des puissances de dix quand ils sont grands. À l'écran, tout s'écrit en entier.*
@@ -84,8 +84,8 @@ Les bassins s'échelonnent dans la vallée, du plus proche de la ville au plus l
 | 7 | source 4 | bassin haut | 6 | 10 | × 1 |
 | 8 | bassin haut | bassin du milieu | 6 | 10 | × 1 |
 | 9 | bassin haut | ville | 6 | 13 | × 3 |
-| 10 | source 5 | bassin haut | 8 | 13 | × 1 |
-| 11 | source 6 | citerne | 11 | 15 | × 1 |
+| 10 | source 5 | bassin haut | 9 | 13 | × 1 |
+| 11 | source 6 | citerne | 12 | 15 | × 1 |
 | 12 | citerne | bassin haut | 11 | 13 | × 1 |
 | 13 | citerne | ville : la grande conduite | 11 | 15 | × 3 |
 
@@ -120,7 +120,7 @@ L'eau passe d'amont en aval, à chaque instant. Elle part des sources, traverse 
   - Quand il reçoit moins, il **redescend** jusqu'à son niveau de service : « Bassin bas : stable. ».
 - **Le goulot est en aval de ce qui monte.** Un bassin qui monte a toutes ses conduites d'aval pleines. Élargir ce qui y entre n'y change rien, ou le fait monter plus vite.
 - **Le temps du signal.** Quand une source monte, il s'écoule de deux à trois minutes entre la conduite pleine et le déversoir : 178 secondes, au milieu, en simulation (§ 4).
-- **La ville reçoit tout ce qui lui arrive.** Le compteur avance d'un muid par minute et par pouce reçu, et la caisse aussi.
+- **La ville reçoit tout ce qui lui arrive.** Le compteur avance d'un muid par minute et par pouce reçu, et la provision aussi.
 
 ### Les gestes
 
@@ -155,7 +155,7 @@ interface EtatReseau {
   reliees: Partial<Record<1 | 2 | 3 | 4 | 5 | 6, number>>; // quand chaque source a été reliée
   attente: Partial<Record<IdNoeud, number>>; // l'eau au-dessus du niveau de service, en muids
   montees: Partial<Record<IdNoeud, number>>; // depuis quand une source ou un bassin monte
-  caisse: number;                   // les muids à dépenser
+  caisse: number;                   // la provision : les muids à dépenser
   recu: number;                     // tout ce que la ville a reçu, en muids : la valeur convertible
   perdu: number;                    // l'eau des déversoirs, pour le journal
   tenue: number;                    // secondes sans goulot, les six sources à plein, en présence
@@ -169,18 +169,29 @@ type ActionReseau =
   | { type: "vanne"; trace: number; ouverture: Ouverture };
 ```
 
-- **`tick(dt)`** fait passer l'eau d'amont en aval : la source 6, la citerne, les sources 4 et 5, le bassin haut, la source 3, le bassin du milieu, les sources 1 et 2, le bassin bas, puis la ville. Chaque nœud reçoit, partage, monte ou déborde. La ville reçoit, et la caisse avec elle.
+- **`tick(dt)`** fait passer l'eau d'amont en aval : la source 6, la citerne, les sources 4 et 5, le bassin haut, la source 3, le bassin du milieu, les sources 1 et 2, le bassin bas, puis la ville. Chaque nœud reçoit, partage, monte ou déborde. La ville reçoit, et la provision avec elle.
 - **`pasMax`** vaut une seconde.
 - **`absence(duree)`** fait couler le réseau sur l'absence, comptée à 80 % et à 12 h au plus, par pas d'une seconde. Elle ne compte pas la tenue (§ 10).
 - **`seuil()`** est atteint quand la tenue arrive à 300 secondes.
 - **`valeurConvertible()`** rend `recu`.
-- La strate n'utilise pas d'aléatoire. Un geste impossible est ignoré sans erreur : élargir au-delà du plus fort, relier un tracé déjà posé, payer sans caisse.
+- La strate n'utilise pas d'aléatoire. Un geste impossible est ignoré sans erreur : élargir au-delà du plus fort, relier un tracé déjà posé, payer sans provision.
+
+### Dans le code ([#69](https://github.com/DavidGiangiacomo/strates/issues/69))
+
+Le module du réseau est dans `src/strates/s4-reseau`, et il suit ce paragraphe.
+- **Les règles** (`logique/regles.ts`) : les treize tracés, les six sources, les calibres et les prix, la montée et le partage à parts égales.
+- **La boucle** (`logique/index.ts`) : l'eau d'amont en aval, les trois gestes, le carnet, la montée, le signal, la tenue du seuil et l'absence.
+- **L'état** (`logique/etat.ts`) garde aussi ce que la vue et le journal lisent : le débit de chaque conduite au dernier instant, les nœuds qui redescendent, et les goulots défaits avant le signal, que l'acte du § 7 comptera ([#98](https://github.com/DavidGiangiacomo/strates/issues/98)).
+- **Les conduites des sources 5 et 6 se posent au calibre de leur premier filet**, 9 et 12 au lieu de 8 et 11. Sans cela, ces deux sources débordaient de leur propre conduite dès qu'on les reliait. Les durées n'en changent pas, et le joueur naturel fait deux achats de moins.
+- **Le seuil** ([#82](https://github.com/DavidGiangiacomo/strates/issues/82)) est codé avec la boucle : la tenue, la règle de l'absence et les minutes du carnet. Un goulot qui paraît à 4 min 59 s remet la tenue à zéro, et les tests le vérifient.
+- **La notation** (`logique/notation.ts`) écrit les débits en pouces et en lignes, et les volumes en muids, en entier. Les lecteurs d'écran reçoivent les nombres sans séparateur, qu'ils lisent comme des nombres.
+- **Des joueurs automatiques** (`sim/joueurs/reseau.ts`) jouent les neuf profils du § 4 à travers le noyau. Sans objets, ils retrouvent la première simulation à la minute près.
 
 ## 4. Boucle moyenne et seuil de fouille
 
 ### Progression
 
-Les temps sont ceux du joueur « naturel » de la simulation, sans aucun artefact. Avec les objets d'un jeu correct, il finit 16 minutes plus tôt (§ 8).
+Les temps sont ceux du joueur « naturel » de la simulation, sans aucun artefact. Avec les objets d'un jeu correct, il finit 19 minutes plus tôt (§ 8).
 
 | Temps | Étape | Contenu |
 |---|---|---|
@@ -193,13 +204,13 @@ Les temps sont ceux du joueur « naturel » de la simulation, sans aucun artefac
 
 La boucle moyenne du §3, c'est **la source**. Cinq fois, une source se relie et monte pendant vingt-cinq minutes. Son eau bute de conduite en conduite, et chaque goulot réparé fait paraître le suivant, plus bas. Puis le réseau la porte, et la source suivante attend.
 
-Le joueur naturel fait 54 achats, soit 5 sources, 6 routes et raccourcis et 43 calibres, et règle trois fois une vanne. Le réseau a un goulot à peu près la moitié du temps. Le joueur naturel en défait 41 avant le signal, et en laisse déborder 14.
+Le joueur naturel fait 52 achats, soit 5 sources, 6 routes et raccourcis et 41 calibres, et règle trois fois une vanne. Le réseau a un goulot à peu près la moitié du temps. Le joueur naturel en défait 41 avant le signal, et en laisse déborder 14.
 
 ### Une conduite au plus large
 
 - Chaque tracé a son calibre le plus fort. Les sources 3, 5 et 6 dépassent ce que porte la route qu'elles trouveraient par les raccourcis : **il faut relier** celle de leur bassin.
 - **Le raccourci est un choix.** Il coûte moins, et il se pose tout de suite. Mais il se remplit le premier, puisque l'eau se partage à parts égales : il verse dans le bassin voisin plus que celui-ci n'emporte, dès que sa route est au plus large. Il faut alors en fermer la vanne d'un quart, ou plus.
-- **La route d'abord** : le joueur qui relie la route d'un bassin avant sa source n'a jamais besoin d'une vanne. En simulation, il fait 41 achats au lieu de 54, et finit à la même heure.
+- **La route d'abord** : le joueur qui relie la route d'un bassin avant sa source n'a jamais besoin d'une vanne. En simulation, il fait 39 achats au lieu de 52, et finit à la même heure.
 
 ### Le seuil
 
@@ -224,23 +235,23 @@ Le joueur naturel fait 54 achats, soit 5 sources, 6 routes et raccourcis et 43 c
 
 ### En simulation
 
-Neuf joueurs automatiques, sans aucun artefact, puis avec les objets d'un jeu correct. Le script est un brouillon en Python, hors du dépôt, qui ne partage rien avec le code du jeu.
+Neuf joueurs automatiques (`sim/joueurs/reseau.ts`), sans aucun artefact, puis avec les objets d'un jeu correct. Ils jouent le code du jeu à travers le noyau, geste par geste. Les objets s'y éveillent à la première source reliée (§ 8).
 - Le joueur naturel passe toutes les 5 secondes. Il répare d'abord ce qui monte le plus près de la ville : il élargit une conduite d'aval pleine dont l'aval suit, ou relie une sortie neuve. Quand un bassin ne peut plus rien élargir ni relier, il ferme d'un quart la vanne qui l'alimente trop.
 - Il ne relie la source suivante que lorsque toutes sont à plein et que plus rien ne monte.
 
 | Profil | Jeu | Seuil | Avec les objets | Points |
 |---|---|---|---|---|
-| parfait | naturel ; passe toutes les 2 s | 2 h 28 | 2 h 13 | 21 |
-| naturel | ci-dessus | 2 h 29 | 2 h 13 | 21 (2,05 × 10¹⁵) |
-| prévoyant | naturel ; relie la route d'un bassin avant sa source, jamais un raccourci | 2 h 28 | 2 h 16 | 21 |
+| parfait | naturel ; passe toutes les 2 s | 2 h 29 | 2 h 10 | 21 |
+| naturel | ci-dessus | 2 h 29 | 2 h 10 | 21 (2,04 × 10¹⁵) |
+| prévoyant | naturel ; relie la route d'un bassin avant sa source, jamais un raccourci | 2 h 29 | 2 h 13 | 21 |
 | apprend | réflexe pendant 10 minutes, puis naturel | 2 h 29 | 2 h 10 | 21 |
-| distrait | naturel ; passe chaque minute | 2 h 36 | 2 h 20 | 21 |
-| prudent | naturel ; ne dépense jamais plus de la moitié de sa caisse | 3 h 09 | 2 h 24 | 21 |
+| distrait | naturel ; passe chaque minute | 2 h 36 | 2 h 17 | 21 |
+| prudent | naturel ; ne dépense jamais plus de la moitié de sa provision | 3 h 09 | 2 h 19 | 21 |
 | sans vannes | naturel, mais ne touche jamais une vanne | jamais | jamais | 12 après 5 h |
 | moins cher | l'achat le moins cher, quel qu'il soit | jamais | — | 8 après 5 h |
 | réflexe | relie dès qu'il peut ; quand un bassin monte, élargit ce qui y entre | jamais | jamais | 4 après 5 h |
 
-- **La durée dépend peu de l'habileté** : de 2 h 28 à 2 h 36 pour les joueurs réguliers. Les sources fixent le rythme, avec leurs vingt-cinq minutes de montée chacune, et les prix fixent le retard des réparations.
+- **La durée dépend peu de l'habileté** : de 2 h 29 à 2 h 36 pour les joueurs réguliers. Les sources fixent le rythme, avec leurs vingt-cinq minutes de montée chacune, et les prix fixent le retard des réparations.
 - **Elle dépend de la dépense** : le joueur prudent finit à 3 h 09, sous les 3 h 15 d'I5.
 - **Les points ne dépendent pas du jeu** : 21 pour tous ceux qui finissent (§ 9).
 - **Le joueur qui apprend** finit à la même heure que le naturel : ses dix premières minutes ne lui coûtent rien, sinon une conduite élargie pour rien (§ 7).
@@ -292,7 +303,7 @@ Schéma, conduites, jauges (§5). Le design parlait de câbles : ici, ce sont de
   - **les jauges**, sur chaque bassin : une colonne graduée, son niveau de service, son bord, et le déversoir qui coule au-dessus ;
   - **le regard**, sous la conduite qu'on survole ou qu'on choisit : son débit, son calibre, sa vanne, et les deux gestes, élargir et relier, avec leur prix ;
   - **le carnet de relevés**, à droite : ses dernières lignes, la plus récente en haut ;
-  - **la ville**, en bas, avec son compteur, et la caisse.
+  - **la ville**, en bas, avec son compteur, et la provision.
 - **Palette** : la pierre claire d'un mur de bassin, un calcaire chaud ; le gris du plomb pour les conduites ; l'eau en bleu clair ; les jauges sur un émail blanc, en chiffres noirs ; l'écume blanche du déversoir. Pas de couleur d'alarme : un goulot se dit par l'écume et par le carnet. Ni le papier gris-vert, le graphite et le vermillon de l'atelier, ni l'argile et le rouge de la dette, ni le bleu nuit du chœur. À vérifier avec [#83](https://github.com/DavidGiangiacomo/strates/issues/83), contre la surface surtout : c'est l'autre strate claire.
 - **Typographie** : une italique à la plume pour les légendes du plan et le carnet (Palatino, sinon une italique à empattements). Les chiffres sont à chasse fixe, alignés en colonne, comme dans un carnet réglé. Les longs nombres doivent se lire d'un coup d'œil : le point des milliers y aide.
 - **Mouvement** : l'eau coule le long des conduites, d'autant plus vite qu'elles sont chargées. Une jauge monte et descend en douceur. Rien d'autre ne bouge.
@@ -314,6 +325,19 @@ Schéma, conduites, jauges (§5). Le design parlait de câbles : ici, ce sont de
   - *lecteurs d'écran* : un nœud se lit en mots (« Bassin haut, monte, deux sorties pleines »), une conduite aussi (« Conduite 9, 256.000.000.000 pouces sur 1.000.000.000.000, vanne ouverte »). Chaque ligne du carnet s'annonce quand elle s'écrit.
 - **Ce qui la distingue** : la seule strate où la production passe par un réseau, et où le plus faible décide de tout. C'est aussi la seule en pouces et en muids.
 - **À l'écran de fouille** : l'eau reçue par la ville, en muids, en chiffres à chasse fixe sur la pierre claire (`apparenceValeur`).
+
+### Dans le code ([#69](https://github.com/DavidGiangiacomo/strates/issues/69))
+
+La vue est un schéma sobre, en attendant la direction artistique ([#83](https://github.com/DavidGiangiacomo/strates/issues/83)) : `vue/Vue.svelte`, et le dessin du plan dans `vue/plan.ts`.
+- **En haut** : la provision, ce que reçoit la ville et le compteur.
+- **Le plan** : les sources, les bassins et leurs jauges, et la ville.
+  - Les conduites posées s'épaississent avec leur calibre, et une conduite pleine porte un double trait.
+  - Les tracés libres sont en pointillés, avec leur numéro et leur prix. Un clic, ou Entrée, pose la conduite.
+  - Un bassin qui monte porte une flèche et se dit aux lecteurs d'écran.
+- **Le regard** d'une conduite donne son débit sur son calibre, « élargir » avec son prix, et sa vanne, en cinq positions.
+- **Le carnet de relevés** met sa ligne la plus récente en haut, et les lecteurs d'écran l'entendent.
+- **Sur un téléphone**, le plan garde une taille lisible et défile en largeur, sans élargir la page.
+- **Comme l'atelier**, le réseau n'est inscrit au registre qu'en développement. Les outils de développement y sautent, ou juste avant la dernière source.
 
 ## 7. Opacité et Compréhension
 
@@ -381,20 +405,20 @@ Les objets de l'atelier sont **puissants**, ceux des caves **utiles**, ceux de l
 | le cahier à lignes | les caves | les noms et les unités, levés à l'arrivée |
 | le fil qui descend | les caves | au seuil, sous les bassins, la moitié d'un tracé paraît : une voûte |
 
-**Pourquoi le débit des sources.** Plus d'eau ne sert que si le réseau la porte : sinon, elle déborde. Le levier aide qui répare, sans réparer à sa place. En simulation, il ne raccourcit presque rien. C'est le prix des conduites qui fait gagner du temps.
+**Pourquoi le débit des sources.** Plus d'eau ne sert que si le réseau la porte : sinon, elle déborde. Le levier aide qui répare, sans réparer à sa place. En simulation, il raccourcit peu la strate. C'est le prix des conduites qui fait gagner du temps.
 
 | Multiplicateurs | aucun | débit × 1,25 | débit × 2,16 | jeu correct : débit × 2,16, pose ÷ 1,5 | au plafond : débit × 2,67, pose ÷ 1,5 |
 |---|---|---|---|---|---|
-| joueur naturel | 2 h 29 | 2 h 30 | 2 h 24 | 2 h 13 | 2 h 13 |
-| joueur prudent | 3 h 09 | 3 h 08 | 3 h 03 | 2 h 24 | 2 h 22 |
-| joueur prévoyant | 2 h 28 | 2 h 30 | 2 h 30 | 2 h 16 | 2 h 15 |
+| joueur naturel | 2 h 29 | 2 h 26 | 2 h 19 | 2 h 10 | 2 h 10 |
+| joueur prudent | 3 h 09 | 3 h 01 | 2 h 56 | 2 h 19 | 2 h 18 |
+| joueur prévoyant | 2 h 29 | 2 h 25 | 2 h 25 | 2 h 13 | 2 h 12 |
 
-- **Durée** : avec les objets d'un jeu correct, le joueur naturel finit en 2 h 13 au lieu de 2 h 29.
-- **Le débit seul** ne fait pas gagner de temps : au plafond tout entier sur lui, × 4, le naturel finit en 2 h 27. Il rapporte de l'eau : 2,8 × 10¹⁵ muids au seuil, au lieu de 2,05. Le 22ᵉ point vient alors sept minutes après le seuil, au lieu de vingt et une (§ 9).
+- **Durée** : avec les objets d'un jeu correct, le joueur naturel finit en 2 h 10 au lieu de 2 h 29.
+- **Le débit seul** fait gagner peu de temps : dix minutes à × 2,16, et six au plafond tout entier sur lui, × 4, où le naturel finit en 2 h 23. Plus d'eau, c'est plus de goulots. Il rapporte de l'eau : 2,8 × 10¹⁵ muids au seuil, au lieu de 2,05. Le 22ᵉ point vient alors sept minutes après le seuil, au lieu de vingt et une (§ 9).
 - **La pose seule**, au plafond (÷ 4), donne 2 h 10.
 - **Les calibres les plus forts laissent de la marge** : même avec le débit au plafond, × 4, chaque bassin garde une route assez large pour ses sources. Avec × 2,16, la source 5 donne 5,5 × 10¹¹ pouces, et la route du haut en porte 10¹³.
 - **I2** : 2,16 × 1,5 = × 3,23, sous le plafond. Le noyau plafonne le produit à × 4.
-- **I5** : toute la simulation du § 4 est faite sans aucun artefact. Le réseau finit entre 2 h 28 et 3 h 09, sous les 3 h 15.
+- **I5** : toute la simulation du § 4 est faite sans aucun artefact. Le réseau finit entre 2 h 29 et 3 h 09, sous les 3 h 15.
 - **L'éveil** : un objet s'éveille la première fois qu'il agit, et le carnet le note sous son nom d'en bas : « La roue qui retient : en service. ». Les affichages et les raccourcis s'éveillent à l'arrivée, et les multiplicateurs à la première source reliée. L'objet étrange s'éveille au seuil.
 - **Les objets de la surface** sont décoratifs : ils se posent au bord du plan, avec leur nom d'en bas, sans rien faire.
 - **Les noms d'en bas** sont ceux du catalogue, que donne le réseau (bible, § 6).
@@ -455,6 +479,20 @@ Les objets de l'atelier sont **puissants**, ceux des caves **utiles**, ceux de l
 - **Les noms d'en bas** des objets de l'atelier sont ceux du catalogue : le regard qui grossit, la vanne qui compte, le collier qui serre, la roue qui retient, la conduite qui chante. Ils comptent dans le budget du réseau.
 - **Ce qu'on en attend** : le carnet, la légende et le regard font environ 120 mots, l'aide 150, les noms des objets 20. Il reste de la marge pour la notice et pour les noms des tracés.
 
+### Dans le code ([#70](https://github.com/DavidGiangiacomo/strates/issues/70))
+
+*Choix tranché le 27 novembre 2026, avec les textes : la notice constate seulement. Elle dit qu'un bassin qui reçoit plus que ses conduites n'emportent monte, puis déborde ; elle ne dit pas que le goulot est en aval. Le joueur le tire lui-même, et l'acte du § 7 garde son sens.*
+
+Les textes sont dans `src/strates/s4-reseau/textes.fr.ts`.
+- **Le carnet** écrit les lignes du tableau, et le résumé de l'absence : « La ville a reçu 1.234.567 muids. », « Bassin bas : a débordé. ». La vanne y a cinq lignes, de « fermée » à « ouverte » ; la feuille qui annonce, dans l'atelier, en écrit le début (§ 13, Q9).
+- **Le quatrième bassin** garde ce nom jusqu'à la première conduite qui le touche. Il s'appelle alors « Citerne », au plan, au carnet et au graphe.
+- **La notice**, « Notice du réseau », s'ouvre par le lien « Aide », au bout du haut du plan, comme dans les autres strates. Elle a cinq entrées : l'eau, le calibre, le partage, le bassin, les mesures. Elle ne dit rien de la fin, ni de l'endroit où chercher. L'ouvrir est noté pour l'acte « sans aide » ; le focus va à la page, et Échap la referme.
+- **Le rappel de reprise** : la dernière ligne du carnet, puis le nœud qui monte le plus près de la ville. Les six sources à plein, ce sont les minutes sans goulot ; sinon, « Aucun goulot. », s'il a été écrit. Le rappel ne redit pas une ligne : « Bassin bas : monte. » reste seul si le carnet vient de l'écrire. À l'arrivée, le carnet est vide, et le rappel ne dit que le lieu.
+- **L'écran de fouille** nomme la valeur convertible « Eau reçue par la ville ».
+- **Les traces** pour le fond : « Aucun goulot depuis 12 minutes. » et « Citerne qui chante : pleine. ». Le dernier relevé est une ligne du carnet. Elles comptent dans le budget du fond.
+- **L'éveil d'un objet** a sa ligne, « La roue qui retient : en service. ». Le carnet l'écrira avec les effets des objets ([#84](https://github.com/DavidGiangiacomo/strates/issues/84)).
+- **Le budget** : 350 mots sur 600, noms d'en bas compris, hors formules et traces. Le carnet en écrit 92, la légende et l'interface 73, le regard 11, la notice 154, les noms d'en bas 20. Les tests le gardent, avec les mots que la bible interdit, et ce que le réseau est seul à employer (I1) : les pouces, les muids et le point des milliers.
+
 ## 12. Critère R5
 
 **Avis : le réseau tient comme jeu autonome de deux heures et demie. C'est l'incrémental du maillon le plus faible, à une condition : que le goulot se cherche, et ne se montre pas.**
@@ -487,4 +525,4 @@ Ce qui le fait tenir :
 10. **La citerne** (§ 2) : le bourdon de la citerne en service, et celui de la conduite qui chante au seuil, doivent annoncer le chœur sans se confondre. À régler avec le son ([#97](https://github.com/DavidGiangiacomo/strates/issues/97)).
 11. **Le chœur** ([fiche](strate-5.md), § 5) supposait déjà les réflexes du réseau : chercher le maillon le plus faible, et relever ce qui est bas. Ils y sont. Sa révision ([#63](https://github.com/DavidGiangiacomo/strates/issues/63)) pourra s'appuyer sur cette fiche.
 12. **La remontée finale** (§11) : le plan à sec, les jauges à zéro, le carnet ouvert à sa dernière ligne. À décider avec [#128](https://github.com/DavidGiangiacomo/strates/issues/128).
-13. **L'éveil des multiplicateurs** à la première source reliée (§ 8) : la simulation les fait agir dès l'arrivée, ce qui ne change ses temps que de quelques secondes.
+13. **L'éveil des multiplicateurs** à la première source reliée (§ 8) : le code les éveille ainsi ([#69](https://github.com/DavidGiangiacomo/strates/issues/69)). La première simulation les faisait agir dès l'arrivée, où la source 1 débordait aussitôt : elle trouvait 2 h 13 avec les objets, au lieu de 2 h 10.
