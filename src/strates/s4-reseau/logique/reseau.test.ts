@@ -442,6 +442,59 @@ describe("l'absence", () => {
   });
 });
 
+describe("le rappel de reprise (bible, § 10)", () => {
+  const rappel = (etat: EtatReseau) => logique.rappel!(etat);
+
+  /** La source 2 reliée à l'arrivée, jusqu'au signal : la conduite 2 est le goulot. */
+  function auSignal(): EtatReseau {
+    const etat = etatInitial();
+    etat.caisse = 2;
+    agir(etat, { type: "relier", trace: 3 });
+    for (let s = 0; s < 600 && etat.carnet.at(-1)?.cle !== "carnet.goulot"; s++) avancer(etat, 1);
+    return etat;
+  }
+
+  it("ne dit rien à l'arrivée, tant que le carnet n'a rien écrit", () => {
+    const etat = etatInitial();
+    expect(rappel(etat)).toEqual([]);
+    avancer(etat, 30);
+    expect(rappel(etat)).toEqual([]);
+  });
+
+  it("redit la dernière ligne du carnet, puis le nœud qui monte le plus près de la ville", () => {
+    const etat = etatInitial();
+    etat.caisse = 2;
+    agir(etat, { type: "relier", trace: 3 });
+    expect(rappel(etat)).toEqual(["Source 2 : reliée."]);
+    avancer(etat, 30);
+    // La dernière ligne dit déjà où en est le réseau : le rappel ne la redit pas.
+    expect(rappel(etat)).toEqual(["Bassin bas : monte."]);
+    expect(rappel(auSignal())).toEqual(["Conduite 2 : goulot.", "Bassin bas : monte."]);
+  });
+
+  it("dit « Aucun goulot. » une fois le goulot réparé, après le bassin redescendu", () => {
+    const etat = auSignal();
+    etat.caisse = 1e6;
+    agir(etat, { type: "elargir", trace: 2 });
+    agir(etat, { type: "elargir", trace: 3 });
+    avancer(etat, 400);
+    expect(goulots(etat)).toEqual([]);
+    expect(rappel(etat)).toEqual(["Bassin bas : stable.", "Aucun goulot."]);
+  });
+
+  it("compte les minutes sans goulot, les six sources à plein, après le dernier geste", () => {
+    const etat = reseauComplet();
+    avancer(etat, 70);
+    expect(rappel(etat)).toEqual(["Aucun goulot depuis 1 minute."]);
+    avancer(etat, 60);
+    agir(etat, { type: "vanne", trace: 8, ouverture: 0.5 });
+    expect(rappel(etat)).toEqual([
+      "Vanne 8 : ouverte de moitié.",
+      "Aucun goulot depuis 2 minutes.",
+    ]);
+  });
+});
+
 describe("les objets d'en haut", () => {
   const effets: EffetsActifs = {
     multiplicateur: (levier) => (levier === "debit" ? 2 : levier === "pose" ? 1.5 : 1),

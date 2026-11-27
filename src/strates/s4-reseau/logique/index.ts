@@ -14,8 +14,8 @@ import type {
   LogiqueStrate,
 } from "../../../noyau/logique/types";
 import { textes } from "../textes.fr";
-import { etatInitial, type Conduite, type EtatReseau } from "./etat";
-import { formaterMuids, remplir } from "./notation";
+import { etatInitial, type Conduite, type EtatReseau, type LigneCarnet } from "./etat";
+import { formaterMuids, formaterPouces, remplir } from "./notation";
 import {
   capacite,
   CONTENANCE,
@@ -411,6 +411,53 @@ function resumeAbsence(etat: EtatReseau, recuAvant: number, vu: Vu): string[] {
   return lignes;
 }
 
+/** La clé de texte d'une ligne du carnet : une vanne a la sienne pour chaque ouverture. */
+export function cleDeLigne(l: LigneCarnet): string {
+  return l.cle === "carnet.vanne" ? `carnet.vanne.${l.valeurs.quarts}` : l.cle;
+}
+
+/** Une ligne du carnet, écrite avec ce modèle : ses nœuds par leur nom, ses débits en pouces. */
+export function ecrireLigne(etat: Readonly<EtatReseau>, l: LigneCarnet, modele: string): string {
+  const v = l.valeurs;
+  const valeurs: Record<string, string> = {};
+  if (v.noeud !== undefined) valeurs.noeud = nomDe(etat, NOEUDS[v.noeud]!);
+  if (v.source !== undefined) valeurs.source = String(v.source);
+  if (v.conduite !== undefined) valeurs.conduite = String(v.conduite);
+  if (v.debit !== undefined) valeurs.debit = formaterPouces(v.debit);
+  if (v.minutes !== undefined) valeurs.minutes = String(v.minutes);
+  return remplir(modele, valeurs);
+}
+
+/**
+ * Où en est le réseau, dans les mots que le carnet a déjà écrits : le nœud qui monte, le plus près de
+ * la ville ; les six sources à plein, les minutes sans goulot ; sinon, « Aucun goulot. » s'il a été
+ * écrit. Rien d'autre : le carnet ne parle de son seuil qu'en comptant ces minutes.
+ */
+function ligneEtat(etat: EtatReseau): string | null {
+  const montent = goulots(etat);
+  if (montent.length > 0) {
+    return remplir(textes["carnet.monte"]!, { noeud: nomDe(etat, montent.at(-1)!) });
+  }
+  if (IDS_SOURCES.every((k) => aPlein(etat, k))) {
+    const m = Math.floor(etat.tenue / 60);
+    if (m === 1) return textes["carnet.depuisUne"]!;
+    if (m > 1) return remplir(textes["carnet.depuis"]!, { minutes: String(m) });
+  }
+  return etat.sansGoulotDepuis !== null ? textes["carnet.aucun"]! : null;
+}
+
+/**
+ * Le rappel de reprise (bible, § 10) : la dernière ligne du carnet, puis où en est le réseau, sauf si
+ * cette ligne vient de le dire. Rien que le joueur n'ait déjà lu, et pas de « vous ».
+ */
+function rappel(etat: EtatReseau): string[] {
+  const derniere = etat.carnet.at(-1);
+  const lignes = derniere ? [ecrireLigne(etat, derniere, textes[cleDeLigne(derniere)] ?? "")] : [];
+  const ou = ligneEtat(etat);
+  if (ou && !lignes.includes(ou)) lignes.push(ou);
+  return lignes;
+}
+
 /** Le nom d'un nœud, tel que le carnet l'écrit : le quatrième bassin se nomme citerne une fois révélé. */
 export function nomDe(etat: Readonly<EtatReseau>, n: IdNoeud): string {
   if (n === "citerne" && !etat.citerne) return textes["noeud.quatrieme"]!;
@@ -469,6 +516,7 @@ export const logique: LogiqueStrate<EtatReseau, ActionReseau> = {
 
   graphe,
   formules,
+  rappel,
 
   /** Pour le journal de session : la caisse, ce que reçoit la ville, les sources, les goulots. */
   releve(etat) {

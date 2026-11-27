@@ -1,6 +1,9 @@
-// Les textes du réseau (docs/strates/strate-4.md, § 11 ; bible, § 4) : la voix d'un carnet de
-// relevés, la vanne, le bassin, le niveau, sans un mot de trop. Les nombres s'écrivent dans la
-// notation du réseau, en pouces et en muids, les milliers séparés d'un point ; la vue les remplit.
+// Les textes du réseau (docs/strates/strate-4.md, § 11 ; bible, §§ 2, 4 et 9) : la voix d'un carnet
+// de relevés. La vanne, le bassin, le niveau, sans un mot de trop, à la troisième personne : pas de
+// « vous », pas d'exclamation, pas de conseil. Les nombres s'y glissent par `{cle}`, déjà écrits dans
+// la notation du réseau : les débits en pouces et en lignes, les volumes en muids, en entier, les
+// milliers séparés d'un point. Les noms d'en bas des objets de l'atelier sont au catalogue
+// (noyau/logique/catalogue.ts) ; les traces (`trace.*`) se lisent au fond, et comptent dans son budget.
 export const textes: Record<string, string> = {
   // ——— Les nœuds du plan, tels que le carnet les nomme
   "noeud.source1": "Source 1",
@@ -12,6 +15,7 @@ export const textes: Record<string, string> = {
   "noeud.bas": "Bassin bas",
   "noeud.milieu": "Bassin du milieu",
   "noeud.haut": "Bassin haut",
+  // Le quatrième bassin se révèle à la première conduite qu'on y pose : c'est la citerne (§ 3).
   "noeud.quatrieme": "Quatrième bassin",
   "noeud.citerne": "Citerne",
   "noeud.ville": "Ville",
@@ -29,6 +33,7 @@ export const textes: Record<string, string> = {
   "carnet.vanne.3": "Vanne {conduite} : ouverte aux trois quarts.",
   "carnet.vanne.4": "Vanne {conduite} : ouverte.",
   "carnet.monte": "{noeud} : monte.",
+  // Le signal : le déversoir coule, puis le carnet nomme les conduites pleines sous le nœud.
   "carnet.deborde": "{noeud} : déborde.",
   "carnet.goulot": "Conduite {conduite} : goulot.",
   "carnet.goulotAuPlusLarge": "Conduite {conduite} : goulot, au plus large.",
@@ -36,8 +41,11 @@ export const textes: Record<string, string> = {
   "carnet.aucun": "Aucun goulot.",
   "carnet.depuisUne": "Aucun goulot depuis 1 minute.",
   "carnet.depuis": "Aucun goulot depuis {minutes} minutes.",
+  // Le reste (bible, § 3) : une salle voûtée, immense. Pleine, elle bourdonne. C'est la nef du chœur.
   "carnet.voutee": "Quatrième bassin : une salle voûtée.",
   "carnet.citerne": "Citerne qui chante : pleine.",
+  // L'éveil d'un objet d'en haut, sous son nom d'en bas (bible, § 6), pour #84.
+  "carnet.eveil": "{objet} : en service.",
 
   // ——— L'interface
   plan: "Plan",
@@ -52,9 +60,8 @@ export const textes: Record<string, string> = {
   "regard.choisir": "Choisir une conduite.",
   "geste.elargir": "élargir, {prix}",
   "geste.auPlusLarge": "au plus large",
-  "geste.relier": "relier, {prix}",
-  "trace.libre": "Tracé {conduite}, de {de} à {vers} : relier, {prix}.",
-  "trace.pose": "Conduite {conduite}, de {de} à {vers} : {debit} sur {capacite}.",
+  "plan.libre": "Tracé {conduite}, de {de} à {vers} : relier, {prix}.",
+  "plan.pose": "Conduite {conduite}, de {de} à {vers} : {debit} sur {capacite}.",
   "ouverture.0": "fermée",
   "ouverture.1": "ouverte d'un quart",
   "ouverture.2": "ouverte de moitié",
@@ -62,6 +69,30 @@ export const textes: Record<string, string> = {
   "ouverture.4": "ouverte",
   "noeud.monte": "{noeud}, monte",
   "source.sansDebit": "{noeud}, sans débit écrit",
+
+  // ——— La notice du réseau : l'aide, comme la notice d'un carnet de fontainier. Elle constate les
+  // règles, et ne conseille rien ; elle ne dit pas où chercher un goulot, ni rien de la fin.
+  aide: "Aide",
+  "aide.titre": "Notice du réseau",
+  "aide.fermer": "Refermer",
+  "aide.eau.titre": "L'eau",
+  "aide.eau":
+    "L'eau va des sources à la ville, de bassin en bassin, par les conduites. Une source reliée donne d'abord un filet, puis double toutes les deux minutes et demie, jusqu'à son plein.",
+  "aide.calibre.titre": "Le calibre",
+  "aide.calibre":
+    "Une conduite porte au plus son calibre : dix pouces au premier, dix fois plus à chaque calibre. Chaque tracé a son calibre le plus fort.",
+  "aide.partage.titre": "Le partage",
+  "aide.partage":
+    "L'eau qui sort d'un bassin se partage à parts égales entre ses conduites ; ce qu'une conduite pleine ne prend pas va aux autres. Une vanne, réglée au quart, ne laisse passer que sa part du calibre.",
+  "aide.bassin.titre": "Le bassin",
+  "aide.bassin":
+    "Un bassin tient deux minutes de ce que ses conduites emportent. S'il reçoit davantage, il monte, puis déborde : l'eau du déversoir est perdue.",
+  "aide.mesures.titre": "Les mesures",
+  "aide.mesures":
+    "Un pouce vaut cent quarante-quatre lignes, et verse un muid par minute. Le regard d'une conduite donne son débit, son calibre et sa vanne.",
+
+  // ——— L'écran de fouille : la valeur convertible, l'eau reçue.
+  "fouille.valeur": "Eau reçue par la ville",
 
   // ——— Les formules réelles (§ 7), au-delà de κ = 50 : hors du budget de mots
   "formule.pouce": "Un pouce verse un muid par minute.",
@@ -79,4 +110,11 @@ export const textes: Record<string, string> = {
   // ——— Le retour d'une absence (§ 10)
   "absence.recu": "La ville a reçu {muids}.",
   "absence.deborde": "{noeud} : a débordé.",
+
+  // ——— Les traces pour le fond (bible, § 5) : le dernier relevé, tel que le joueur l'a laissé (une
+  // ligne du carnet), le temps sans goulot jusqu'à la descente, et la citerne. Elles comptent dans le
+  // budget du fond.
+  "trace.sansGoulot": "Aucun goulot depuis {minutes} minutes.",
+  "trace.sansGoulotUne": "Aucun goulot depuis 1 minute.",
+  "trace.citerne": "Citerne qui chante : pleine.",
 };

@@ -479,6 +479,20 @@ Les objets de l'atelier sont **puissants**, ceux des caves **utiles**, ceux de l
 - **Les noms d'en bas** des objets de l'atelier sont ceux du catalogue : le regard qui grossit, la vanne qui compte, le collier qui serre, la roue qui retient, la conduite qui chante. Ils comptent dans le budget du réseau.
 - **Ce qu'on en attend** : le carnet, la légende et le regard font environ 120 mots, l'aide 150, les noms des objets 20. Il reste de la marge pour la notice et pour les noms des tracés.
 
+### Dans le code ([#70](https://github.com/DavidGiangiacomo/strates/issues/70))
+
+*Choix tranché le 27 novembre 2026, avec les textes : la notice constate seulement. Elle dit qu'un bassin qui reçoit plus que ses conduites n'emportent monte, puis déborde ; elle ne dit pas que le goulot est en aval. Le joueur le tire lui-même, et l'acte du § 7 garde son sens.*
+
+Les textes sont dans `src/strates/s4-reseau/textes.fr.ts`.
+- **Le carnet** écrit les lignes du tableau, et le résumé de l'absence : « La ville a reçu 1.234.567 muids. », « Bassin bas : a débordé. ». La vanne y a cinq lignes, de « fermée » à « ouverte » ; la feuille qui annonce, dans l'atelier, en écrit le début (§ 13, Q9).
+- **Le quatrième bassin** garde ce nom jusqu'à la première conduite qui le touche. Il s'appelle alors « Citerne », au plan, au carnet et au graphe.
+- **La notice**, « Notice du réseau », s'ouvre par le lien « Aide », au bout du haut du plan, comme dans les autres strates. Elle a cinq entrées : l'eau, le calibre, le partage, le bassin, les mesures. Elle ne dit rien de la fin, ni de l'endroit où chercher. L'ouvrir est noté pour l'acte « sans aide » ; le focus va à la page, et Échap la referme.
+- **Le rappel de reprise** : la dernière ligne du carnet, puis le nœud qui monte le plus près de la ville. Les six sources à plein, ce sont les minutes sans goulot ; sinon, « Aucun goulot. », s'il a été écrit. Le rappel ne redit pas une ligne : « Bassin bas : monte. » reste seul si le carnet vient de l'écrire. À l'arrivée, le carnet est vide, et le rappel ne dit que le lieu.
+- **L'écran de fouille** nomme la valeur convertible « Eau reçue par la ville ».
+- **Les traces** pour le fond : « Aucun goulot depuis 12 minutes. » et « Citerne qui chante : pleine. ». Le dernier relevé est une ligne du carnet. Elles comptent dans le budget du fond.
+- **L'éveil d'un objet** a sa ligne, « La roue qui retient : en service. ». Le carnet l'écrira avec les effets des objets ([#84](https://github.com/DavidGiangiacomo/strates/issues/84)).
+- **Le budget** : 350 mots sur 600, noms d'en bas compris, hors formules et traces. Le carnet en écrit 92, la légende et l'interface 73, le regard 11, la notice 154, les noms d'en bas 20. Les tests le gardent, avec les mots que la bible interdit, et ce que le réseau est seul à employer (I1) : les pouces, les muids et le point des milliers.
+
 ## 12. Critère R5
 
 **Avis : le réseau tient comme jeu autonome de deux heures et demie. C'est l'incrémental du maillon le plus faible, à une condition : que le goulot se cherche, et ne se montre pas.**

@@ -9,12 +9,13 @@
   import type { ProprietesVue } from "../../../noyau/logique/types";
   import {
     aPlein,
+    cleDeLigne,
     conduite,
     contenance,
     debitSource,
+    ecrireLigne,
     enService,
     nomDe,
-    NOEUDS,
     paru,
     porte,
     prixDe,
@@ -48,7 +49,7 @@
     VILLE,
   } from "./plan";
 
-  let { etat, agir, o, mode }: ProprietesVue<EtatReseau, ActionReseau> = $props();
+  let { etat, agir, o, mode, noyau }: ProprietesVue<EtatReseau, ActionReseau> = $props();
 
   /** Les lignes du carnet que la vue montre. */
   const LIGNES = 10;
@@ -57,6 +58,27 @@
   const actif = $derived(mode === "jeu");
   /** La conduite dont le regard est ouvert. */
   let choisie = $state<number | null>(null);
+
+  // La notice (fiche, § 11) : une page courte, qui constate les règles. L'ouvrir est noté, pour
+  // l'acte « sans aide » ; à l'ouverture, le focus va à la page, et Échap la referme.
+  const NOTICE = ["eau", "calibre", "partage", "bassin", "mesures"] as const;
+  let aideOuverte = $state(false);
+  let lienAide: HTMLButtonElement | undefined = $state();
+  let pageAide: HTMLElement | undefined = $state();
+  function ouvrirAide(): void {
+    aideOuverte = true;
+    noyau.ouvrirAide();
+  }
+  function refermerAide(): void {
+    aideOuverte = false;
+    lienAide?.focus();
+  }
+  $effect(() => {
+    if (aideOuverte) pageAide?.focus();
+  });
+  function touche(e: KeyboardEvent): void {
+    if (e.key === "Escape" && aideOuverte) refermerAide();
+  }
   const regard = $derived(choisie === null ? undefined : conduite(etat, choisie));
 
   const t = (cle: string, valeurs: Record<string, string> = {}) => remplir(o(cle), valeurs);
@@ -120,7 +142,7 @@
     const vers = nom(tr.vers);
     if (!c) {
       return pourLecteur(
-        t("trace.libre", {
+        t("plan.libre", {
           conduite: String(numero),
           de,
           vers,
@@ -129,7 +151,7 @@
       );
     }
     return pourLecteur(
-      t("trace.pose", {
+      t("plan.pose", {
         conduite: String(numero),
         de,
         vers,
@@ -139,18 +161,8 @@
     );
   }
 
-  /** Une ligne du carnet, ses nombres écrits. */
-  function ligne(l: LigneCarnet): string {
-    const v = l.valeurs;
-    const valeurs: Record<string, string> = {};
-    if (v.noeud !== undefined) valeurs.noeud = nom(NOEUDS[v.noeud]!);
-    if (v.source !== undefined) valeurs.source = String(v.source);
-    if (v.conduite !== undefined) valeurs.conduite = String(v.conduite);
-    if (v.debit !== undefined) valeurs.debit = formaterPouces(v.debit);
-    if (v.minutes !== undefined) valeurs.minutes = String(v.minutes);
-    const cle = l.cle === "carnet.vanne" ? `carnet.vanne.${v.quarts}` : l.cle;
-    return t(cle, valeurs);
-  }
+  /** Une ligne du carnet, ses nombres écrits, à travers l'opacité. */
+  const ligne = (l: LigneCarnet) => ecrireLigne(etat, l, o(cleDeLigne(l)));
 
   const libelleOuverture = (x: Ouverture) => o(`ouverture.${x * 4}`);
   const recoit = $derived(formaterPouces(etat.recoit));
@@ -160,6 +172,8 @@
     return { x: (x1 + x2) / 2, y: (y1 + y2) / 2 };
   };
 </script>
+
+<svelte:window onkeydown={touche} />
 
 <section class="reseau" aria-label={o("plan")}>
   <header class="haut">
@@ -176,7 +190,37 @@
       <span class="libelle">{o("compteur")}</span>
       <strong aria-label={pourLecteur(formaterMuids(etat.recu))}>{formaterMuids(etat.recu)}</strong>
     </p>
+    <button
+      type="button"
+      class="lien-aide"
+      bind:this={lienAide}
+      aria-expanded={aideOuverte}
+      aria-controls="aide-reseau"
+      onclick={() => (aideOuverte ? refermerAide() : ouvrirAide())}
+      data-test="lien-aide">{o("aide")}</button
+    >
   </header>
+
+  {#if aideOuverte}
+    <div
+      class="aide"
+      id="aide-reseau"
+      bind:this={pageAide}
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="aide-titre"
+      data-test="aide"
+    >
+      <h2 id="aide-titre">{o("aide.titre")}</h2>
+      <dl>
+        {#each NOTICE as partie (partie)}
+          <dt>{o(`aide.${partie}.titre`)}</dt>
+          <dd>{o(`aide.${partie}`)}</dd>
+        {/each}
+      </dl>
+      <button type="button" class="refermer" onclick={refermerAide}>{o("aide.fermer")}</button>
+    </div>
+  {/if}
 
   <div class="pages">
     <div class="plan">
@@ -224,7 +268,8 @@
             {#if c && pleine(c)}
               <line class="double" x1={b.x1} y1={b.y1} x2={b.x2} y2={b.y2} stroke-width={1.5} />
             {/if}
-            <!-- Un raccourci couché porte son numéro au-dessus, son prix dessous ; les autres, à droite. -->
+            <!-- Un raccourci couché porte son numéro au-dessus, son prix sous les bassins, que leur cadre ne
+                 cache pas ; les autres, à droite. -->
             <text
               class="numero"
               class:centre={couche}
@@ -237,7 +282,7 @@
                 class="prix"
                 class:centre={couche}
                 x={couche ? m.x : m.x + 10}
-                y={couche ? m.y + 20 : m.y + 14}
+                y={couche ? m.y + 40 : m.y + 14}
                 aria-hidden="true">{prixEcrit(tr.numero)}</text
               >
             {/if}
@@ -391,6 +436,40 @@
   .haut p {
     margin: 0;
   }
+  .lien-aide {
+    margin-left: auto;
+    font: inherit;
+    font-style: italic;
+    background: none;
+    border: none;
+    color: var(--encre);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .aide {
+    margin: 0.75rem 0;
+    padding: 0.75rem 1rem;
+    background: #faf7f1;
+    border: 1px solid var(--plomb);
+    max-width: 42rem;
+  }
+  .aide h2 {
+    font-size: 1.1rem;
+    font-style: italic;
+    font-weight: normal;
+    margin: 0 0 0.5rem;
+  }
+  .aide dt {
+    font-style: italic;
+    margin-top: 0.4rem;
+  }
+  .aide dd {
+    margin: 0.1rem 0 0;
+  }
+  .refermer {
+    margin-top: 0.6rem;
+    font: inherit;
+  }
   .libelle {
     margin-right: 0.4rem;
   }
@@ -416,7 +495,7 @@
   }
   @media (max-width: 760px) {
     svg {
-      min-width: 720px;
+      min-width: 780px;
     }
   }
   .centre {

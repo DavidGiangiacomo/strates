@@ -188,3 +188,51 @@ describe("le carnet", () => {
     expect(lignes).toContain("Conduite 2 : goulot.");
   });
 });
+
+describe("la notice du réseau (fiche, § 11)", () => {
+  it("s'ouvre d'un lien, se note pour l'acte « sans aide », prend le focus, et se referme par Échap", () => {
+    let consultations = 0;
+    const etat = $state(etatInitial());
+    composant = mount(Vue, {
+      target: document.body,
+      props: {
+        etat,
+        agir: () => {},
+        noyau: { ...commandes, ouvrirAide: () => consultations++ },
+        o: (cle: string) => strate.textes[cle] ?? `?${cle}`,
+        lisible: () => true,
+        mode: "jeu",
+        son: silence,
+      },
+    });
+    flushSync();
+    const lien = document.querySelector<HTMLButtonElement>("[data-test=lien-aide]")!;
+    expect(lire(lien.textContent)).toBe("Aide");
+    expect(lien.getAttribute("aria-expanded")).toBe("false");
+    lien.click();
+    flushSync();
+    expect(consultations).toBe(1);
+    const aide = document.querySelector<HTMLElement>("[data-test=aide]")!;
+    expect(document.activeElement).toBe(aide);
+    expect(texte("[data-test=aide] h2")).toBe("Notice du réseau");
+    expect(tous("[data-test=aide] dt")).toEqual([
+      "L'eau",
+      "Le calibre",
+      "Le partage",
+      "Le bassin",
+      "Les mesures",
+    ]);
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    flushSync();
+    expect(document.querySelector("[data-test=aide]")).toBeNull();
+    expect(document.activeElement).toBe(lien);
+  });
+
+  it("s'ouvre aussi à la remontée, et se referme par son bouton", () => {
+    monter(() => {}, "remontee");
+    cliquer(document.querySelector("[data-test=lien-aide]"));
+    expect(tous("[data-test=aide] dd")[3]).toMatch(/monte, puis déborde/);
+    cliquer(document.querySelector("[data-test=aide] .refermer"));
+    expect(document.querySelector("[data-test=aide]")).toBeNull();
+  });
+});

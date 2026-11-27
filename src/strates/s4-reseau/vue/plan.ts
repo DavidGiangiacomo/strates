@@ -3,7 +3,8 @@
 // voisins, les routes descendent de chaque bassin jusqu'à la ville.
 import type { IdNoeud } from "../logique/regles";
 
-export const LARGEUR = 1000;
+// Assez large pour que le prix d'un tracé, écrit à sa droite, tienne près du bord : celui de la source 6.
+export const LARGEUR = 1080;
 export const HAUTEUR = 640;
 
 /** Le centre de chaque nœud sur le plan. */
