@@ -304,7 +304,7 @@ Tableaux d'échéances, rouge et noir (§5). C'est la strate la plus sombre (§1
   - **En haut** : la caisse et le rapport par crue, en noir ; la confiance, une barre où ce qui est dû s'écrit en rouge, et ce qui reste en noir.
   - **Le compte des crues**, à droite : une bande verticale de couches fines, une par crue, comme le limon dont la dette s'est servie. Les échéances y sont piquées en rouge, sur les couches à venir ; la grande crue est une couche épaisse. C'est le reste de la strate (bible, § 3) : le joueur reconnaîtra ces couches dans le lit.
   - **Les tablettes brisées**, empilées en morceaux sous la tablette ouverte. La dernière reste entière jusqu'à la grande crue.
-- **Palette** : l'argile des tablettes, sur une terre sombre, et deux encres, le noir et le rouge. Un rouge de terre cuite, plus sourd que le vermillon des frottements de l'atelier. À vérifier contre le réseau, quand sa fiche existera.
+- **Palette** : l'argile des tablettes, sur une terre sombre, et deux encres, le noir et le rouge. Un rouge de terre cuite, plus sourd que le vermillon des frottements de l'atelier. Le réseau n'a ni argile ni rouge : une pierre claire, du plomb et de l'eau ([fiche](strate-4.md), § 6).
 - **Typographie** : une écriture de scribe, gravée plutôt qu'écrite ; des chiffres tabulaires, alignés à droite comme dans un livre de comptes. Les sceaux sont de petites empreintes rondes, imprimées dans l'argile. Rien n'imite une écriture réelle.
 - **Mouvement** : lent et régulier, au rythme des crues. Toutes les trente secondes, les lignes de la crue changent de couleur, et une couche s'ajoute au compte des crues.
 - **Sons** :

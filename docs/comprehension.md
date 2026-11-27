@@ -42,13 +42,13 @@ La progression du §9 est le **maximum** : le joueur qui accomplit tous les acte
 | 1 · La surface | 0 | 8 | 3 | — | creuser avant la fissure, sans y avoir été poussé : 5 |
 | 2 · Les caves | 8 | 14 | 3 | 3 | le premier hiver sans rupture, soudure comprise : 3 ; une année sans achat d'automne et sans rupture : 2 ; le seuil au plus tôt, sans grand hiver manqué : 3 |
 | 3 · L'atelier | 22 | 16 | 4 | 3 | la gêne défaite avant que l'atelier ne la montre : 5 ; le premier plan plein qui tourne : 4 |
-| 4 · Le réseau | 38 | 17 | 4 | 3 | à définir par sa fiche : 10, dont le goulot trouvé avant que le réseau ne le signale |
+| 4 · Le réseau | 38 | 17 | 4 | 3 | le goulot trouvé avant que le réseau ne le signale : 5 ; la route d'un bassin reliée avant sa source : 3 ; le seuil au plus juste, sans une conduite trop large : 2 |
 | 5 · Le chœur | 55 | 15 | 4 | 3 | à définir par sa fiche : 8, dont un rapport juste réglé à l'œil |
 | 6 · La dette | 70 | 15 | 3 | 3 | la grande crue honorée, sans défaut : 4 ; toute la strate sans une échéance reportée : 3 ; la grande crue fixée au plus juste, puis honorée : 2 |
 | 7 · Le lit | 85 | 11 | 2 | 3 | une levée bâtie avant l'eau, sur un autre creux que le premier : 3 ; la patience, sans jamais déplacer une levée jusqu'à la descente : 3 |
 | 8 · Le fond | 96 | 4 | — | — | y arriver |
 
-- Les actes des strates 1 à 3, 6 et 7 viennent de leurs fiches (§ 7). Ceux des strates 1 et 2 sont revus ici : à la surface, « creuser sans y avoir été poussé » pèse plus que « sans aide », que tout joueur d'incrémentaux fait sans y penser ; dans les caves, « sans artefact » remplace « le premier grand hiver au premier essai », que contient déjà « le seuil au plus tôt ». Dans l'atelier, « le seuil sans limer » a quitté le barème à l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)) : ses 3 points sont allés à la gêne défaite et au premier plan plein.
+- Les actes des strates 1 à 4, 6 et 7 viennent de leurs fiches (§ 7). Ceux des strates 1 et 2 sont revus ici : à la surface, « creuser sans y avoir été poussé » pèse plus que « sans aide », que tout joueur d'incrémentaux fait sans y penser ; dans les caves, « sans artefact » remplace « le premier grand hiver au premier essai », que contient déjà « le seuil au plus tôt ». Dans l'atelier, « le seuil sans limer » a quitté le barème à l'équilibrage ([#96](https://github.com/DavidGiangiacomo/strates/issues/96)) : ses 3 points sont allés à la gêne défaite et au premier plan plein.
 - **Un jeu correct** en gagne environ les deux tiers, et arrive au fond vers κ = 65. C'est une estimation : elle sera mesurée au fil des strates, avec leurs joueurs automatiques.
 
 ## 3. Les paliers
@@ -218,7 +218,7 @@ Ce sont les formules des fiches (§ 3 et § 7) : le coût d'un exemplaire, la r�
   - le joueur naturel gagne dans la dette 15 points sur 15 sans objet, et 12 avec ceux d'un jeu correct ;
   - arrivé au mieux avec κ = 70, il descend au lit avec 85 s'il a laissé ses objets en haut. Comme ailleurs, ces chiffres sont un plafond : ces joueurs n'ouvrent jamais l'aide.
 
-**À venir** : les actes propres des strates 4 et 5, avec leur code.
+**À venir** : les actes propres du réseau, que sa fiche définit ([`strate-4.md`](strates/strate-4.md), § 7), avec son code ([#98](https://github.com/DavidGiangiacomo/strates/issues/98)) ; ceux du chœur, avec la révision de sa fiche ([#63](https://github.com/DavidGiangiacomo/strates/issues/63)). Dans une vraie partie, le graphe ne paraît jamais dans le réseau : κ n'y dépasse pas 38, et ne monte qu'à la descente.
 
 ## 9. Questions ouvertes
 
