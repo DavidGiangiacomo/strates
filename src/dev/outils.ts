@@ -4,9 +4,11 @@ import type { EtatNoyau } from "../noyau/logique/etat";
 import { ecrireSauvegarde, lireSauvegarde } from "../noyau/logique/sauvegarde";
 import type { EntreeJournal, NumeroStrate } from "../noyau/logique/types";
 import { logique as logiqueAtelier } from "../strates/s3-atelier/logique";
+import { logique as logiqueReseau } from "../strates/s4-reseau/logique";
 import { logique as logiqueDette } from "../strates/s6-dette/logique";
 import { atelierDernierePiece } from "./atelier";
 import { detteDernierePromesse } from "./dette";
+import { reseauAvantLaDerniereSource as reseauDerniereSource } from "./reseau";
 
 /** Une copie indépendante de l'état, passée par le format de sauvegarde : exactement ce qui s'écrirait. */
 export function copierEtat(etat: EtatNoyau, versionJeu: string): EtatNoyau {
@@ -39,6 +41,17 @@ export function sauterA(etat: EtatNoyau, n: NumeroStrate): EtatNoyau {
 export function atelierAvantLeSeuil(etat: EtatNoyau): EtatNoyau {
   sauterA(etat, 3);
   etat.strates[3] = { version: logiqueAtelier.versionEtat, etat: atelierDernierePiece() };
+  return etat;
+}
+
+/**
+ * Saute au réseau avant sa dernière source (modifie `etat`) : les cinq premières sources reliées et
+ * à plein, et le réseau qui les porte. La citerne, la grande conduite et le seuil se jouent en une
+ * demi-heure, au lieu de deux heures et demie de jeu.
+ */
+export function reseauAvantLaDerniereSource(etat: EtatNoyau): EtatNoyau {
+  sauterA(etat, 4);
+  etat.strates[4] = { version: logiqueReseau.versionEtat, etat: reseauDerniereSource() };
   return etat;
 }
 

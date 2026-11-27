@@ -26,6 +26,7 @@
     lireArtefacts,
     modifierEtat,
     recaler,
+    reseauAvantLaDerniereSource,
     sauterA,
     simulerAbsence,
     simulerRecul,
@@ -298,6 +299,15 @@
               data-test="atelier-avant-le-seuil">atelier-avant-le-seuil</button
             >
             <small>la dernière pièce sur l'établi</small>
+          </li>
+        {/if}
+        {#if profondeurs.includes(4)}
+          <li>
+            <button
+              onclick={() => executer(() => remplacer(reseauAvantLaDerniereSource(copie())))}
+              data-test="reseau-avant-la-derniere-source">reseau-avant-la-derniere-source</button
+            >
+            <small>la citerne à trouver</small>
           </li>
         {/if}
         {#if profondeurs.includes(6)}
