@@ -121,7 +121,8 @@ export const CATALOGUE: readonly ArtefactDef[] = [
           "La nomenclature montre d'avance les deux pièces suivantes, avec leur profil et leur prix.",
       },
       utile: {
-        description: "Le débit d'une source se lit avant qu'on la relie. Jamais un goulot.",
+        description:
+          "Le débit plein de la prochaine source se lit avant qu'on la relie. Jamais un goulot.",
       },
     },
   },
@@ -136,7 +137,7 @@ export const CATALOGUE: readonly ArtefactDef[] = [
       puissant: {
         description: "Dès l'arrivée, les noms, les valeurs et le rôle de la lime sont levés.",
       },
-      utile: { description: "Dès l'arrivée, les noms du réseau sont levés." },
+      utile: { description: "Dès l'arrivée, les noms et les unités du réseau sont levés." },
     },
   },
   {
@@ -178,7 +179,9 @@ export const CATALOGUE: readonly ArtefactDef[] = [
     cout: 3,
     famille: "raccourci",
     effet: {
-      puissant: { description: "Dès l'arrivée, les noms et les rôles du réseau sont levés." },
+      puissant: {
+        description: "Dès l'arrivée, les noms, les unités et les rôles du réseau sont levés.",
+      },
       utile: {
         description:
           "Dès l'arrivée, les noms du chœur sont levés : les pupitres, le rang, l'écoute et le point d'orgue.",
@@ -195,7 +198,7 @@ export const CATALOGUE: readonly ArtefactDef[] = [
     effet: {
       puissant: {
         description:
-          "Le débit des sources et la contenance des bassins se lisent avant qu'on les relie. Jamais un goulot.",
+          "Le débit plein de chaque source se lit avant qu'on la relie. Jamais un goulot.",
       },
       utile: { description: "Le repère du double, posé d'avance sur chaque barre." },
     },

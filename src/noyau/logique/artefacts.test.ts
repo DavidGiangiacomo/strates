@@ -344,14 +344,11 @@ describe("le catalogue", () => {
 describe("les parcours types", () => {
   /** Les points d'un jeu correct, strate par strate (D-003 ; docs/artefacts.md, § 7). */
   const CORRECT: Record<number, number> = { 1: 12, 2: 8, 3: 16, 4: 21, 5: 14, 6: 28, 7: 4 };
-  /**
-   * Les leviers des strates d'arrivée, d'après leur code ou leur fiche. Celui du réseau vient de
-   * l'architecture (§ 8) : sa fiche le fixera.
-   */
+  /** Les leviers des strates d'arrivée, d'après leur code ou leur fiche (le réseau : strate-4.md, § 8). */
   const LEVIERS: Record<2 | 3 | 4 | 5 | 6 | 7, Leviers> = {
     2: { principal: "recolte", secondaires: ["conservation"] },
     3: { principal: "ressort", secondaires: ["plan"] },
-    4: { principal: "debit" },
+    4: { principal: "debit", secondaires: ["pose"] },
     5: { principal: "bourdon", secondaires: ["tenue"] },
     6: { principal: "confiance", secondaires: ["report"] },
     7: { principal: "depot", secondaires: ["patience"] },
@@ -386,6 +383,9 @@ describe("les parcours types", () => {
   it("donnent les multiplicateurs que supposent les fiches, et restent sous le plafond × 4", () => {
     const atelier = produit(emportes(3), 3);
     expect(atelier.effets.multiplicateur("ressort")).toBeCloseTo(1.1 * 1.25 * 1.3 * 1.5, 12);
+    const reseau = produit(emportes(4), 4);
+    expect(reseau.effets.multiplicateur("debit")).toBeCloseTo(1.5 * 1.25 * 1.15, 12);
+    expect(reseau.effets.multiplicateur("pose")).toBeCloseTo(1.5, 12);
     const choeur = produit(emportes(5), 5);
     expect(choeur.effets.multiplicateur("bourdon")).toBeCloseTo(1.25 * 1.4, 12);
     const dette = produit(emportes(6), 6);

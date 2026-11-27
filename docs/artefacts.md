@@ -131,7 +131,7 @@ Répartition des 34 artefacts (§ 8), vérifiée sur les données du jeu (prés�
 *Les 34 artefacts ([#57](https://github.com/DavidGiangiacomo/strates/issues/57)), dans `src/noyau/logique/catalogue.ts`. Ceux de la surface viennent du MVP ([#10](https://github.com/DavidGiangiacomo/strates/issues/10)).*
 
 *Choix tranchés le 21 octobre 2026 :*
-- *le catalogue est complet : noms, coûts, familles et effets partout. Dans le réseau, le lit et le fond, dont les fiches restent à écrire, les effets sont des propositions ;*
+- *le catalogue est complet : noms, coûts, familles et effets partout. Dans le réseau, le lit et le fond, dont les fiches restaient à écrire, les effets étaient des propositions. Celles du réseau et du lit les ont confirmés ou précisés ([`strate-4.md`](strates/strate-4.md), [`strate-7.md`](strates/strate-7.md), § 8) ;*
 - *un objet étrange par catalogue, de la surface à la dette ; les trois objets du lit sont des clés de lecture pour le fond ;*
 - *au fond, ceux qui ne parlent pas nomment les objets du lit par un nombre d'encoches.*
 
@@ -210,12 +210,12 @@ Cinq objets, 13 points. Les noms d'en bas sont ceux de l'atelier : des pièces e
 | 3 | `s2-meule` | La meule | la roue de pierre | multiplicateur, principal |
 | 5 | `s2-corde` | La corde du puits | le fil qui descend | unique |
 
-| Objet | Puissant, dans l'atelier | Utile, dans le réseau (proposé) |
+| Objet | Puissant, dans l'atelier | Utile, dans le réseau |
 |---|---|---|
-| la lame courbe | levier `ressort` × 1,3 | levier débit × 1,15 |
-| la roue peinte | la nomenclature montre d'avance les deux pièces suivantes, avec leur profil et leur prix | le débit d'une source se lit avant qu'on la relie ; jamais un goulot |
-| le cahier à lignes | toute l'opacité de l'atelier levée à l'arrivée : les noms, les valeurs et le rôle de la lime ([fiche](strates/strate-3.md), § 7) | les noms du réseau, levés à l'arrivée |
-| la roue de pierre | levier `ressort` × 1,5 | levier débit × 1,25 |
+| la lame courbe | levier `ressort` × 1,3 | levier `debit` × 1,15 : le débit des sources |
+| la roue peinte | la nomenclature montre d'avance les deux pièces suivantes, avec leur profil et leur prix | le débit plein de la prochaine source se lit avant qu'on la relie ; jamais un goulot |
+| le cahier à lignes | toute l'opacité de l'atelier levée à l'arrivée : les noms, les valeurs et le rôle de la lime ([fiche](strates/strate-3.md), § 7) | les noms et les unités du réseau, levés à l'arrivée |
+| la roue de pierre | levier `ressort` × 1,5 | levier `debit` × 1,25 |
 | le fil qui descend | au seuil, sous le plan plein, le tracé du réseau paraît un instant : des conduites, des bassins | au seuil du réseau, sous les bassins, la moitié d'un tracé : une voûte |
 
 - **Les deux multiplicateurs** sont ceux que supposait la fiche de l'atelier (§ 8) : avec ceux de la surface, le ressort vaut × 2,7 pour un jeu correct (1,1 × 1,25 × 1,3 × 1,5).
@@ -235,16 +235,17 @@ Cinq objets, 21 points. Les noms d'en bas sont ceux du réseau : des pièces du 
 | 5 | `s3-volant` | Le volant | la roue qui retient | multiplicateur, principal |
 | 5 | `s3-boite-a-musique` | La boîte à musique | la conduite qui chante | unique |
 
-| Objet | Puissant, dans le réseau (proposé) | Utile, dans le chœur |
+| Objet | Puissant, dans le réseau | Utile, dans le chœur |
 |---|---|---|
-| le regard qui grossit | les noms et les rôles du réseau, levés à l'arrivée | les noms du chœur, levés à l'arrivée : les pupitres, le rang, l'écoute et le point d'orgue |
-| la vanne qui compte | le débit des sources et la contenance des bassins se lisent avant qu'on les relie ; jamais un goulot | le repère du double, posé d'avance sur chaque barre |
-| le collier qui serre | le levier secondaire du réseau × 1,5, que sa fiche définira ; à défaut, débit | levier `tenue` × 1,25 : un pupitre détonne 1,25 fois moins loin |
-| la roue qui retient | levier débit × 1,5 | levier `bourdon` × 1,25 |
-| la conduite qui chante | au seuil, on entend une fois dans les conduites le bourdon du chœur | au seuil du chœur, on entend une fois un stylet sur l'argile |
+| le regard qui grossit | les noms, les unités et les rôles du réseau, levés à l'arrivée | les noms du chœur, levés à l'arrivée : les pupitres, le rang, l'écoute et le point d'orgue |
+| la vanne qui compte | le débit plein de chaque source se lit avant qu'on la relie ; jamais un goulot | le repère du double, posé d'avance sur chaque barre |
+| le collier qui serre | levier `pose` : les conduites coûtent 1,5 fois moins cher | levier `tenue` × 1,25 : un pupitre détonne 1,25 fois moins loin |
+| la roue qui retient | levier `debit` × 1,5 : le débit des sources | levier `bourdon` × 1,25 |
+| la conduite qui chante | au seuil, on entend une fois dans les conduites le bourdon du chœur, et la citerne le reprend | au seuil du chœur, on entend une fois un stylet sur l'argile |
 
 - **16 points, jeu correct** : 3 + 4 + 4 + 5. La conduite qui chante reste en haut ; avec 20 points, elle peut remplacer le regard qui grossit.
 - **Dans le réseau**, un affichage ne montre jamais un goulot : le barème en fait un acte de compréhension, le goulot trouvé avant que le réseau ne le signale ([`comprehension.md`](comprehension.md), § 2).
+- **Les leviers du réseau** sont fixés par sa fiche ([`strate-4.md`](strates/strate-4.md), § 8). `debit` multiplie le débit des sources : plus d'eau ne sert que si le réseau la porte, et le levier ne raccourcit presque rien. `pose` divise le prix des conduites, à poser comme à élargir. Pour un jeu correct, × 2,16 et ÷ 1,5 : le joueur naturel finit en 2 h 13 au lieu de 2 h 29.
 
 ### Strate 4 — Le réseau
 
@@ -365,7 +366,7 @@ Un par catalogue, de la surface à la dette. Chacun fait passer quelque chose d'
   |---|---|---|
   | 2 — Les caves | `recolte` × 1,8 ; `conservation` × 1,5 | × 2,7 |
   | 3 — L'atelier | `ressort` × 2,68 ; `plan` × 1,25 | × 3,35 |
-  | 4 — Le réseau | débit × 2,16 ; le secondaire × 1,5, sur débit à défaut | × 3,23 |
+  | 4 — Le réseau | `debit` × 2,16 ; `pose` ÷ 1,5 | × 3,23 |
   | 5 — Le chœur | `bourdon` × 1,75 ; `tenue` × 1,88 | × 3,28 |
   | 6 — La dette | `confiance` × 1,5 ; `report` × 1,88 | × 2,81 |
   | 7 — Le lit | `depot` × 1,41 ; `patience` × 1,25 | × 1,76 |
@@ -378,6 +379,6 @@ Un par catalogue, de la surface à la dette. Chacun fait passer quelque chose d'
 
 ### Ce qui reste
 
-- **Les effets, strate par strate**, avec les noms d'en bas que chaque strate dit au noyau par `nommes()` ([#45](https://github.com/DavidGiangiacomo/strates/issues/45)) : c'est ainsi que paraîtront dans l'inventaire les noms d'en bas du chœur et les encoches du fond. Les caves et l'atelier nomment déjà leurs objets. Les strates : l'atelier ([#81](https://github.com/DavidGiangiacomo/strates/issues/81) et [#95](https://github.com/DavidGiangiacomo/strates/issues/95), fait), le réseau ([#84](https://github.com/DavidGiangiacomo/strates/issues/84)), le chœur ([#87](https://github.com/DavidGiangiacomo/strates/issues/87)), la dette ([#90](https://github.com/DavidGiangiacomo/strates/issues/90), et ses raccourcis avec son opacité, [#104](https://github.com/DavidGiangiacomo/strates/issues/104), fait) et le lit ([#108](https://github.com/DavidGiangiacomo/strates/issues/108), et ses raccourcis avec son opacité, [#115](https://github.com/DavidGiangiacomo/strates/issues/115), fait). Ceux du réseau sont à confirmer par sa fiche ([#62](https://github.com/DavidGiangiacomo/strates/issues/62)), qui fixera aussi son levier secondaire ; ceux du lit le sont par la sienne ([`strate-7.md`](strates/strate-7.md), § 8).
+- **Les effets, strate par strate**, avec les noms d'en bas que chaque strate dit au noyau par `nommes()` ([#45](https://github.com/DavidGiangiacomo/strates/issues/45)) : c'est ainsi que paraîtront dans l'inventaire les noms d'en bas du chœur et les encoches du fond. Les caves et l'atelier nomment déjà leurs objets. Les strates : l'atelier ([#81](https://github.com/DavidGiangiacomo/strates/issues/81) et [#95](https://github.com/DavidGiangiacomo/strates/issues/95), fait), le réseau ([#84](https://github.com/DavidGiangiacomo/strates/issues/84)), le chœur ([#87](https://github.com/DavidGiangiacomo/strates/issues/87)), la dette ([#90](https://github.com/DavidGiangiacomo/strates/issues/90), et ses raccourcis avec son opacité, [#104](https://github.com/DavidGiangiacomo/strates/issues/104), fait) et le lit ([#108](https://github.com/DavidGiangiacomo/strates/issues/108), et ses raccourcis avec son opacité, [#115](https://github.com/DavidGiangiacomo/strates/issues/115), fait). Ceux du réseau et du lit sont fixés par leurs fiches ([`strate-4.md`](strates/strate-4.md), [`strate-7.md`](strates/strate-7.md), § 8).
 - **Les six effets uniques** ([#118](https://github.com/DavidGiangiacomo/strates/issues/118)), et les clés du fond, avec sa fiche ([#65](https://github.com/DavidGiangiacomo/strates/issues/65)).
 - **Les noms d'en haut et d'en bas** sont à relire avec les textes de chaque strate ([#68](https://github.com/DavidGiangiacomo/strates/issues/68), [#70](https://github.com/DavidGiangiacomo/strates/issues/70), [#72](https://github.com/DavidGiangiacomo/strates/issues/72), [#74](https://github.com/DavidGiangiacomo/strates/issues/74), [#92](https://github.com/DavidGiangiacomo/strates/issues/92)) et la passe finale ([#119](https://github.com/DavidGiangiacomo/strates/issues/119)).

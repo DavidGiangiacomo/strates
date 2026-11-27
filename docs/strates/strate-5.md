@@ -265,7 +265,7 @@ Vertical, coloré, sonore (§5). C'est la strate la moins écrite du jeu, et la 
   - **Le pied** de chaque barre porte sa jauge de rang ; un pupitre qui s'écoute porte un signe au sommet.
   - **Le porche**, à droite : les Voix qui attendent, et les jauges du prochain pupitre, de la prochaine écoute et du point d'orgue.
   - **Les repères** (§ 7) : de fines encoches sur la barre qu'on règle, aux hauteurs des rapports déjà tenus.
-- **Palette** : une pierre sombre, bleu nuit. Les barres ont les couleurs saturées d'un vitrail, une teinte par pupitre. Les arcs sont dorés. C'est la première strate en couleurs vives : la surface était blanc cassé, les caves brunes. À vérifier contre l'atelier et le réseau, quand leurs fiches existeront.
+- **Palette** : une pierre sombre, bleu nuit. Les barres ont les couleurs saturées d'un vitrail, une teinte par pupitre. Les arcs sont dorés. C'est la première strate en couleurs vives : la surface était blanc cassé, les caves brunes. L'atelier est un papier gris-vert au graphite ([fiche](strate-3.md), § 6), et le réseau, une pierre claire, du plomb et de l'eau bleu clair ([fiche](strate-4.md), § 6) : aucun des deux n'a ces couleurs.
 - **Typographie** : presque aucun texte. Les rares mots (l'aide, les notes des jauges une fois levées) sont en petites capitales espacées, comme des indications sur une partition. **Aucun chiffre**, pas même dans l'aide.
 - **Mouvement** : vertical et lent. Les barres glissent, elles ne sautent pas.
 - **Sons** :
