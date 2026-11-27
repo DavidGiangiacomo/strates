@@ -67,7 +67,9 @@ async function jouer(
   };
 }
 
-describe("les joueurs automatiques du réseau", () => {
+// Chaque test joue des parties entières à travers le noyau, jusqu'à cinq heures de jeu : quelques
+// secondes chacune, davantage sur la machine de la CI.
+describe("les joueurs automatiques du réseau", { timeout: 30_000 }, () => {
   it("mènent le naturel au seuil à 2 h 29, avec 21 points, et le prudent sous les 3 h 15", async () => {
     const naturel = await jouer(NATUREL);
     expect(naturel.seuil! / 60).toBeCloseTo(149, -1);
